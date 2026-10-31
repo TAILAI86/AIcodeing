@@ -135,6 +135,9 @@
   }
   .buy-btn:disabled { background: #c9cdd6; cursor: not-allowed; }
   .buy-btn:not(:disabled):active { transform: scale(.96); }
+  .shop-item .btns { display: flex; gap: 6px; flex: none; }
+  .shop-item .btns .buy-btn { min-width: 60px; padding: 8px 9px; }
+  html[data-theme="dark"] .buy-btn:disabled { background: #3a4156; }
 
   .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
   .tab {
@@ -304,10 +307,52 @@
     border-radius: 5px; padding: 1px 7px; font-size: 11px;
     font-family: inherit; color: var(--text);
   }
+
+  /* ============ 暗色主题 ============ */
+  html[data-theme="dark"] {
+    --bg: #14161f;
+    --panel: #1e2230;
+    --text: #e6e9f0;
+    --muted: #9aa3b5;
+    --gold: #f5a623;
+    --gold-dark: #ffc44d;
+    --green: #2fbf71;
+    --red: #ff6b6f;
+    --blue: #5aa2ff;
+    --border: #2e3344;
+    --shadow: 0 2px 10px rgba(0,0,0,.4);
+  }
+  html[data-theme="dark"] body { background: var(--bg); }
+  html[data-theme="dark"] .stat { background: #232838; }
+  html[data-theme="dark"] .tab { background: #232838; color: var(--muted); }
+  html[data-theme="dark"] .shop-item:hover { background: #232838; }
+  html[data-theme="dark"] .switch { background: #3a4156; }
+  html[data-theme="dark"] kbd { background: #232838; border-color: var(--border); }
+
+  /* ============ 每日签到 ============ */
+  .checkin-head { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.7; }
+  .checkin-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .checkin-day {
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 6px;
+    text-align: center; font-size: 12px; position: relative; background: #f9fafc;
+  }
+  html[data-theme="dark"] .checkin-day { background: #232838; }
+  .checkin-day .dn { font-size: 11px; color: var(--muted); }
+  .checkin-day .dr { font-weight: 700; font-size: 13px; margin-top: 4px; color: var(--gold-dark); }
+  .checkin-day .ico { font-size: 20px; margin-bottom: 2px; }
+  .checkin-day.done { border-color: var(--gold); background: #fff9ec; }
+  html[data-theme="dark"] .checkin-day.done { background: #2a2a1a; }
+  .checkin-day.today { box-shadow: 0 0 0 2px var(--blue); }
+  .checkin-claim {
+    width: 100%; margin-top: 14px; padding: 12px; font-size: 15px; font-weight: 700;
+    border: none; border-radius: 10px; background: var(--green); color: #fff; cursor: pointer;
+  }
+  .checkin-claim:disabled { background: #c9cdd6; cursor: not-allowed; }
+  html[data-theme="dark"] .checkin-claim:disabled { background: #3a4156; }
 </style>
 </head>
 <body>
-  <h1>💰 金币工厂<span class="ver">v0.0.2</span></h1>
+  <h1>💰 金币工厂<span class="ver">v0.0.3</span></h1>
   <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 自动存档 · 离线也能赚</div>
 
   <div class="layout">
@@ -332,6 +377,7 @@
         <button class="tab active" data-tab="shop">🛒 商店</button>
         <button class="tab" data-tab="ach">🏆 成就</button>
         <button class="tab" data-tab="prestige">♻️ 重生</button>
+        <button class="tab" data-tab="checkin">📅 签到</button>
         <button class="tab" data-tab="settings">⚙️ 设置</button>
       </div>
 
@@ -352,6 +398,12 @@
         </div>
       </div>
 
+      <div id="tab-checkin" style="display:none">
+        <div class="checkin-head" id="checkinHead"></div>
+        <div class="checkin-grid" id="checkinGrid"></div>
+        <button class="checkin-claim" id="checkinBtn">今日签到</button>
+      </div>
+
       <div id="tab-settings" style="display:none">
         <div id="settingsBox"></div>
       </div>
@@ -359,7 +411,7 @@
   </div>
 
   <div class="hint">
-    <kbd>空格</kbd> 快速点击 · <kbd>Ctrl</kbd>+<kbd>A</kbd> 全选 · 长按金币不松手也能连点
+    <kbd>空格</kbd> 快速点击 · 长按金币不松手也能连点 · 商店「买满」一键采购 · 别忘了每日签到 📅
   </div>
 
   <div class="toolbar">
@@ -460,6 +512,8 @@ let state = {
   autoBuy: false,  // 自动采购
   bigNumber: true, // 大数显示
   floatNum: true,  // 飘字特效
+  theme: 'light',  // 主题：light / dark
+  checkin: { last: '', streak: 0, day: 0 }, // 每日签到：上次签到日期、连续天数、当前周期第几天(1-7)
 };
 
 function load() {
@@ -480,6 +534,8 @@ function load() {
   for (const k of ['sound', 'autoBuy', 'bigNumber', 'floatNum']) {
     if (typeof state[k] !== 'boolean') state[k] = d[k];
   }
+  if (typeof state.theme !== 'string' || (state.theme !== 'light' && state.theme !== 'dark')) state.theme = 'light';
+  if (!state.checkin || typeof state.checkin !== 'object') state.checkin = { last: '', streak: 0, day: 0 };
 }
 function save() {
   state.lastSave = Date.now();
@@ -508,7 +564,15 @@ function staffTotal() {
 }
 // 声望提供的全局收益倍率：每点声望 +8%
 function globalMult() {
-  return 1 + 0.08 * (state.prestige || 0);
+  const prestigeMult = 1 + 0.08 * (state.prestige || 0);
+  const achMult = 1 + 0.012 * achCount(); // 每达成一个成就永久 +1.2%
+  return prestigeMult * achMult;
+}
+// 已达成成就数量（用于成就奖励倍率）
+function achCount() {
+  let n = 0;
+  for (const a of ACHIEVEMENTS) if (state.ach[a.id]) n++;
+  return n;
 }
 // 累计财富可兑换的声望（已扣除已拥有的部分）
 function prestigeAvailable() {
@@ -572,12 +636,19 @@ function buildShop() {
     const desc = document.createElement('div'); desc.className = 'desc'; desc.textContent = u.desc;
     const own = document.createElement('div'); own.className = 'own';
     info.append(name, desc, own);
+    const btns = document.createElement('div');
+    btns.className = 'btns';
     const btn = document.createElement('button');
     btn.className = 'buy-btn';
     btn.onclick = () => buy(u);
-    row.append(info, btn);
+    const maxBtn = document.createElement('button');
+    maxBtn.className = 'buy-btn';
+    maxBtn.textContent = '买满';
+    maxBtn.onclick = () => buyMax(u);
+    btns.append(btn, maxBtn);
+    row.append(info, btns);
     list.appendChild(row);
-    shopRefs[u.id] = { name, own, btn };
+    shopRefs[u.id] = { name, own, btn, maxBtn };
   }
 }
 // 轻量更新：只改文本和按钮状态，不再重建 DOM
@@ -590,6 +661,7 @@ function updateShopState() {
     r.own.textContent = `已有 ${n} ｜ 下级 ¥${fmt(c)}`;
     r.btn.textContent = state.money >= c ? '购买' : '买不起';
     r.btn.disabled = state.money < c;
+    r.maxBtn.disabled = state.money < c;
   }
 }
 
@@ -681,7 +753,11 @@ const SETTINGS = [
   { id: 'autoBuy',  title: '🤖 自动采购', desc: '每秒自动购买当前买得起的最便宜的升级' },
   { id: 'bigNumber',title: '📈 大数显示', desc: '在标题处用「万 / 亿 / 兆」显示金额' },
   { id: 'floatNum', title: '💫 飘字特效', desc: '点击时显示 +¥数字 的浮动动画' },
+  { id: 'theme',    title: '🌙 暗色主题', desc: '切换到深色界面，深夜搬砖不刺眼', isTheme: true },
 ];
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
+}
 function renderSettings() {
   const box = $('settingsBox');
   box.innerHTML = '';
@@ -690,10 +766,16 @@ function renderSettings() {
     row.className = 'set-row';
     row.innerHTML = `<div><div class="t">${s.title}</div><div class="d">${s.desc}</div></div>`;
     const sw = document.createElement('button');
-    sw.className = 'switch' + (state[s.id] ? ' on' : '');
+    const on = s.isTheme ? state.theme === 'dark' : !!state[s.id];
+    sw.className = 'switch' + (on ? ' on' : '');
     sw.onclick = () => {
-      state[s.id] = !state[s.id];
-      if (s.id === 'sound' && state.sound) SFX.click();
+      if (s.isTheme) {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        applyTheme();
+      } else {
+        state[s.id] = !state[s.id];
+        if (s.id === 'sound' && state.sound) SFX.click();
+      }
       renderSettings();
       save();
     };
@@ -703,10 +785,12 @@ function renderSettings() {
   const note = document.createElement('div');
   note.className = 'note-box';
   note.innerHTML = `
-    <b>金币工厂 v0.0.2</b> ｜ 单文件网页游戏，双击即玩<br>
+    <b>金币工厂 v0.0.3</b> ｜ 单文件网页游戏，双击即玩<br>
     <span class="v">🎵 音效</span>实时合成，无需任何外部文件<br>
     <span class="v">🤖 自动采购</span>帮你把闲钱花在刀刃上<br>
-    <span class="v">📊 成就进度</span>告诉你离下一个成就还差多远<br>
+    <span class="v">🏆 成就奖励</span>每达成一个成就，全局收益永久 +1.2%<br>
+    <span class="v">📅 每日签到</span>连续 7 天循环，第 7 天送声望 +1<br>
+    <span class="v">🌙 暗色主题</span>深夜搬砖不刺眼<br>
     <span class="v">💾 存档</span>自动保存，可导出 / 读取换设备继续玩<br>
     快捷键：<kbd>空格</kbd> 快速点击`;
   box.appendChild(note);
@@ -720,6 +804,23 @@ function buy(u) {
   state.owned[u.id] = (state.owned[u.id] || 0) + 1;
   if (u.type === 'crit') addLog(`🔥 买了 ${u.name}，暴击更猛了！`);
   else addLog(`💸 雇了 ${u.name}，花了 ¥${fmt(c)}！`);
+  SFX.buy();
+  refresh();
+  save();
+}
+
+// 买满：按当前金额贪心购买，直到买不起为止（单价随等级指数上涨，循环次数有限）
+function buyMax(u) {
+  let n = 0;
+  while (state.money >= cost(u)) {
+    state.money -= cost(u);
+    state.owned[u.id] = (state.owned[u.id] || 0) + 1;
+    n++;
+    if (n > 100000) break; // 安全护栏
+  }
+  if (n === 0) return;
+  if (u.type === 'crit') addLog(`🔥 批量购买 ${u.name} ×${n}，暴击更猛了！`);
+  else addLog(`💸 批量雇了 ${u.name} ×${n}！`);
   SFX.buy();
   refresh();
   save();
@@ -788,8 +889,10 @@ document.querySelectorAll('.tab').forEach(t => {
     $('tab-shop').style.display = t.dataset.tab === 'shop' ? '' : 'none';
     $('tab-ach').style.display = t.dataset.tab === 'ach' ? '' : 'none';
     $('tab-prestige').style.display = t.dataset.tab === 'prestige' ? '' : 'none';
+    $('tab-checkin').style.display = t.dataset.tab === 'checkin' ? '' : 'none';
     $('tab-settings').style.display = t.dataset.tab === 'settings' ? '' : 'none';
     if (t.dataset.tab === 'prestige') renderPrestige();
+    if (t.dataset.tab === 'checkin') renderCheckin();
     if (t.dataset.tab === 'settings') renderSettings();
   };
 });
@@ -846,7 +949,8 @@ function defaultState() {
   return {
     money: 0, total: 0, clicks: 0, crits: 0, offlineBest: 0,
     owned: {}, ach: {}, lastSave: 0, prestige: 0, events: 0,
-    sound: true, autoBuy: false, bigNumber: true, floatNum: true
+    sound: true, autoBuy: false, bigNumber: true, floatNum: true,
+    theme: 'light', checkin: { last: '', streak: 0, day: 0 }
   };
 }
 $('importBtn').onclick = () => {
@@ -902,6 +1006,8 @@ $('importGo').onclick = () => {
   for (const k of ['sound', 'autoBuy', 'bigNumber', 'floatNum']) {
     if (typeof state[k] !== 'boolean') state[k] = defaultState()[k];
   }
+  if (typeof state.theme !== 'string' || (state.theme !== 'light' && state.theme !== 'dark')) state.theme = 'light';
+  if (!state.checkin || typeof state.checkin !== 'object') state.checkin = { last: '', streak: 0, day: 0 };
   save();
   refresh();
   renderPrestige();
@@ -917,7 +1023,9 @@ function renderPrestige() {
     <div class="stat" style="margin-bottom:12px;">
       <div class="v">${state.prestige}</div><div class="k">当前声望</div>
     </div>
-    <div class="own">全局收益加成：<b style="color:var(--gold-dark)">+${Math.round((globalMult() - 1) * 100)}%</b></div>
+    <div class="own">声望加成：<b style="color:var(--gold-dark)">+${Math.round(0.08 * state.prestige * 100)}%</b>（每点 +8%）</div>
+    <div class="own">成就加成：<b style="color:var(--gold-dark)">+${Math.round(0.012 * achCount() * 100)}%</b>（${achCount()}/14 个 · 每个 +1.2%）</div>
+    <div class="own">全局总加成：<b style="color:var(--gold-dark)">+${Math.round((globalMult() - 1) * 100)}%</b></div>
     <div class="own">累计财富可换声望：<b>${avail}</b> 点（需累计 ≥ 100 万）</div>`;
   const btn = $('prestigeBtn');
   btn.textContent = can ? `立即重生（+${avail} 声望）`
@@ -986,6 +1094,77 @@ function scheduleEvent() {
   setTimeout(() => { triggerRandomEvent(); scheduleEvent(); }, delay);
 }
 
+/* ============ 每日签到 ============ */
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function yesterdayStr() {
+  const d = new Date(Date.now() - 86400000);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+// 7 天循环奖励：coins 随当前每秒收益缩放（保证后期仍有价值），第 7 天额外送 1 点声望
+const CHECKIN_REWARDS = [
+  null,
+  { ico: '🪙', coins: r => Math.max(r * 20, 500) },
+  { ico: '💰', coins: r => Math.max(r * 40, 1500) },
+  { ico: '💎', coins: r => Math.max(r * 80, 5000) },
+  { ico: '🏦', coins: r => Math.max(r * 150, 15000) },
+  { ico: '🚀', coins: r => Math.max(r * 300, 50000) },
+  { ico: '🌟', coins: r => Math.max(r * 600, 150000) },
+  { ico: '👑', coins: r => Math.max(r * 1000, 500000), prestige: 1 },
+];
+function renderCheckin() {
+  const today = todayStr();
+  const claimed = state.checkin.last === today;
+  const head = $('checkinHead');
+  if (claimed) {
+    head.innerHTML = `🔥 今日已签到！连续 <b>${state.checkin.streak}</b> 天。明天再来领第 ${(state.checkin.day % 7) + 1} 天的奖励吧。`;
+  } else {
+    head.innerHTML = `📅 连续签到 <b>${state.checkin.streak}</b> 天，第 7 天送 <b style="color:var(--gold-dark)">👑 声望 +1</b>！今天可领第 ${(state.checkin.day % 7) + 1} 天奖励。`;
+  }
+  const grid = $('checkinGrid');
+  grid.innerHTML = '';
+  const todayIdx = (state.checkin.day % 7) + 1;
+  for (let d = 1; d <= 7; d++) {
+    const rw = CHECKIN_REWARDS[d];
+    const done = claimed && (state.checkin.day % 7) === d;
+    const todayCell = !claimed && todayIdx === d;
+    const div = document.createElement('div');
+    div.className = 'checkin-day' + (done ? ' done' : '') + (todayCell ? ' today' : '');
+    const coinTxt = rw.prestige ? '声望+1' : '金币';
+    div.innerHTML = `<div class="ico">${rw.ico}</div><div class="dn">第${d}天</div><div class="dr">${coinTxt}</div>`;
+    grid.appendChild(div);
+  }
+  const btn = $('checkinBtn');
+  btn.disabled = claimed;
+  btn.textContent = claimed ? '今日已签到 ✓' : `领取第 ${todayIdx} 天奖励`;
+}
+function doCheckin() {
+  const today = todayStr();
+  if (state.checkin.last === today) return;
+  if (state.checkin.last === yesterdayStr()) {
+    state.checkin.streak = (state.checkin.streak || 0) + 1;
+    state.checkin.day = (state.checkin.day % 7) + 1;
+  } else {
+    state.checkin.streak = 1;
+    state.checkin.day = 1;
+  }
+  state.checkin.last = today;
+  const rw = CHECKIN_REWARDS[state.checkin.day];
+  const rewardCoins = rw.coins(incomePerSec());
+  state.money += rewardCoins;
+  state.total += rewardCoins;
+  if (rw.prestige) state.prestige += rw.prestige;
+  SFX.event();
+  const extra = rw.prestige ? ` 并获得 ${rw.prestige} 点声望！` : '';
+  addLog(`📅 第 ${state.checkin.day} 天签到：+¥${fmt(rewardCoins)}${extra}`);
+  renderCheckin();
+  refresh();
+  save();
+}
+$('checkinBtn').onclick = doCheckin;
+
 /* ============ 离线收益 ============ */
 function applyOffline() {
   if (!state.lastSave) return;
@@ -1013,7 +1192,7 @@ function checkAch() {
   for (const a of ACHIEVEMENTS) {
     if (!state.ach[a.id] && a.cond(state)) {
       state.ach[a.id] = true;
-      addLog(`🏆 达成成就【${a.name}】！`);
+      addLog(`🏆 达成成就【${a.name}】！全局收益永久 +1.2%`);
     }
   }
 }
@@ -1052,6 +1231,7 @@ window.addEventListener('beforeunload', save);
 
 /* ============ 启动 ============ */
 load();
+applyTheme();
 buildShop();
 applyOffline();
 refresh();
