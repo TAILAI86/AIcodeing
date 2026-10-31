@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金币工厂 · 赚钱小游戏</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --text: #2b2f3a;
+    --muted: #7a8090;
+    --gold: #f5a623;
+    --gold-dark: #d48806;
+    --green: #2fbf71;
+    --red: #e5484d;
+    --blue: #3b82f6;
+    --border: #e5e8ef;
+    --shadow: 0 2px 10px rgba(30,40,60,.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 { font-size: 26px; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  .layout {
+    display: flex;
+    gap: 18px;
+    width: 100%;
+    max-width: 1000px;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+  }
+  .left { flex: 1.1; min-width: 320px; display: flex; flex-direction: column; align-items: center; }
+  .right { flex: 1; min-width: 320px; }
+
+  .money {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--gold-dark);
+    margin: 6px 0 2px;
+  }
+  .income { color: var(--muted); font-size: 13px; margin-bottom: 16px; text-align:center; }
+
+  #coinBtn {
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 700;
+    color: #6b4a00;
+    background: radial-gradient(circle at 35% 30%, #ffe08a, var(--gold) 60%, #e09400);
+    box-shadow: 0 6px 0 #b87b00, 0 10px 24px rgba(245,166,35,.45);
+    transition: transform .08s ease, box-shadow .08s ease;
+    user-select: none;
+  }
+  #coinBtn:active { transform: translateY(5px); box-shadow: 0 1px 0 #b87b00, 0 4px 12px rgba(245,166,35,.45); }
+
+  .float-num {
+    position: fixed;
+    pointer-events: none;
+    font-weight: 700;
+    color: var(--gold-dark);
+    font-size: 18px;
+    animation: floatUp .9s ease-out forwards;
+    z-index: 10;
+  }
+  .float-num.crit { color: var(--red); font-size: 26px; text-shadow: 0 1px 4px rgba(229,72,77,.4); }
+  @keyframes floatUp {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(-60px) scale(1.15); }
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    width: 100%;
+  }
+  .stat {
+    flex: 1;
+    background: #f9fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .stat .v { font-weight: 700; font-size: 16px; }
+  .stat .k { font-size: 11px; color: var(--muted); }
+
+  h2 { font-size: 16px; margin-bottom: 10px; }
+  .shop-list { display: flex; flex-direction: column; gap: 8px; }
+  .shop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    gap: 10px;
+    transition: background .15s;
+  }
+  .shop-item:hover { background: #fbfbfd; }
+  .shop-item .info { flex: 1; }
+  .shop-item .name { font-weight: 700; font-size: 14px; }
+  .shop-item .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .shop-item .own { font-size: 12px; color: var(--blue); margin-top: 2px; }
+  .buy-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--green);
+    color: #fff;
+    min-width: 92px;
+    transition: opacity .15s, transform .05s;
+  }
+  .buy-btn:disabled { background: #c9cdd6; cursor: not-allowed; }
+  .buy-btn:not(:disabled):active { transform: scale(.96); }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .tab {
+    border: 1px solid var(--border);
+    background: #f2f4f8;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .tab.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 700; }
+
+  #eventBanner {
+    position: fixed; top: 18px; left: 50%;
+    transform: translateX(-50%) translateY(-24px);
+    background: linear-gradient(135deg, #ffd76b, #f5a623);
+    color: #5a3d00;
+    padding: 12px 22px; border-radius: 12px;
+    font-weight: 700; font-size: 15px;
+    box-shadow: 0 8px 24px rgba(245,166,35,.4);
+    opacity: 0; transition: all .35s ease;
+    z-index: 60; pointer-events: none; white-space: nowrap;
+  }
+  #eventBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .ach-list { display: flex; flex-direction: column; gap: 6px; }
+  .ach {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .ach.done { border-color: var(--gold); background: #fff9ec; color: var(--text); }
+  .ach.done .name::after { content: " ✅"; }
+
+  .log {
+    margin-top: 14px;
+    border-top: 1px dashed var(--border);
+    padding-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    height: 84px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .toolbar { margin-top: 12px; display: flex; gap: 8px; }
+  .ghost-btn {
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .ghost-btn:hover { color: var(--red); border-color: var(--red); }
+
+  /* 离线收益弹窗 */
+  #offlineModal {
+    position: fixed; inset: 0;
+    background: rgba(20,26,40,.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+  }
+  #offlineModal .box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 26px 28px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  }
+  #offlineModal h3 { font-size: 20px; margin-bottom: 8px; }
+  #offlineModal .big { font-size: 30px; font-weight: 700; color: var(--gold-dark); margin: 10px 0; }
+  #offlineModal .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  #offlineModal button {
+    border: none; background: var(--green); color:#fff;
+    border-radius: 10px; padding: 10px 28px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+
+  .dialog {
+    position: fixed; inset: 0;
+    background: rgba(20,26,40,.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+  }
+  .dialog .box {
+    background: #fff; border-radius: 16px; padding: 22px 24px; width: 380px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  }
+  .dialog h3 { font-size: 18px; margin-bottom: 10px; }
+  .dialog textarea {
+    width: 100%; height: 150px; resize: none;
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+    font-size: 12px; font-family: monospace; color: var(--text);
+    word-break: break-all;
+  }
+  .dialog .sub { color: var(--muted); font-size: 12px; margin: 8px 0; line-height: 1.5; }
+  .dialog .err { color: var(--red); font-size: 12px; min-height: 16px; margin-top: 6px; }
+  .dialog .row { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+  .dialog button {
+    border: none; background: var(--green); color: #fff;
+    border-radius: 10px; padding: 9px 16px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .dialog button.alt { background: #c9cdd6; }
+</style>
+</head>
+<body>
+  <h1>💰 金币工厂</h1>
+  <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 自动存档 · 离线也能赚</div>
+
+  <div class="layout">
+    <!-- 左：主点击区 -->
+    <div class="panel left">
+      <div class="money" id="money">¥ 0</div>
+      <div class="income" id="income">每秒收入：¥0 ｜ 每次点击：¥1 ｜ 暴击 5% ×3</div>
+      <button id="coinBtn">点我<br>赚钱！</button>
+
+      <div class="stats-row">
+        <div class="stat"><div class="v" id="totalEarn">¥0</div><div class="k">累计赚取</div></div>
+        <div class="stat"><div class="v" id="clickCount">0</div><div class="k">点击次数</div></div>
+        <div class="stat"><div class="v" id="staffCount">0</div><div class="k">员工总数</div></div>
+      </div>
+
+      <div class="log" id="log">欢迎来到金币工厂！先点几下水水钱包吧。</div>
+    </div>
+
+    <!-- 右：商店 / 成就 -->
+    <div class="panel right">
+      <div class="tabs">
+        <button class="tab active" data-tab="shop">🛒 商店</button>
+        <button class="tab" data-tab="ach">🏆 成就</button>
+        <button class="tab" data-tab="prestige">♻️ 重生</button>
+      </div>
+
+      <div id="tab-shop">
+        <div class="shop-list" id="shopList"></div>
+      </div>
+
+      <div id="tab-ach" style="display:none">
+        <div class="ach-list" id="achList"></div>
+      </div>
+
+      <div id="tab-prestige" style="display:none">
+        <div id="prestigeInfo"></div>
+        <button class="buy-btn" id="prestigeBtn" style="width:100%;margin-top:14px;padding:12px;font-size:15px;">重生</button>
+        <div class="own" style="margin-top:12px;line-height:1.7;color:var(--muted);">
+          ♻️ 重生会清空金币与所有雇员/升级，但把<b>累计财富</b>转化为永久「声望」，每点声望让<b>所有收益 +8%</b>。<br>
+          累计 ≥ 100 万才能重生；成就与离线记录保留。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="ghost-btn" id="exportBtn">📤 导出存档</button>
+    <button class="ghost-btn" id="importBtn">📥 读取存档</button>
+    <button class="ghost-btn" id="resetBtn">🗑️ 重置存档</button>
+  </div>
+
+  <!-- 离线收益弹窗 -->
+  <div id="offlineModal">
+    <div class="box">
+      <h3>👋 欢迎回来！</h3>
+      <div class="big" id="offlineGain">¥0</div>
+      <div class="sub" id="offlineSub"></div>
+      <button id="offlineOk">收下这笔钱</button>
+    </div>
+  </div>
+
+  <!-- 导出存档弹窗 -->
+  <div id="exportModal" class="dialog">
+    <div class="box">
+      <h3>📤 导出存档</h3>
+      <textarea id="exportText" readonly></textarea>
+      <div class="sub">复制上面的代码自行保存，或下载为文件备份。读取存档可随时找回进度。</div>
+      <div class="row">
+        <button id="exportCopy">复制</button>
+        <button id="exportDownload">下载文件</button>
+        <button id="exportClose" class="alt">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 读取存档弹窗 -->
+  <div id="importModal" class="dialog">
+    <div class="box">
+      <h3>📥 读取存档</h3>
+      <textarea id="importText" placeholder="把导出的存档代码粘贴到这里，或点击下方选择备份文件"></textarea>
+      <div class="err" id="importErr"></div>
+      <div class="sub">读取后当前进度会被覆盖，建议先「导出存档」备份当前进度。</div>
+      <div class="row">
+        <button id="importPick">选择文件</button>
+        <button id="importGo">确认读取</button>
+        <button id="importClose" class="alt">取消</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+    </div>
+  </div>
+
+  <!-- 幸运事件横幅 -->
+  <div id="eventBanner"></div>
+
+<script>
+/* ============ 数据定义 ============ */
+const UPGRADES = [
+  { id: 'click1',  name: '强健手指',   desc: '每次点击 +1 元',        baseCost: 15,       growth: 1.35, type: 'click',  val: 1 },
+  { id: 'click5',  name: '黄金鼠标',   desc: '每次点击 +5 元',        baseCost: 300,      growth: 1.4,  type: 'click',  val: 5 },
+  { id: 'auto1',   name: '兼职小时工', desc: '每秒自动 +2 元',        baseCost: 100,      growth: 1.25, type: 'auto',   val: 2 },
+  { id: 'auto2',   name: '收银小妹',   desc: '每秒自动 +10 元',       baseCost: 800,      growth: 1.28, type: 'auto',   val: 10 },
+  { id: 'auto3',   name: '进货经理',   desc: '每秒自动 +60 元',       baseCost: 6000,     growth: 1.3,  type: 'auto',   val: 60 },
+  { id: 'auto4',   name: '连锁分店',   desc: '每秒自动 +400 元',      baseCost: 50000,    growth: 1.32, type: 'auto',   val: 400 },
+  { id: 'auto5',   name: '上市集团',   desc: '每秒自动 +3000 元',     baseCost: 500000,   growth: 1.35, type: 'auto',   val: 3000 },
+  { id: 'crit1',   name: '幸运手套',   desc: '暴击率 +10% · 暴击 ×4', baseCost: 1500,     growth: 1.45, type: 'crit',   chance: 10, mult: 4 },
+  { id: 'crit2',   name: '财神附体',   desc: '暴击率 +15% · 暴击 ×8', baseCost: 30000,    growth: 1.5,  type: 'crit',   chance: 15, mult: 8 },
+];
+
+const ACHIEVEMENTS = [
+  { id: 'a1', name: '第一桶金',   cond: s => s.total >= 100 },
+  { id: 'a2', name: '万元户',     cond: s => s.total >= 10000 },
+  { id: 'a3', name: '百万富翁',   cond: s => s.total >= 1000000 },
+  { id: 'a4', name: '手速惊人',   cond: s => s.clicks >= 100 },
+  { id: 'a5', name: '点击大王',   cond: s => s.clicks >= 1000 },
+  { id: 'a6', name: '小老板',     cond: s => staffTotal() >= 10 },
+  { id: 'a7', name: '企业家',     cond: s => staffTotal() >= 50 },
+  { id: 'a8', name: '躺赚大师',   cond: s => incomePerSec() >= 1000 },
+  { id: 'a9', name: '睡后收入',   cond: s => s.offlineBest >= 1000 },
+  { id: 'a10',name: '暴击新手',   cond: s => s.crits >= 1 },
+  { id: 'a11',name: '暴击狂人',   cond: s => s.crits >= 100 },
+  { id: 'a12',name: '初代首富',   cond: s => s.prestige >= 1 },
+  { id: 'a13',name: '声望巨头',   cond: s => s.prestige >= 25 },
+  { id: 'a14',name: '天选之人',   cond: s => s.events >= 10 },
+];
+
+/* ============ 游戏状态 ============ */
+const SAVE_KEY = 'coin_factory_save_v2';
+const OFFLINE_CAP = 8 * 3600; // 离线收益最多结算 8 小时
+let state = {
+  money: 0,
+  total: 0,
+  clicks: 0,
+  crits: 0,
+  offlineBest: 0,
+  owned: {},       // { upgradeId: count }
+  ach: {},         // { achId: true }
+  lastSave: 0,
+  prestige: 0,     // 声望（重生获得，永久加成）
+  events: 0,       // 触发幸运事件次数
+};
+
+function load() {
+  try {
+    let raw = localStorage.getItem(SAVE_KEY);
+    // 兼容旧版本存档：从 v1 迁移到 v2，保留已有的金币与升级
+    if (!raw) {
+      const old = localStorage.getItem('coin_factory_save_v1');
+      if (old) {
+        raw = old;
+        localStorage.removeItem('coin_factory_save_v1');
+      }
+    }
+    if (raw) state = Object.assign(state, JSON.parse(raw));
+  } catch (e) {}
+}
+function save() {
+  state.lastSave = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+/* ============ 计算函数 ============ */
+function cost(u) {
+  const n = state.owned[u.id] || 0;
+  return Math.floor(u.baseCost * Math.pow(u.growth, n));
+}
+function clickPower() {
+  let p = 1;
+  for (const u of UPGRADES) if (u.type === 'click') p += (state.owned[u.id] || 0) * u.val;
+  return p * globalMult();
+}
+function incomePerSec() {
+  let v = 0;
+  for (const u of UPGRADES) if (u.type === 'auto') v += (state.owned[u.id] || 0) * u.val;
+  return v * globalMult();
+}
+function staffTotal() {
+  let v = 0;
+  for (const u of UPGRADES) if (u.type === 'auto') v += (state.owned[u.id] || 0);
+  return v;
+}
+// 声望提供的全局收益倍率：每点声望 +8%
+function globalMult() {
+  return 1 + 0.08 * (state.prestige || 0);
+}
+// 累计财富可兑换的声望（已扣除已拥有的部分）
+function prestigeAvailable() {
+  return Math.max(0, Math.floor(Math.sqrt(state.total / 1e6)) - (state.prestige || 0));
+}
+function canPrestige() {
+  return state.total >= 1e6 && prestigeAvailable() > 0;
+}
+function critChance() { // 百分比 0~100
+  let c = 5; // 基础暴击率
+  for (const u of UPGRADES) if (u.type === 'crit') c += (state.owned[u.id] || 0) * u.chance;
+  return Math.min(c, 100);
+}
+function critMult() {
+  let m = 3; // 基础暴击倍率
+  for (const u of UPGRADES) if (u.type === 'crit') m += (state.owned[u.id] || 0) * u.mult;
+  return m;
+}
+
+/* ============ 格式化（支持 万/亿/兆/京/垓/秭） ============ */
+const UNITS = [
+  [1e24, '秭'], [1e20, '垓'], [1e16, '京'], [1e12, '兆'], [1e8, '亿'], [1e4, '万']
+];
+function fmt(n) {
+  n = Math.floor(n);
+  if (n < 1e4) return n.toLocaleString('zh-CN');
+  for (const [v, name] of UNITS) {
+    if (n >= v) return (n / v).toFixed(2) + ' ' + name;
+  }
+  return n.toLocaleString('zh-CN');
+}
+
+/* ============ UI 渲染 ============ */
+const $ = id => document.getElementById(id);
+
+function renderMoney() {
+  $('money').textContent = '¥ ' + fmt(state.money);
+  let buffTxt = '';
+  if (buffUntil && Date.now() < buffUntil) {
+    const left = Math.ceil((buffUntil - Date.now()) / 1000);
+    buffTxt = ` ｜ 🔥增益 ×${tempClickMult}（${left}s）`;
+  }
+  $('income').textContent = `每秒收入：¥${fmt(incomePerSec())} ｜ 点击：¥${fmt(clickPower())} ｜ 暴击 ${critChance()}% ×${critMult()}${buffTxt}`;
+  $('totalEarn').textContent = '¥ ' + fmt(state.total);
+  $('clickCount').textContent = fmt(state.clicks);
+  $('staffCount').textContent = fmt(staffTotal());
+}
+
+// 商店只构建一次，保存各元素引用
+const shopRefs = {};
+function buildShop() {
+  const list = $('shopList');
+  list.innerHTML = '';
+  for (const u of UPGRADES) {
+    const row = document.createElement('div');
+    row.className = 'shop-item';
+    const info = document.createElement('div');
+    info.className = 'info';
+    const name = document.createElement('div'); name.className = 'name';
+    const desc = document.createElement('div'); desc.className = 'desc'; desc.textContent = u.desc;
+    const own = document.createElement('div'); own.className = 'own';
+    info.append(name, desc, own);
+    const btn = document.createElement('button');
+    btn.className = 'buy-btn';
+    btn.onclick = () => buy(u);
+    row.append(info, btn);
+    list.appendChild(row);
+    shopRefs[u.id] = { name, own, btn };
+  }
+}
+// 轻量更新：只改文本和按钮状态，不再重建 DOM
+function updateShopState() {
+  for (const u of UPGRADES) {
+    const n = state.owned[u.id] || 0;
+    const c = cost(u);
+    const r = shopRefs[u.id];
+    r.name.innerHTML = `${u.name} <span style="color:var(--blue);font-size:12px">Lv.${n}</span>`;
+    r.own.textContent = `已有 ${n} ｜ 下级 ¥${fmt(c)}`;
+    r.btn.textContent = state.money >= c ? '购买' : '买不起';
+    r.btn.disabled = state.money < c;
+  }
+}
+
+function renderAch() {
+  const list = $('achList');
+  list.innerHTML = '';
+  for (const a of ACHIEVEMENTS) {
+    const done = !!state.ach[a.id];
+    const div = document.createElement('div');
+    div.className = 'ach' + (done ? ' done' : '');
+    div.innerHTML = `<span class="name">${a.name}</span> — ${done ? '已达成' : '未达成'}`;
+    list.appendChild(div);
+  }
+}
+
+function addLog(msg) {
+  const log = $('log');
+  const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  log.innerHTML = `<div>[${time}] ${msg}</div>` + log.innerHTML;
+  while (log.children.length > 5) log.removeChild(log.lastChild);
+}
+
+/* ============ 交互 ============ */
+function buy(u) {
+  const c = cost(u);
+  if (state.money < c) return;
+  state.money -= c;
+  state.owned[u.id] = (state.owned[u.id] || 0) + 1;
+  if (u.type === 'crit') addLog(`🔥 买了 ${u.name}，暴击更猛了！`);
+  else addLog(`💸 雇了 ${u.name}，花了 ¥${fmt(c)}！`);
+  refresh();
+  save();
+}
+
+const coinBtn = $('coinBtn');
+coinBtn.addEventListener('click', e => {
+  const isCrit = Math.random() * 100 < critChance();
+  const mult = isCrit ? critMult() : 1;
+  const gain = clickPower() * mult * tempClickMult;
+  state.money += gain;
+  state.total += gain;
+  state.clicks++;
+  if (isCrit) state.crits++;
+
+  const f = document.createElement('div');
+  f.className = 'float-num' + (isCrit ? ' crit' : '');
+  f.textContent = (isCrit ? '暴击! ' : '+¥') + fmt(gain);
+  f.style.left = (e.clientX - 24 + (Math.random() * 40 - 20)) + 'px';
+  f.style.top = (e.clientY - (isCrit ? 36 : 30)) + 'px';
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 900);
+
+  refresh();
+});
+
+// 标签页
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    $('tab-shop').style.display = t.dataset.tab === 'shop' ? '' : 'none';
+    $('tab-ach').style.display = t.dataset.tab === 'ach' ? '' : 'none';
+    $('tab-prestige').style.display = t.dataset.tab === 'prestige' ? '' : 'none';
+    if (t.dataset.tab === 'prestige') renderPrestige();
+  };
+});
+
+// 重置
+  $('resetBtn').onclick = () => {
+  if (confirm('确定要重置全部存档吗？包括声望与成就，全部化为泡影！')) {
+    state = { money: 0, total: 0, clicks: 0, crits: 0, offlineBest: 0, owned: {}, ach: {}, lastSave: 0, prestige: 0, events: 0 };
+    save();
+    addLog('🔄 存档已重置，从头开始搬砖吧。');
+    refresh();
+  }
+};
+
+// 导出存档
+$('exportBtn').onclick = () => {
+  save(); // 先落盘，保证导出最新数据
+  const data = localStorage.getItem(SAVE_KEY) || JSON.stringify(state);
+  $('exportText').value = data;
+  $('exportModal').style.display = 'flex';
+};
+$('exportClose').onclick = () => { $('exportModal').style.display = 'none'; };
+$('exportCopy').onclick = async () => {
+  const t = $('exportText').value;
+  try {
+    await navigator.clipboard.writeText(t);
+  } catch (e) {
+    $('exportText').select();
+    document.execCommand('copy');
+  }
+  const btn = $('exportCopy');
+  btn.textContent = '已复制✓';
+  setTimeout(() => { btn.textContent = '复制'; }, 1500);
+};
+$('exportDownload').onclick = () => {
+  const t = $('exportText').value;
+  const blob = new Blob([t], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  a.href = url;
+  a.download = `金币工厂存档_${ts}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  addLog('📤 存档已导出为文件。');
+};
+
+// 读取（导入）存档
+function defaultState() {
+  return {
+    money: 0, total: 0, clicks: 0, crits: 0, offlineBest: 0,
+    owned: {}, ach: {}, lastSave: 0, prestige: 0, events: 0
+  };
+}
+$('importBtn').onclick = () => {
+  $('importText').value = '';
+  $('importErr').textContent = '';
+  $('importModal').style.display = 'flex';
+};
+$('importClose').onclick = () => { $('importModal').style.display = 'none'; };
+$('importPick').onclick = () => $('importFile').click();
+$('importFile').onchange = e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    $('importText').value = String(reader.result || '');
+    $('importErr').textContent = '';
+  };
+  reader.onerror = () => { $('importErr').textContent = '文件读取失败，请换一个文件试试。'; };
+  reader.readAsText(f);
+  e.target.value = ''; // 允许连续选择同一个文件
+};
+$('importGo').onclick = () => {
+  const raw = $('importText').value.trim();
+  if (!raw) {
+    $('importErr').textContent = '请先粘贴存档代码，或点击「选择文件」。';
+    return;
+  }
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    $('importErr').textContent = '解析失败：这段不是合法的 JSON 存档。';
+    return;
+  }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    $('importErr').textContent = '解析失败：存档格式不正确。';
+    return;
+  }
+  if (typeof data.money !== 'number' || typeof data.owned !== 'object' || !data.owned) {
+    $('importErr').textContent = '这不是《金币工厂》的存档（缺少 money / owned 字段）。';
+    return;
+  }
+  let staff = 0;
+  for (const u of UPGRADES) if (u.type === 'auto') staff += (data.owned[u.id] || 0);
+  const summary = `金币 ¥${fmt(data.money || 0)} ｜ 累计 ¥${fmt(data.total || 0)} ｜ 雇员 ${staff} ｜ 声望 ${data.prestige || 0}`;
+  if (!confirm('确定读取该存档吗？当前进度将被覆盖。\n\n' + summary)) return;
+
+  state = Object.assign(defaultState(), data);
+  state.owned = data.owned || {};
+  state.ach = data.ach || {};
+  state.lastSave = Date.now(); // 避免导入旧档后立刻结算一大笔离线收益
+  save();
+  refresh();
+  renderPrestige();
+  $('importModal').style.display = 'none';
+  addLog('📥 存档已读取，财大气粗地回来了！');
+};
+
+/* ============ 重生（Prestige）============ */
+function renderPrestige() {
+  const avail = prestigeAvailable();
+  const can = canPrestige();
+  $('prestigeInfo').innerHTML = `
+    <div class="stat" style="margin-bottom:12px;">
+      <div class="v">${state.prestige}</div><div class="k">当前声望</div>
+    </div>
+    <div class="own">全局收益加成：<b style="color:var(--gold-dark)">+${Math.round((globalMult() - 1) * 100)}%</b></div>
+    <div class="own">累计财富可换声望：<b>${avail}</b> 点（需累计 ≥ 100 万）</div>`;
+  const btn = $('prestigeBtn');
+  btn.textContent = can ? `立即重生（+${avail} 声望）`
+                        : (state.total >= 1e6 ? '暂无可获声望' : '累计不足 100 万');
+  btn.disabled = !can;
+}
+function doPrestige() {
+  if (!canPrestige()) return;
+  const g = prestigeAvailable();
+  if (!confirm(`确定重生吗？将获得 ${g} 点声望，全局加成提升至 +${Math.round((1 + 0.08 * (state.prestige + g) - 1) * 100)}%，但金币与所有升级清零。`)) return;
+  state.prestige += g;
+  state.money = 0;
+  state.owned = {};
+  state.clicks = 0;
+  addLog(`♻️ 重生成功！获得 ${g} 点声望，全局加成 +${Math.round((globalMult() - 1) * 100)}%`);
+  refresh();
+  renderPrestige();
+  save();
+}
+$('prestigeBtn').onclick = doPrestige;
+
+/* ============ 幸运事件 ============ */
+let tempClickMult = 1, tempAutoMult = 1, buffUntil = 0;
+
+function showBanner(msg) {
+  const b = $('eventBanner');
+  b.textContent = msg;
+  b.classList.add('show');
+  clearTimeout(showBanner._t);
+  showBanner._t = setTimeout(() => {
+    b.classList.remove('show');
+  }, 2800);
+}
+function checkBuff() {
+  if (buffUntil && Date.now() > buffUntil) {
+    tempClickMult = 1; tempAutoMult = 1; buffUntil = 0;
+    addLog('⏰ 幸运增益已结束。');
+  }
+}
+function applyBuff(mult, secs) {
+  tempClickMult = mult; tempAutoMult = mult; buffUntil = Date.now() + secs * 1000;
+}
+function triggerRandomEvent() {
+  const roll = Math.random();
+  if (roll < 0.4) {
+    applyBuff(2, 20);
+    showBanner('🧧 财神降临！点击与收益 ×2 持续 20 秒');
+    addLog('🧧 财神降临，收益翻倍 20 秒！');
+  } else if (roll < 0.75) {
+    const instant = Math.max(incomePerSec() * 30, clickPower() * 50, 200);
+    state.money += instant; state.total += instant;
+    showBanner('💰 一笔横财！+' + fmt(instant));
+    addLog(`💰 天降横财 +¥${fmt(instant)}！`);
+  } else {
+    const instant = Math.max(incomePerSec() * 15, 100);
+    state.money += instant; state.total += instant;
+    showBanner('📈 投资红利！+' + fmt(instant));
+    addLog(`📈 收到投资红利 +¥${fmt(instant)}！`);
+  }
+  state.events = (state.events || 0) + 1;
+}
+function scheduleEvent() {
+  const delay = 45000 + Math.random() * 75000; // 45~120 秒随机触发
+  setTimeout(() => { triggerRandomEvent(); scheduleEvent(); }, delay);
+}
+
+/* ============ 离线收益 ============ */
+function applyOffline() {
+  if (!state.lastSave) return;
+  const elapsed = Math.min((Date.now() - state.lastSave) / 1000, OFFLINE_CAP);
+  if (elapsed < 5) return; // 小于 5 秒不弹窗，避免抖
+  const rate = incomePerSec();
+  if (rate <= 0) return;
+  const gain = rate * elapsed;
+  state.money += gain;
+  state.total += gain;
+  if (gain > state.offlineBest) state.offlineBest = gain;
+
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  $('offlineGain').textContent = '¥ ' + fmt(gain);
+  $('offlineSub').textContent = `你离开了约 ${h} 小时 ${m} 分钟，员工帮你赚的`;
+  $('offlineModal').style.display = 'flex';
+  $('offlineOk').onclick = () => { $('offlineModal').style.display = 'none'; };
+  addLog(`😴 离线期间躺赚 ¥${fmt(gain)}！`);
+}
+
+/* ============ 主循环 ============ */
+function checkAch() {
+  for (const a of ACHIEVEMENTS) {
+    if (!state.ach[a.id] && a.cond(state)) {
+      state.ach[a.id] = true;
+      addLog(`🏆 达成成就【${a.name}】！`);
+    }
+  }
+}
+
+function refresh() {
+  checkAch();
+  renderMoney();
+  updateShopState();
+  renderAch();
+}
+
+let tickCount = 0;
+let lastTick = Date.now();
+setInterval(() => {
+  const now = Date.now();
+  const dt = (now - lastTick) / 1000;
+  lastTick = now;
+  checkBuff();
+  if (document.getElementById('tab-prestige').style.display !== 'none') renderPrestige();
+  const gain = incomePerSec() * dt * tempAutoMult;
+  if (gain > 0) {
+    state.money += gain;
+    state.total += gain;
+    renderMoney();
+    updateShopState();
+  }
+  checkAch();
+  // 存档节流：每 5 秒写一次；放在 if 外，保证纯点击玩家也能定时落盘
+  if (++tickCount % 5 === 0) save();
+}, 1000);
+
+// 切走/关闭页面时立刻存档，保证离线结算准确
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+window.addEventListener('beforeunload', save);
+
+/* ============ 启动 ============ */
+load();
+buildShop();
+applyOffline();
+refresh();
+scheduleEvent();
+addLog('🎮 游戏加载完毕，目标：成为首富！');
+</script>
+</body>
+</html>
