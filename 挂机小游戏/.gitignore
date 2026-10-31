@@ -1,0 +1,17 @@
+# 绝不入库的敏感文件
+*.token
+*.token.txt
+.env
+.env.*
+.github_token
+github_token.txt
+credentials.json
+
+# 本地产物
+output/*.7z
+output/*.sh
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
