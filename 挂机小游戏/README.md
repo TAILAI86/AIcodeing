@@ -10,7 +10,7 @@
 
 ```bash
 # 下载
-git clone https://github.com/TAILAI86/AIcodeing.git
+git clone https://github.com/TAILAI86/game.git
 # 打开
 start 挂机小游戏\金币工厂.html
 ```
@@ -43,7 +43,7 @@ start 挂机小游戏\金币工厂.html
 
 ### 下载
 
-前往 [Releases](https://github.com/TAILAI86/AIcodeing/releases) 页面下载 `金币工厂-v0.0.3.7z`（或历史版本），解压后双击 HTML 即可。
+前往 [Releases](https://github.com/TAILAI86/game/releases) 页面下载 `金币工厂-v0.0.3.7z`（或历史版本），解压后双击 HTML 即可。
 
 ---
 
