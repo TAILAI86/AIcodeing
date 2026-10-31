@@ -135,9 +135,16 @@
   }
   .buy-btn:disabled { background: #c9cdd6; cursor: not-allowed; }
   .buy-btn:not(:disabled):active { transform: scale(.96); }
-  .shop-item .btns { display: flex; gap: 6px; flex: none; }
-  .shop-item .btns .buy-btn { min-width: 60px; padding: 8px 9px; }
+  .shop-item .btns { display: flex; gap: 6px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
+  .shop-item .btns .buy-btn { min-width: 58px; padding: 8px 9px; font-size: 12px; }
+  .shop-item .btns .sell-btn {
+    min-width: 38px; padding: 8px 7px; font-size: 12px;
+    background: #8b93a3; border: none; border-radius: 8px; color: #fff;
+    font-weight: 700; cursor: pointer;
+  }
+  .shop-item .btns .sell-btn:disabled { background: #c9cdd6; cursor: not-allowed; }
   html[data-theme="dark"] .buy-btn:disabled { background: #3a4156; }
+  html[data-theme="dark"] .shop-item .btns .sell-btn:disabled { background: #3a4156; }
 
   .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
   .tab {
@@ -349,10 +356,52 @@
   }
   .checkin-claim:disabled { background: #c9cdd6; cursor: not-allowed; }
   html[data-theme="dark"] .checkin-claim:disabled { background: #3a4156; }
+
+  /* ============ 数据分析 ============ */
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .metric {
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+    background: #f9fafc;
+  }
+  html[data-theme="dark"] .metric { background: #232838; }
+  .metric .v { font-weight: 700; font-size: 15px; color: var(--gold-dark); }
+  .metric .k { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .sec-title {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    margin: 4px 0 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--border);
+  }
+  .roi-row {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); border-radius: 9px;
+    padding: 8px 10px; margin-bottom: 6px; font-size: 12px;
+    background: #f9fafc;
+  }
+  html[data-theme="dark"] .roi-row { background: #232838; }
+  .roi-row.best { border-color: var(--green); background: #f0fdf5; }
+  html[data-theme="dark"] .roi-row.best { background: #1b3326; }
+  .roi-row .rn { flex: 1; font-weight: 700; }
+  .roi-row .rb { color: var(--muted); font-size: 11px; }
+  .roi-row .rt { font-weight: 700; color: var(--blue); white-space: nowrap; }
+  .roi-row .rt.fast { color: var(--green); }
+  .roi-row .rt.slow { color: var(--red); }
+
+  .ms-item {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid var(--border); border-radius: 9px;
+    padding: 9px 11px; margin-bottom: 6px; font-size: 13px;
+    color: var(--muted); background: #f9fafc;
+  }
+  html[data-theme="dark"] .ms-item { background: #232838; }
+  .ms-item .ico { font-size: 20px; }
+  .ms-item .mn { flex: 1; }
+  .ms-item.done { border-color: var(--gold); background: #fff9ec; color: var(--text); }
+  html[data-theme="dark"] .ms-item.done { background: #2a2a1a; }
+  .ms-item .mb { font-weight: 700; color: var(--gold-dark); }
 </style>
 </head>
 <body>
-  <h1>💰 金币工厂<span class="ver">v0.0.3</span></h1>
+  <h1>💰 金币工厂<span class="ver">v0.0.4</span></h1>
   <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 自动存档 · 离线也能赚</div>
 
   <div class="layout">
@@ -378,6 +427,7 @@
         <button class="tab" data-tab="ach">🏆 成就</button>
         <button class="tab" data-tab="prestige">♻️ 重生</button>
         <button class="tab" data-tab="checkin">📅 签到</button>
+        <button class="tab" data-tab="stats">📊 数据</button>
         <button class="tab" data-tab="settings">⚙️ 设置</button>
       </div>
 
@@ -402,6 +452,10 @@
         <div class="checkin-head" id="checkinHead"></div>
         <div class="checkin-grid" id="checkinGrid"></div>
         <button class="checkin-claim" id="checkinBtn">今日签到</button>
+      </div>
+
+      <div id="tab-stats" style="display:none">
+        <div id="statsBox"></div>
       </div>
 
       <div id="tab-settings" style="display:none">
@@ -475,6 +529,18 @@ const UPGRADES = [
   { id: 'auto5',   name: '上市集团',   desc: '每秒自动 +3000 元',     baseCost: 500000,   growth: 1.35, type: 'auto',   val: 3000 },
   { id: 'crit1',   name: '幸运手套',   desc: '暴击率 +10% · 暴击 ×4', baseCost: 1500,     growth: 1.45, type: 'crit',   chance: 10, mult: 4 },
   { id: 'crit2',   name: '财神附体',   desc: '暴击率 +15% · 暴击 ×8', baseCost: 30000,    growth: 1.5,  type: 'crit',   chance: 15, mult: 8 },
+  { id: 'off1',    name: '智能排班',   desc: '离线收益 +30%',        baseCost: 20000,    growth: 1.4,  type: 'offline', val: 0.3 },
+  { id: 'off2',    name: '无人值守',   desc: '离线收益 +80% · 上限 +4 小时', baseCost: 200000, growth: 1.45, type: 'offline', val: 0.8, cap: 14400 },
+];
+
+// 里程碑：按「历史累计财富」解锁，永久全局加成（重生不清空累计财富，故永久有效）
+const MILESTONES = [
+  { id: 'm1', name: '小有积蓄',   th: 100000,       bonus: 0.05, ico: '🪙' },
+  { id: 'm2', name: '百万俱乐部', th: 1000000,      bonus: 0.05, ico: '💰' },
+  { id: 'm3', name: '千万俱乐部', th: 10000000,     bonus: 0.10, ico: '💎' },
+  { id: 'm4', name: '亿级大佬',   th: 100000000,    bonus: 0.15, ico: '🏦' },
+  { id: 'm5', name: '十亿传说',   th: 10000000000,  bonus: 0.20, ico: '🚀' },
+  { id: 'm6', name: '百亿神话',   th: 1000000000000,bonus: 0.25, ico: '👑' },
 ];
 
 const ACHIEVEMENTS = [
@@ -514,6 +580,8 @@ let state = {
   floatNum: true,  // 飘字特效
   theme: 'light',  // 主题：light / dark
   checkin: { last: '', streak: 0, day: 0 }, // 每日签到：上次签到日期、连续天数、当前周期第几天(1-7)
+  ms: {},         // { milestoneId: true } 已解锁里程碑（仅用于解锁提示）
+  startedAt: 0,   // 首次开始游戏的时间戳
 };
 
 function load() {
@@ -536,6 +604,8 @@ function load() {
   }
   if (typeof state.theme !== 'string' || (state.theme !== 'light' && state.theme !== 'dark')) state.theme = 'light';
   if (!state.checkin || typeof state.checkin !== 'object') state.checkin = { last: '', streak: 0, day: 0 };
+  if (!state.ms || typeof state.ms !== 'object') state.ms = {};
+  if (typeof state.startedAt !== 'number' || state.startedAt <= 0) state.startedAt = Date.now();
 }
 function save() {
   state.lastSave = Date.now();
@@ -566,13 +636,32 @@ function staffTotal() {
 function globalMult() {
   const prestigeMult = 1 + 0.08 * (state.prestige || 0);
   const achMult = 1 + 0.012 * achCount(); // 每达成一个成就永久 +1.2%
-  return prestigeMult * achMult;
+  const msMult = 1 + milestoneBonus();   // 里程碑永久加成（最高 +80%）
+  return prestigeMult * achMult * msMult;
 }
 // 已达成成就数量（用于成就奖励倍率）
 function achCount() {
   let n = 0;
   for (const a of ACHIEVEMENTS) if (state.ach[a.id]) n++;
   return n;
+}
+// 里程碑累计加成（按历史累计财富判定，永久有效）
+function milestoneBonus() {
+  let b = 0;
+  for (const m of MILESTONES) if (state.total >= m.th) b += m.bonus;
+  return b;
+}
+// 离线收益倍率（offline 类升级）
+function offlineMult() {
+  let v = 1;
+  for (const u of UPGRADES) if (u.type === 'offline') v += (state.owned[u.id] || 0) * u.val;
+  return v;
+}
+// 离线结算时长上限（秒）
+function offlineCapSecs() {
+  let c = OFFLINE_CAP;
+  for (const u of UPGRADES) if (u.type === 'offline' && u.cap) c += (state.owned[u.id] || 0) * u.cap;
+  return c;
 }
 // 累计财富可兑换的声望（已扣除已拥有的部分）
 function prestigeAvailable() {
@@ -645,10 +734,14 @@ function buildShop() {
     maxBtn.className = 'buy-btn';
     maxBtn.textContent = '买满';
     maxBtn.onclick = () => buyMax(u);
-    btns.append(btn, maxBtn);
+    const sellBtn = document.createElement('button');
+    sellBtn.className = 'sell-btn';
+    sellBtn.textContent = '卖';
+    sellBtn.onclick = () => sellOne(u);
+    btns.append(btn, maxBtn, sellBtn);
     row.append(info, btns);
     list.appendChild(row);
-    shopRefs[u.id] = { name, own, btn, maxBtn };
+    shopRefs[u.id] = { name, own, btn, maxBtn, sellBtn };
   }
 }
 // 轻量更新：只改文本和按钮状态，不再重建 DOM
@@ -662,6 +755,8 @@ function updateShopState() {
     r.btn.textContent = state.money >= c ? '购买' : '买不起';
     r.btn.disabled = state.money < c;
     r.maxBtn.disabled = state.money < c;
+    r.sellBtn.disabled = n <= 0;
+    r.sellBtn.title = n > 0 ? `卖出 1 个，返还 ¥${fmt(sellRefund(u))}` : '还没有可卖的';
   }
 }
 
@@ -689,6 +784,103 @@ function addLog(msg) {
   const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   log.innerHTML = `<div>[${time}] ${msg}</div>` + log.innerHTML;
   while (log.children.length > 5) log.removeChild(log.lastChild);
+}
+
+/* ============ 数据分析 ============ */
+function fmtDuration(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const d = Math.floor(sec / 86400);
+  const h = Math.floor((sec % 86400) / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (d > 0) return `${d} 天 ${h} 小时`;
+  if (h > 0) return `${h} 小时 ${m} 分`;
+  if (m > 0) return `${m} 分 ${sec % 60} 秒`;
+  return `${sec} 秒`;
+}
+function fmtPayback(sec) {
+  if (!isFinite(sec)) return '—';
+  if (sec < 60) return `${Math.ceil(sec)} 秒`;
+  if (sec < 3600) return `${Math.ceil(sec / 60)} 分`;
+  return `${(sec / 3600).toFixed(1)} 小时`;
+}
+// 单级升级的回本时间：auto 类型按秒，click 类型按点击次数
+function paybackOf(u) {
+  const gain = (u.val || 0) * globalMult();
+  if (!gain) return Infinity;
+  return cost(u) / gain;
+}
+function checkMilestones() {
+  for (const m of MILESTONES) {
+    if (!state.ms[m.id] && state.total >= m.th) {
+      state.ms[m.id] = true;
+      addLog(`🎖️ 达成里程碑【${m.name}】！全局收益永久 +${Math.round(m.bonus * 100)}%`);
+    }
+  }
+}
+function renderStats() {
+  const elapsed = Math.max(1, (Date.now() - (state.startedAt || Date.now())) / 1000);
+  const ips = incomePerSec();
+  const autoEarn = ips * elapsed;
+  const clickEarn = Math.max(0, state.total - autoEarn);
+  const sum = autoEarn + clickEarn;
+  const autoPct = sum > 0 ? Math.round(autoEarn / sum * 100) : 0;
+  const critRate = state.clicks > 0 ? (state.crits / state.clicks * 100) : 0;
+  const avgCritMult = 1 + (critMult() - 1) * critChance() / 100;
+  const msDone = MILESTONES.filter(m => state.total >= m.th).length;
+
+  let html = '';
+
+  html += `<div class="sec-title">📈 经营概况</div><div class="metric-grid">
+    <div class="metric"><div class="v">${fmtDuration(elapsed)}</div><div class="k">游戏时长</div></div>
+    <div class="metric"><div class="v">¥${fmt(ips)}</div><div class="k">每秒收入</div></div>
+    <div class="metric"><div class="v">¥${fmt(ips * 60)}</div><div class="k">每分钟收入</div></div>
+    <div class="metric"><div class="v">¥${fmt(state.total)}</div><div class="k">历史累计赚取</div></div>
+    <div class="metric"><div class="v">¥${fmt(state.total / Math.max(elapsed / 60, 1))}</div><div class="k">平均每分钟收益</div></div>
+    <div class="metric"><div class="v">${autoPct}%</div><div class="k">被动收益占比（估算）</div></div>
+    <div class="metric"><div class="v">${critRate.toFixed(1)}%</div><div class="k">实际暴击率</div></div>
+    <div class="metric"><div class="v">×${avgCritMult.toFixed(2)}</div><div class="k">平均暴击倍率</div></div>
+  </div>`;
+
+  html += `<div class="sec-title">🏅 全局加成来源</div>
+    <div class="metric"><div class="v">+${Math.round(0.08 * state.prestige * 100)}%</div><div class="k">声望（${state.prestige} 点 × 8%）</div></div>
+    <div class="metric" style="margin-top:8px;"><div class="v">+${Math.round(0.012 * achCount() * 100)}%</div><div class="k">成就（${achCount()}/14 × 1.2%）</div></div>
+    <div class="metric" style="margin-top:8px;"><div class="v">+${Math.round(milestoneBonus() * 100)}%</div><div class="k">里程碑（${msDone}/${MILESTONES.length}）</div></div>
+    <div class="metric" style="margin-top:8px;"><div class="v">+${Math.round((globalMult() - 1) * 100)}%</div><div class="k">合计全局加成</div></div>`;
+
+  html += `<div class="sec-title" style="margin-top:16px;">🎖️ 里程碑（按历史累计财富永久解锁）</div>`;
+  for (const m of MILESTONES) {
+    const done = state.total >= m.th;
+    html += `<div class="ms-item${done ? ' done' : ''}">
+      <span class="ico">${m.ico}</span>
+      <span class="mn">${m.name}<br><span style="font-size:11px">累计 ¥${fmt(m.th)}</span></span>
+      <span class="mb">+${Math.round(m.bonus * 100)}%</span></div>`;
+  }
+
+  html += `<div class="sec-title" style="margin-top:16px;">💹 升级性价比（回本时间越短越划算）</div>`;
+  const rows = UPGRADES.filter(u => u.type === 'auto' || u.type === 'click')
+    .map(u => ({ u, pb: paybackOf(u) }))
+    .sort((a, b) => a.pb - b.pb);
+  const best = rows.length ? rows[0].pb : Infinity;
+  for (const r of rows) {
+    const isAuto = r.u.type === 'auto';
+    const txt = isAuto ? fmtPayback(r.pb) : `${Math.ceil(r.pb)} 次点击`;
+    const cls = r.pb === best ? ' best' : '';
+    const fastCls = r.pb <= 60 ? ' fast' : (r.pb > 3600 ? ' slow' : '');
+    html += `<div class="roi-row${cls}">
+      <span class="rn">${r.u.name} <span style="color:var(--blue);font-size:11px">Lv.${state.owned[r.u.id] || 0}</span></span>
+      <span class="rb">¥${fmt(cost(r.u))}</span>
+      <span class="rt${fastCls}">回本 ${txt}</span></div>`;
+  }
+  for (const u of UPGRADES.filter(x => x.type === 'crit' || x.type === 'offline')) {
+    const n = state.owned[u.id] || 0;
+    const extra = u.type === 'offline'
+      ? (u.cap ? `离线 +${Math.round(u.val * 100)}% · 上限 +${u.cap / 3600}h` : `离线 +${Math.round(u.val * 100)}%`)
+      : `暴击 +${u.chance}% · ×${u.mult}`;
+    html += `<div class="roi-row"><span class="rn">${u.name} <span style="color:var(--blue);font-size:11px">Lv.${n}</span></span>
+      <span class="rb">¥${fmt(cost(u))}</span><span class="rt">${extra}</span></div>`;
+  }
+
+  $('statsBox').innerHTML = html;
 }
 
 /* ============ 音效引擎（WebAudio 实时合成，无需外部文件）============ */
@@ -785,12 +977,14 @@ function renderSettings() {
   const note = document.createElement('div');
   note.className = 'note-box';
   note.innerHTML = `
-    <b>金币工厂 v0.0.3</b> ｜ 单文件网页游戏，双击即玩<br>
-    <span class="v">🎵 音效</span>实时合成，无需任何外部文件<br>
-    <span class="v">🤖 自动采购</span>帮你把闲钱花在刀刃上<br>
+    <b>金币工厂 v0.0.4</b> ｜ 单文件网页游戏，双击即玩<br>
+    <span class="v">📊 数据分析</span>回本时间排行，帮你买对不买错<br>
+    <span class="v">🎖️ 里程碑</span>累计财富 6 档永久加成，最高 +80%<br>
+    <span class="v">💰 卖出</span>买错了能退 60%，不心疼<br>
+    <span class="v">💤 离线增益</span>离线收益 +110%，上限 12 小时<br>
     <span class="v">🏆 成就奖励</span>每达成一个成就，全局收益永久 +1.2%<br>
     <span class="v">📅 每日签到</span>连续 7 天循环，第 7 天送声望 +1<br>
-    <span class="v">🌙 暗色主题</span>深夜搬砖不刺眼<br>
+    <span class="v">🎵 音效</span>实时合成，无需任何外部文件<br>
     <span class="v">💾 存档</span>自动保存，可导出 / 读取换设备继续玩<br>
     快捷键：<kbd>空格</kbd> 快速点击`;
   box.appendChild(note);
@@ -803,6 +997,7 @@ function buy(u) {
   state.money -= c;
   state.owned[u.id] = (state.owned[u.id] || 0) + 1;
   if (u.type === 'crit') addLog(`🔥 买了 ${u.name}，暴击更猛了！`);
+  else if (u.type === 'offline') addLog(`⚙️ 升级了 ${u.name}，离线收益提升！`);
   else addLog(`💸 雇了 ${u.name}，花了 ¥${fmt(c)}！`);
   SFX.buy();
   refresh();
@@ -820,7 +1015,27 @@ function buyMax(u) {
   }
   if (n === 0) return;
   if (u.type === 'crit') addLog(`🔥 批量购买 ${u.name} ×${n}，暴击更猛了！`);
+  else if (u.type === 'offline') addLog(`⚙️ 批量升级 ${u.name} ×${n}，离线效率更高了！`);
   else addLog(`💸 批量雇了 ${u.name} ×${n}！`);
+  SFX.buy();
+  refresh();
+  save();
+}
+
+// 卖出 1 个升级返还的金额：按当初买入这一级所付价格的 60% 返还
+function sellRefund(u) {
+  const n = state.owned[u.id] || 0;
+  if (n <= 0) return 0;
+  const paid = Math.floor(u.baseCost * Math.pow(u.growth, n - 1));
+  return Math.floor(paid * 0.6);
+}
+function sellOne(u) {
+  const n = state.owned[u.id] || 0;
+  if (n <= 0) return;
+  const refund = sellRefund(u);
+  state.owned[u.id] = n - 1;
+  state.money += refund;
+  addLog(`↩️ 卖出 ${u.name} ×1，返还 ¥${fmt(refund)}`);
   SFX.buy();
   refresh();
   save();
@@ -890,9 +1105,11 @@ document.querySelectorAll('.tab').forEach(t => {
     $('tab-ach').style.display = t.dataset.tab === 'ach' ? '' : 'none';
     $('tab-prestige').style.display = t.dataset.tab === 'prestige' ? '' : 'none';
     $('tab-checkin').style.display = t.dataset.tab === 'checkin' ? '' : 'none';
+    $('tab-stats').style.display = t.dataset.tab === 'stats' ? '' : 'none';
     $('tab-settings').style.display = t.dataset.tab === 'settings' ? '' : 'none';
     if (t.dataset.tab === 'prestige') renderPrestige();
     if (t.dataset.tab === 'checkin') renderCheckin();
+    if (t.dataset.tab === 'stats') renderStats();
     if (t.dataset.tab === 'settings') renderSettings();
   };
 });
@@ -903,7 +1120,9 @@ document.querySelectorAll('.tab').forEach(t => {
     state = Object.assign(defaultState(), {
       money: 0, total: 0, clicks: 0, crits: 0, offlineBest: 0,
       owned: {}, ach: {}, lastSave: 0, prestige: 0, events: 0,
-      sound: true, autoBuy: false, bigNumber: true, floatNum: true
+      sound: true, autoBuy: false, bigNumber: true, floatNum: true,
+      theme: 'light', checkin: { last: '', streak: 0, day: 0 },
+      ms: {}, startedAt: Date.now()
     });
     save();
     addLog('🔄 存档已重置，从头开始搬砖吧。');
@@ -950,7 +1169,8 @@ function defaultState() {
     money: 0, total: 0, clicks: 0, crits: 0, offlineBest: 0,
     owned: {}, ach: {}, lastSave: 0, prestige: 0, events: 0,
     sound: true, autoBuy: false, bigNumber: true, floatNum: true,
-    theme: 'light', checkin: { last: '', streak: 0, day: 0 }
+    theme: 'light', checkin: { last: '', streak: 0, day: 0 },
+    ms: {}, startedAt: 0
   };
 }
 $('importBtn').onclick = () => {
@@ -1008,6 +1228,8 @@ $('importGo').onclick = () => {
   }
   if (typeof state.theme !== 'string' || (state.theme !== 'light' && state.theme !== 'dark')) state.theme = 'light';
   if (!state.checkin || typeof state.checkin !== 'object') state.checkin = { last: '', streak: 0, day: 0 };
+  if (!state.ms || typeof state.ms !== 'object') state.ms = {};
+  if (typeof state.startedAt !== 'number' || state.startedAt <= 0) state.startedAt = Date.now();
   save();
   refresh();
   renderPrestige();
@@ -1025,6 +1247,7 @@ function renderPrestige() {
     </div>
     <div class="own">声望加成：<b style="color:var(--gold-dark)">+${Math.round(0.08 * state.prestige * 100)}%</b>（每点 +8%）</div>
     <div class="own">成就加成：<b style="color:var(--gold-dark)">+${Math.round(0.012 * achCount() * 100)}%</b>（${achCount()}/14 个 · 每个 +1.2%）</div>
+    <div class="own">里程碑加成：<b style="color:var(--gold-dark)">+${Math.round(milestoneBonus() * 100)}%</b>（${MILESTONES.filter(m => state.total >= m.th).length}/${MILESTONES.length} 档 · 最高 +80%）</div>
     <div class="own">全局总加成：<b style="color:var(--gold-dark)">+${Math.round((globalMult() - 1) * 100)}%</b></div>
     <div class="own">累计财富可换声望：<b>${avail}</b> 点（需累计 ≥ 100 万）</div>`;
   const btn = $('prestigeBtn');
@@ -1168,11 +1391,14 @@ $('checkinBtn').onclick = doCheckin;
 /* ============ 离线收益 ============ */
 function applyOffline() {
   if (!state.lastSave) return;
-  const elapsed = Math.min((Date.now() - state.lastSave) / 1000, OFFLINE_CAP);
+  const cap = offlineCapSecs();
+  const rawElapsed = (Date.now() - state.lastSave) / 1000;
+  const elapsed = Math.min(rawElapsed, cap);
   if (elapsed < 5) return; // 小于 5 秒不弹窗，避免抖
   const rate = incomePerSec();
   if (rate <= 0) return;
-  const gain = rate * elapsed;
+  const mult = offlineMult();
+  const gain = rate * elapsed * mult;
   state.money += gain;
   state.total += gain;
   if (gain > state.offlineBest) state.offlineBest = gain;
@@ -1180,7 +1406,9 @@ function applyOffline() {
   const h = Math.floor(elapsed / 3600);
   const m = Math.floor((elapsed % 3600) / 60);
   $('offlineGain').textContent = '¥ ' + fmt(gain);
-  $('offlineSub').textContent = `你离开了约 ${h} 小时 ${m} 分钟，员工帮你赚的`;
+  const capped = rawElapsed > cap ? `（已结算至离线上限 ${Math.round(cap / 3600)} 小时）` : '';
+  const boost = mult > 1 ? ` ｜ 离线加成 ×${mult.toFixed(2)}` : '';
+  $('offlineSub').textContent = `你离开了约 ${h} 小时 ${m} 分钟，员工帮你赚的${boost}${capped}`;
   $('offlineModal').style.display = 'flex';
   $('offlineOk').onclick = () => { $('offlineModal').style.display = 'none'; };
   SFX.offline();
@@ -1199,6 +1427,7 @@ function checkAch() {
 
 function refresh() {
   checkAch();
+  checkMilestones();
   renderMoney();
   updateShopState();
   renderAch();
@@ -1220,7 +1449,10 @@ setInterval(() => {
     updateShopState();
   }
   checkAch();
+  checkMilestones();
   autoBuy();
+  // 数据页每 5 秒刷新一次即可，避免每秒重排 DOM
+  if (tickCount % 5 === 4 && document.getElementById('tab-stats').style.display !== 'none') renderStats();
   // 存档节流：每 5 秒写一次；放在 if 外，保证纯点击玩家也能定时落盘
   if (++tickCount % 5 === 0) save();
 }, 1000);
