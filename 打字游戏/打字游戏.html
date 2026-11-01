@@ -141,6 +141,9 @@ html[data-theme="light"] .seg button.on{color:#04211c}
 .lives i.off{background:var(--line);transform:scale(.72)}
 
 .play-area{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.play-area.has-vkb .flow-wrap{padding-bottom:172px}
+.play-area.has-vkb .hint-line{bottom:164px}
+.play-area.has-vkb .flow{top:26%}
 .combo-wrap{
   position:absolute;top:14px;right:22px;z-index:6;text-align:right;pointer-events:none;
   transition:opacity .3s;
@@ -197,6 +200,8 @@ html[data-theme="light"] .seg button.on{color:#04211c}
 .en-row b.w{color:var(--bad);text-shadow:0 0 14px color-mix(in srgb,var(--bad) 42%,transparent)}
 .en-row b.cur{color:var(--txt)}
 .unit .ahead{font-size:12px;color:var(--dim2);font-family:var(--mono);letter-spacing:2px}
+.fav-star{position:absolute;right:16px;font-size:15px;opacity:.85;line-height:1}
+.unit{position:relative}
 .hint-line{position:absolute;left:26px;bottom:14px;font-size:12.5px;color:var(--dim2);z-index:5;display:flex;gap:16px;flex-wrap:wrap;pointer-events:none}
 kbd{
   font-family:var(--mono);font-size:11px;padding:2px 6px;border-radius:5px;background:var(--panel2);
@@ -366,6 +371,12 @@ canvas{width:100%;display:block;border-radius:8px}
 .heat-key.slow{box-shadow:inset 0 0 0 2px var(--bad)}
 .heat-legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim2);margin-top:10px;flex-wrap:wrap}
 .heat-legend i{width:16px;height:11px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+.finger-bars{display:flex;flex-direction:column;gap:6px}
+.fb-row{display:flex;align-items:center;gap:10px;font-size:12px}
+.fb-n{width:56px;flex:0 0 auto;color:var(--dim);font-weight:700}
+.fb-bar{flex:1;height:16px;border-radius:8px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
+.fb-bar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+.fb-p{width:42px;flex:0 0 auto;text-align:right;color:var(--dim2);font-variant-numeric:tabular-nums;font-size:11.5px}
 
 /* ============ 暂停 ============ */
 .pause-card{text-align:center;padding:34px 24px}
@@ -385,6 +396,26 @@ canvas{width:100%;display:block;border-radius:8px}
 .ghost-badge .gs{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--dim)}
 .ghost-badge .gs.ahead{color:var(--good);background:color-mix(in srgb,var(--good) 18%,transparent)}
 .ghost-badge .gs.behind{color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,transparent)}
+
+/* ============ 移动端虚拟键盘 ============ */
+.vkb{
+  position:absolute;left:0;right:0;bottom:0;z-index:12;padding:6px 5px 8px;
+  background:color-mix(in srgb,var(--panel) 94%,transparent);
+  border-top:1px solid var(--line);backdrop-filter:blur(12px);
+  display:none;flex-direction:column;gap:5px;user-select:none;-webkit-user-select:none;
+}
+.vkb.on{display:flex}
+.vkb-row{display:flex;gap:4px;justify-content:center}
+.vkb-key{
+  flex:1 1 0;min-width:0;max-width:42px;height:38px;border-radius:8px;
+  background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+  font-family:var(--mono);font-size:14px;font-weight:700;
+  display:grid;place-items:center;transition:.08s;cursor:pointer;
+}
+.vkb-key:active{transform:scale(.93);background:var(--acc);color:#04211c;border-color:transparent}
+.vkb-key.wide{flex:1.6 1 0;max-width:82px;font-size:12px}
+.vkb-key.sp{flex:4 1 0;max-width:none}
+.vkb-tip{text-align:center;font-size:10.5px;color:var(--dim2);padding-top:1px}
 
 /* ============ 响应式 ============ */
 @media (max-width:980px){
@@ -446,6 +477,7 @@ canvas{width:100%;display:block;border-radius:8px}
           <button class="btn" id="btnCustom">📚 自定义词库</button>
           <button class="btn" id="btnLibrary" style="display:none">📂 词库管理</button>
           <button class="btn" id="btnWrong">🩹 错词本 <span id="wwBadge"></span></button>
+          <button class="btn" id="btnFav">⭐ 收藏夹 <span id="favBadge"></span></button>
         </div>
         <div style="height:18px"></div>
         <div class="modes" id="modeCards"></div>
@@ -490,6 +522,7 @@ canvas{width:100%;display:block;border-radius:8px}
             <span class="gt">幽灵 <b id="ghostWpm">0</b></span>
             <span class="gs" id="ghostState">领先中</span>
           </div>
+          <div class="vkb" id="vkb"></div>
           <div class="danger-edge" id="dangerEdge"></div>
         </div>
       </div>
@@ -523,13 +556,17 @@ canvas{width:100%;display:block;border-radius:8px}
 
     <!-- ========== 统计 ========== -->
     <section class="view" id="vStat">
-      <div class="pad">
+      <div class="pad" style="max-width:1180px;margin:0 auto;width:100%">
         <div style="font-size:19px;font-weight:800;margin-bottom:3px">数据统计</div>
         <div style="font-size:12px;color:var(--dim2);margin-bottom:16px">看看你的打字轨迹与"拖沓键"</div>
         <div class="kpis" id="kpiWrap"></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-items:start">
-          <div class="chart-box"><h3>最近 12 局速度趋势</h3><canvas id="chartWpm" height="180"></canvas></div>
-          <div class="chart-box"><h3>最拖沓的按键（平均间隔）</h3><div class="weak-list" id="weakList"></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:14px;align-items:start">
+          <div class="chart-box" style="min-width:0"><h3>最近 12 局速度趋势</h3><canvas id="chartWpm" height="180"></canvas></div>
+          <div class="chart-box" style="min-width:0"><h3>最拖沓的按键（平均间隔）</h3><div class="weak-list" id="weakList"></div></div>
+        </div>
+        <div class="chart-box" style="margin-top:14px;min-width:0;overflow:hidden">
+          <h3>手指分工分析 <span style="color:var(--dim2);font-weight:600;text-transform:none;letter-spacing:0">（打字讲究八指分工，越均衡越快）</span></h3>
+          <div id="fingerWrap"></div>
         </div>
         <div class="chart-box" style="margin-top:14px;min-width:0;overflow:hidden">
           <h3>键盘热力图 <span style="color:var(--dim2);font-weight:600;text-transform:none;letter-spacing:0">（越亮=用得越多，红框=较慢）</span></h3>
@@ -587,7 +624,8 @@ const MODES = [
   { id:"climb",    ico:"🏔️", name:"登峰造极", ds:"十级阶梯关卡，每关更快更长", need:3 },
   { id:"combo",    ico:"🔥", name:"连击狂潮", ds:"只追求最高连击，失误即清零", need:4 },
   { id:"custom",   ico:"📚", name:"自定义词库", ds:"导入你的文章或单词表，专项练习", need:2 },
-  { id:"review",   ico:"🩹", name:"错词复习", ds:"专攻你的错词本，针对性突破", need:2 }
+  { id:"review",   ico:"🩹", name:"错词复习", ds:"专攻你的错词本，针对性突破", need:2 },
+  { id:"fav",      ico:"⭐", name:"收藏夹练习", ds:"练习你主动收藏的词，随心所欲", need:3 }
 ];
 const SKINS = [
   { id:"storm",  name:"极光",   c1:"#38e1c4", c2:"#7aa2ff", price:0 },
@@ -660,7 +698,14 @@ const ACHIEVEMENTS = [
   }},
   { id:"ghost",    ic:"👻", nm:"追影者", ds:"解锁幽灵对手（刷新一次速度纪录）", chk:s=>!!(s&&s.stats&&s.stats.ghost&&s.stats.ghost.wpm>0) },
   { id:"beatG",    ic:"🏃", nm:"超越自我", ds:"在幽灵竞速中领先 10 词", chk:s=>flagOf(s,"beatGhost") },
-  { id:"multiLib", ic:"📂", nm:"博采众长", ds:"同时拥有 3 个自定义词库", chk:s=>(s&&Array.isArray(s.customWords)?s.customWords.length:0)>=3 }
+  { id:"multiLib", ic:"📂", nm:"博采众长", ds:"同时拥有 3 个自定义词库", chk:s=>(s&&Array.isArray(s.customWords)?s.customWords.length:0)>=3 },
+  { id:"fav5",     ic:"⭐", nm:"拾级而上", ds:"收藏 5 个想练的词", chk:s=>Object.keys((s&&s.favorites)||{}).length>=5 },
+  { id:"favMode",  ic:"🎯", nm:"有的放矢", ds:"完成一次收藏夹练习", chk:s=>flagOf(s,"favDone") },
+  { id:"mobile",   ic:"📱", nm:"随时随地", ds:"启用虚拟键盘（触屏也能玩）", chk:s=>!!(s&&s.settings&&s.settings.vkb==="always") },
+  { id:"balance",  ic:"🖐️", nm:"八指并用", ds:"手指均衡度达到 60% 以上", chk:s=>{
+    const fb=fingerBalance((s&&s.stats&&s.stats.keys)||{});
+    return fb.total>0 && fb.balance>=0.6;
+  }}
 ];
 const RANKS = [
   { id:"bronze", nm:"青铜", min:0 },{ id:"silver", nm:"白银", min:20 },
@@ -1151,7 +1196,9 @@ function newSlotData(name){
     skills:{}, ach:{}, flags:{}, history:[],
     // 错词本：word -> {n:出错次数, last:最后出错时间戳}
     wrongWords:{},
-    // 自定义词库：玩家导入的文本片段（数组，每项 {text, lang}）
+    // 收藏夹：主动收藏想练的词
+    favorites:{},
+    // 自定义词库：玩家导入的文本片段（数组，每项 {name, raw, units}）
     customWords:[],
     stats:{ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0, bestScore:0,
             accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, heat:{},
@@ -1160,7 +1207,7 @@ function newSlotData(name){
 }
 function defaultStore(){
   return { v:1, active:0, slots:[newSlotData("存档 1"),newSlotData("存档 2"),newSlotData("存档 3")],
-           settings:{ sound:true, theme:"dark", particles:true, showPinyin:true, tone:"sine", pyMode:"full" },
+           settings:{ sound:true, theme:"dark", particles:true, showPinyin:true, tone:"sine", pyMode:"full", vkb:"auto" },
            daily:{ date:"", best:0, done:false, cfg:null } };
 }
 let STORE = loadStore();
@@ -1185,6 +1232,8 @@ function loadStore(){
       merged.skills=Object.assign({}, s&&s.skills);
       merged.ach=Object.assign({}, s&&s.ach);
       merged.flags=Object.assign({}, s&&s.flags);
+      merged.favorites=Object.assign({}, s&&s.favorites);
+      merged.wrongWords=Object.assign({}, s&&s.wrongWords);
       merged.history=Array.isArray(s&&s.history)?s.history:[];
       merged.skins=Array.isArray(s&&s.skins)&&s.skins.length?s.skins:["storm"];
       if(!merged.skins.includes("storm")) merged.skins.unshift("storm");
@@ -1382,7 +1431,7 @@ function nextUnit(){
 }
 /* 自定义词库：打完全部导入内容后结束，不再补充新单元 */
 function customFinished(){
-  return (G.mode==="custom"||G.mode==="review") && G.customDone>=G.customTotal;
+  return (G.mode==="custom"||G.mode==="review"||G.mode==="fav") && G.customDone>=G.customTotal;
 }
 
 /* -------------------------------------------------------------- 开始游戏 */
@@ -1437,6 +1486,12 @@ function startGame(dailyCfg){
       toast("🩹 错词本还是空的，先去练几局吧");
     }
   }
+  // 收藏夹练习
+  if(G.mode==="fav"){
+    const fu=favoriteUnits();
+    if(fu.length){ G.custom=fu; G.customName="收藏夹"; }
+    else { G.mode="sprint"; toast("⭐ 收藏夹是空的，游戏中按 F 收藏喜欢的词"); }
+  }
 
   const tough=+(s.skills&&s.skills.tough||0);
   G.maxLives = d.life + tough;
@@ -1449,12 +1504,12 @@ function startGame(dailyCfg){
   G.threat=0; G.threatRate=0; G.stage=0; G.stageDone=0; G.stageNeed=8;
   if(G.mode==="climb") G.stageNeed=6;
   if(G.mode==="survival") G.threatRate = Math.max(0.8, 3.2 - (s.skills&&s.skills.meteor||0)*0.29);
-  // 自定义词库 / 错词复习：不限时，打完全部内容即结束
-  if(G.mode==="custom"||G.mode==="review"){
+  // 自定义词库 / 错词复习 / 收藏夹：不限时，打完全部内容即结束
+  if(G.mode==="custom"||G.mode==="review"||G.mode==="fav"){
     G.limit=0; G.customTotal=G.custom?G.custom.length:0;
   }
 
-  fillUnits((G.mode==="custom"||G.mode==="review")?1:12);
+  fillUnits((G.mode==="custom"||G.mode==="review"||G.mode==="fav")?1:12);
   G.on=true;
   showView("Play");
   renderFlow();
@@ -1462,12 +1517,21 @@ function startGame(dailyCfg){
   const hl=$("#hintLine");
   const initialMode=(STORE.settings.pyMode||"full")==="initial";
   let guide;
-  if(G.lang==="en") guide=`<span>直接敲击屏幕上的字母</span>`;
-  else if(initialMode) guide=`<span>只敲每字的拼音<b style="color:var(--acc)">首字母</b>（如 <kbd>ni</kbd> <kbd>hao</kbd> → <kbd>n</kbd><kbd>h</kbd>）</span>`;
-  else guide=`<span>敲击拼音字母（如 <kbd>ni</kbd> <kbd>hao</kbd>）</span>`;
-  guide+=`<span><kbd>Esc</kbd> 退出</span><span><kbd>空格</kbd> 暂停</span>`;
+  const touch=isTouchDevice();
+  if(touch){
+    guide = `<span>👆 点击下方键盘输入</span>` +
+            (G.lang==="en" ? "" : initialMode
+              ? `<span>已启用<b style="color:var(--acc)">首字母输入</b>（点字母更快）</span>`
+              : `<span>建议在设置中开启<b style="color:var(--acc)">首字母输入</b>，手机上更好打</span>`);
+  } else {
+    if(G.lang==="en") guide=`<span>直接敲击屏幕上的字母</span>`;
+    else if(initialMode) guide=`<span>只敲每字的拼音<b style="color:var(--acc)">首字母</b>（如 <kbd>ni</kbd> <kbd>hao</kbd> → <kbd>n</kbd><kbd>h</kbd>）</span>`;
+    else guide=`<span>敲击拼音字母（如 <kbd>ni</kbd> <kbd>hao</kbd>）</span>`;
+    guide+=`<span><kbd>Esc</kbd> 退出</span><span><kbd>空格</kbd> 暂停</span>`;
+  }
   if(hl) hl.innerHTML=guide+'<span id="hintNext" style="display:none"></span>';
   updateHints();
+  updateVkbVisibility();
   G.timer=setInterval(tick,100);
 }
 
@@ -1509,6 +1573,17 @@ window.addEventListener("keydown",e=>{
     if(e.key==="Escape"){ e.preventDefault(); if(G.paused) togglePause(); else quitGame(); return; }
     if(e.key===" "&&G.paused){ e.preventDefault(); togglePause(); return; }
     if(G.paused) return;                       // 暂停中不处理游戏输入
+    // F 键收藏当前词
+    if(e.key==="f"||e.key==="F"){
+      e.preventDefault();
+      const u=G.units[G.idx];
+      if(u){
+        const added=toggleFavorite(u);
+        toast(added?"⭐ 已收藏「"+u.text+"」":"已取消收藏「"+u.text+"」");
+        renderFlow();   // 重新渲染以显示/隐藏收藏星标
+      }
+      return;
+    }
     if(e.ctrlKey||e.metaKey||e.altKey) return;
     if(e.key.length!==1) return;
     e.preventDefault();
@@ -1535,8 +1610,17 @@ function handleKey(ch){
 
   const u=G.units[G.idx];
   if(!u) return;
-  // 空格：中文拼音无空格需求，英文词间已自动分隔 —— 忽略而非计为失误
-  if(ch===" "){ return; }
+  // 空格：中文拼音与内置英文词库均不含空格，遇到时按"跳过"处理
+  //   —— 但必须同步推进光标，否则后续字符会整体错位
+  if(ch===" "){
+    const exp=activeInput(u);
+    if(G.ci<exp.length && exp[G.ci]===" "){
+      G.correct++; G.ci++; u.typed=u.typed+ch; G.input+=ch;
+      updateFlow();
+      if(G.ci>=exp.length){ completeWord(); }
+    }
+    return;
+  }
   const expected=activeInput(u)[G.ci];
   // 英文不区分大小写（中文拼音本身全小写，不受影响）
   const hit = u.lang==="en" ? ch.toLowerCase()===String(expected).toLowerCase() : ch===expected;
@@ -1616,7 +1700,7 @@ function completeWord(){
   }
   G.idx++; G.ci=0; G.input=""; G.gi=0;
   G.timeline.push(Date.now()-G.startTs);   // 记录每词完成时刻，供幽灵回放
-  if(G.mode==="custom"||G.mode==="review"){
+  if(G.mode==="custom"||G.mode==="review"||G.mode==="fav"){
     G.customDone++;
     if(G.customDone>=G.customTotal){ endGame(); return; }
   }
@@ -1653,6 +1737,11 @@ function renderFlow(){
     const u=G.units[i];
     const el=document.createElement("div");
     el.className="unit"+(i===G.idx?" cur":(i<G.idx?" past":""));
+    if(isFavorite(u)){
+      const star=document.createElement("span");
+      star.className="fav-star"; star.textContent="⭐";
+      el.appendChild(star);
+    }
     if(u.lang==="cn"){
       const cn=document.createElement("div"); cn.className="cn-row";
       for(let k=0;k<u.syl.length;k++){
@@ -1844,6 +1933,75 @@ function ghostProgress(){
   return idx;
 }
 
+/* ------------------------------------------------------------ 收藏夹 */
+/* 与错词本相反：错词本是"被动记录打错的"，收藏夹是"主动收藏想练的" */
+function toggleFavorite(u){
+  if(!u||!u.text) return false;
+  const s=S();
+  if(!s.favorites) s.favorites={};
+  const key=u.lang+"|"+u.text;
+  if(s.favorites[key]){ delete s.favorites[key]; saveStore(); return false; }
+  s.favorites[key]={ lang:u.lang||"cn", text:u.text, input:u.input||"",
+                      syl:(u.syl||[]).slice(), at:Date.now() };
+  saveStore();
+  return true;
+}
+function isFavorite(u){
+  if(!u||!u.text) return false;
+  const f=S().favorites||{};
+  return !!f[(u.lang||"cn")+"|"+u.text];
+}
+function favoriteUnits(){
+  const f=S().favorites||{};
+  return Object.values(f).map(it=>({
+    lang:it.lang||"cn", text:it.text,
+    syl:(it.syl&&it.syl.length)?it.syl:[it.input||it.text],
+    input:it.input||it.input
+  }));
+}
+/* 打开收藏夹面板 */
+function openFavorites(){
+  const s=S();
+  const body=document.createElement("div");
+  body.className="mask";
+  const list=Object.values(s.favorites||{});
+  body.innerHTML=`<div class="modal" style="max-width:560px">
+    <h3>⭐ 收藏夹 <span style="font-size:12px;color:var(--dim2);font-weight:600">共 ${list.length} 个</span></h3>
+    <div id="favList"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn pri" id="favPractice" style="flex:1" ${list.length?"":"disabled"}>🎯 开始练习</button>
+      <button class="btn" id="favClear" ${list.length?"":"disabled"}>🗑️ 清空</button>
+    </div>
+    <div style="margin-top:12px;text-align:right"><button class="btn" id="favClose">关闭</button></div>
+  </div>`;
+  $("#modalRoot").appendChild(body);
+  const fl=body.querySelector("#favList");
+  if(!list.length){
+    fl.innerHTML=`<div class="empty-tip">还没有收藏<br>游戏中按 <kbd>F</kbd> 键即可收藏当前词</div>`;
+  } else {
+    const box=document.createElement("div");
+    box.className="ww-list";
+    for(const it of list){
+      const d=document.createElement("div");
+      d.className="ww-item";
+      const py=(it.syl&&it.syl.length)?it.syl.join(" "):it.input||"";
+      d.innerHTML=`<span class="wd">${esc(it.text)}</span><span class="py">${esc(py)}</span>
+        <span class="ct ok">⭐ 已收藏</span>`;
+      box.appendChild(d);
+    }
+    fl.appendChild(box);
+  }
+  body.querySelector("#favClose").onclick=()=>body.remove();
+  body.querySelector("#favClear").onclick=()=>{
+    if(!confirm("确定清空收藏夹？")) return;
+    s.favorites={}; saveStore(); body.remove(); toast("收藏夹已清空");
+  };
+  body.querySelector("#favPractice").onclick=()=>{
+    body.remove(); CONFIG.mode="fav"; startGame();
+  };
+  body.onclick=e=>{ if(e.target===body) body.remove(); };
+}
+
 /* ------------------------------------------------------------ 错词本 */
 /* 记录打错的词：word -> {n:错误次数, last:最后时间戳, lang} */
 function recordWrongWord(u){
@@ -1933,7 +2091,9 @@ function spawnParticle(anchor){
 function endGame(){
   if(!G.on) return;   // 防止重复结算导致统计翻倍
   G.on=false;
+  G.paused=false;
   clearInterval(G.timer);
+  const vk=$("#vkb"); if(vk) vk.classList.remove("on");
   Audio2.finish();
   const mins=Math.max(G.elapsed/60,1/600);
   const wpm=Math.round((G.correct/5)/mins);
@@ -1961,6 +2121,7 @@ function endGame(){
   if(G.mode==="climb"&&G.stage>=10) s.flags.peak=true;
   if(G.mode==="survival"&&G.elapsed>=120) s.flags.survive120=true;
   if(G.mode==="review") s.flags.reviewDone=true;
+  if(G.mode==="fav") s.flags.favDone=true;
   if(G.daily){ s.flags.dailyDone=true; STORE.daily.done=true; STORE.daily.best=Math.max(STORE.daily.best,finalScore); }
   s.history.push({ wpm, acc, combo:G.maxCombo, score:finalScore, mode:G.mode, ts:Date.now() });
   if(s.history.length>60) s.history=s.history.slice(-60);
@@ -1984,6 +2145,7 @@ function quitGame(){
   // 清理可能残留的暂停遮罩
   const pm=document.querySelector("#pauseMask");
   if(pm && pm.remove) pm.remove();
+  const vk=$("#vkb"); if(vk) vk.classList.remove("on");
   showView("Home"); renderHome();
 }
 function renderResult(r){
@@ -2105,6 +2267,10 @@ function renderHome(){
   const wn=Object.keys(s.wrongWords||{}).length;
   const badge=$("#wwBadge");
   if(badge) badge.innerHTML = wn?`<span style="color:var(--bad)">${wn}</span>`:"";
+  // 收藏夹徽章
+  const fn=Object.keys(s.favorites||{}).length;
+  const fbadge=$("#favBadge");
+  if(fbadge) fbadge.innerHTML = fn?`<span style="color:var(--gold)">${fn}</span>`:"";
   // 自定义词库状态
   const cw=(s.customWords||[]).length;
   const cb=$("#btnCustom");
@@ -2230,6 +2396,37 @@ function renderStats(){
   // 键盘热力图
   const hg=$("#heatGrid");
   if(hg) renderHeat(hg, st.keys);
+  // 手指分工分析
+  const fw=$("#fingerWrap");
+  if(fw){
+    const fb=fingerBalance(st.keys);
+    if(!fb.total){
+      fw.innerHTML='<div style="font-size:12px;color:var(--dim2)">数据不足，多打几局后这里会分析你的手指分工情况</div>';
+    } else {
+      const pct=Math.round(fb.balance*100);
+      let html=`<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="font-size:30px;font-weight:900;line-height:1">${pct}<span style="font-size:15px">%</span></div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">均衡度 ${pct>=75?"优秀":pct>=55?"良好":pct>=35?"一般":"需要改进"}</div>
+          <div style="font-size:11.5px;color:var(--dim);line-height:1.6">
+            最常用：<b style="color:var(--acc)">${FINGER_NAMES[fb.strongest]}</b> ·
+            最少用：<b style="color:${fb.weakest===fb.strongest?"var(--dim)":"var(--warn)"}">${FINGER_NAMES[fb.weakest]}</b>
+            ${fb.weakest!==fb.strongest?"<br>建议有意识地把一部分按键交给"+FINGER_NAMES[fb.weakest]+"，能明显提速":""}
+          </div>
+        </div>
+      </div>
+      <div class="finger-bars">`;
+      for(const f of FINGER_ORDER){
+        const r=fb.ratios[FINGER_ORDER.indexOf(f)]||0;
+        const w=Math.round(r/fb.ratios.reduce((a,b)=>Math.max(a,b),0.0001)*100);
+        html+=`<div class="fb-row"><span class="fb-n">${FINGER_NAMES[f]}</span>
+          <span class="fb-bar"><i style="width:${w}%"></i></span>
+          <span class="fb-p">${Math.round(r*100)}%</span></div>`;
+      }
+      html+='</div>';
+      fw.innerHTML=html;
+    }
+  }
 }
 
 /* ------------------------------------------------------------ 主题 */
@@ -2267,6 +2464,12 @@ function openSettings(){
         <button data-v="triangle" class="${s.tone==="triangle"?"on":""}">柔和</button>
         <button data-v="square" class="${s.tone==="square"?"on":""}">机械</button>
       </div></div>
+    <div class="set-row"><div><div class="t">虚拟键盘</div><div class="d">触屏设备默认开启；也可强制在电脑上显示</div></div>
+      <div class="seg" id="segVkb">
+        <button data-v="auto" class="${(s.vkb||"auto")==="auto"?"on":""}">自动</button>
+        <button data-v="always" class="${s.vkb==="always"?"on":""}">总是</button>
+        <button data-v="never" class="${s.vkb==="never"?"on":""}">关闭</button>
+      </div></div>
     <div class="set-row" style="display:block">
       <div style="margin-bottom:10px"><div class="t">皮肤</div><div class="d">用星尘解锁不同配色</div></div>
       <div class="skins" id="skinWrap"></div>
@@ -2292,6 +2495,14 @@ function openSettings(){
       setPyMode(b.dataset.v);
       body.querySelectorAll("#segPyMode button").forEach(x=>x.classList.toggle("on",x===b));
       toast("已切换为"+(b.dataset.v==="initial"?"首字母输入":"全拼输入"));
+    };
+  });
+  body.querySelectorAll("#segVkb button").forEach(b=>{
+    b.onclick=()=>{
+      s.vkb=b.dataset.v;
+      body.querySelectorAll("#segVkb button").forEach(x=>x.classList.toggle("on",x===b));
+      saveStore(); updateVkbVisibility();
+      toast(b.dataset.v==="always"?"已开启虚拟键盘":b.dataset.v==="never"?"已关闭虚拟键盘":"虚拟键盘将自动判断");
     };
   });
   const sw=body.querySelector("#skinWrap");
@@ -2591,6 +2802,138 @@ function renderHeat(container, keys){
   }
 }
 
+/* ------------------------------------------------------------ 移动端虚拟键盘 */
+/* 触屏设备没有物理键盘 —— 提供可点击的虚拟键盘，让手机也能真正玩起来 */
+const VKB_QWERTY=[
+  ["q","w","e","r","t","y","u","i","o","p"],
+  ["a","s","d","f","g","h","j","k","l"],
+  ["z","x","c","v","b","n","m"]
+];
+function isTouchDevice(){
+  return (typeof window!=="undefined" && ("ontouchstart" in window || (window.navigator&&window.navigator.maxTouchPoints>0)));
+}
+/* 用户可在设置里强制开启/关闭虚拟键盘（触屏设备默认开启） */
+function vkbEnabled(){
+  const pref=STORE.settings.vkb;
+  if(pref==="always") return true;
+  if(pref==="never") return false;
+  return isTouchDevice();
+}
+function vkbRows(){
+  const initialMode=(STORE.settings.pyMode||"full")==="initial";
+  const rows=[];
+  if(G.lang==="en"){
+    rows.push(VKB_QWERTY[0],VKB_QWERTY[1],VKB_QWERTY[2]);
+  } else if(initialMode){
+    // 首字母模式：只需要字母首字母，布局更紧凑
+    rows.push(["a","b","c","d","e","f","g","h","i","j"],["k","l","m","n","o","p","q","r","s","t"],
+              ["u","v","w","x","y","z"]);
+  } else {
+    // 全拼模式：常用韵母/声母组合，提升单键命中率
+    rows.push(["a","e","i","o","u","b","p","m","f","d"],["t","n","l","g","h","k","j","q","x","r"],
+              ["s","z","c","y","w","v"]);
+  }
+  return rows;
+}
+function renderVkb(){
+  const box=$("#vkb");
+  if(!box) return;
+  box.innerHTML="";
+  const rows=vkbRows();
+  for(const row of rows){
+    const rd=document.createElement("div");
+    rd.className="vkb-row";
+    for(const k of row){
+      const b=document.createElement("button");
+      b.className="vkb-key"; b.textContent=k;
+      b.onclick=(e)=>{ e.preventDefault(); Audio2.init(); handleKey(k); };
+      rd.appendChild(b);
+    }
+    box.appendChild(rd);
+  }
+  // 底部功能行：退格 / 空格 / 暂停
+  const last=document.createElement("div");
+  last.className="vkb-row";
+  const bk=document.createElement("button");
+  bk.className="vkb-key wide"; bk.textContent="⌫";
+  bk.onclick=(e)=>{ e.preventDefault(); vkbBackspace(); };
+  const sp=document.createElement("button");
+  sp.className="vkb-key sp"; sp.textContent="空格";
+  sp.onclick=(e)=>{ e.preventDefault(); handleKey(" "); };
+  const pau=document.createElement("button");
+  pau.className="vkb-key wide"; pau.textContent="⏸";
+  pau.onclick=(e)=>{ e.preventDefault(); togglePause(); };
+  last.appendChild(bk); last.appendChild(sp); last.appendChild(pau);
+  box.appendChild(last);
+  const tip=document.createElement("div");
+  tip.className="vkb-tip";
+  tip.textContent = G.lang==="en" ? "点击字母输入" : (G.mode==="custom"?"点击字母输入 · 中文请用系统输入法":"点击字母输入");
+  box.appendChild(tip);
+}
+function vkbBackspace(){
+  if(!G.on||G.paused) return;
+  const u=G.units[G.idx]; if(!u) return;
+  if(G.ci>0){ G.ci--; G.input=G.input.slice(0,-1); u.typed=u.typed.slice(0,-1); updateFlow(); }
+}
+function updateVkbVisibility(){
+  const box=$("#vkb");
+  if(!box) return;
+  const need = vkbEnabled() && G.on;
+  box.classList.toggle("on", need);
+  const area=$("#playArea");
+  if(area) area.classList.toggle("has-vkb", need);
+  if(need) renderVkb();
+}
+
+/* ------------------------------------------------------------ 手指分区 */
+/* 标准键盘手指分区（与常见指法教学一致）
+   左小指：1 Q A Z  左无名：2 W S X  左中：3 E D C  左食：4 5 R T F G V B
+   右食：6 7 Y U H J M N  右中：8 I K  右无名：9 O L  右小：0 - = P [ ] \ ' ; / . , */
+const FINGER_MAP = {
+  "1":["`","1","q","a","z","Caps","Shift","Tab"],
+  "2":["2","w","s","x"],
+  "3":["3","e","d","c"],
+  "4":["4","5","r","t","f","g","v","b"],
+  "5":["6","7","y","u","h","j","m","n"],
+  "6":["8","i","k"],
+  "7":["9","o","l"],
+  "8":["0","-","=","p","[","]","\\","'",";","Enter","/",".",",","⌫","Space"],
+  "9":["z","x","c","v","b","n","m"]
+};
+const FINGER_NAMES = { "1":"左小指", "2":"左无名", "3":"左中指", "4":"左食指",
+  "5":"右食指", "6":"右中指", "7":"右无名", "8":"右小指" };
+const FINGER_ORDER = ["1","2","3","4","5","6","7","8"];
+/* 找出某个键所属的手指分区 */
+function fingerOf(key){
+  const k=String(key).toLowerCase();
+  for(const f in FINGER_MAP){
+    if(FINGER_MAP[f].some(x=>x.toLowerCase()===k)) return f;
+  }
+  return null;
+}
+/* 计算手指使用均衡度：各手指占比的均匀程度（1 = 完全均衡，0 = 全靠一根手指）
+   注意：只统计"实际有使用"的手指分区，否则未触碰的手指会虚假拉低均衡度 */
+function fingerBalance(keys){
+  const counts={};
+  for(const f of FINGER_ORDER) counts[f]=0;
+  let total=0;
+  for(const [k,v] of Object.entries(keys||{})){
+    const f=fingerOf(k);
+    if(f && v && typeof v.n==="number"){ counts[f]+=v.n; total+=v.n; }
+  }
+  if(!total) return { counts, total:0, balance:0, weakest:null, strongest:null, ratios:[] };
+  const used=FINGER_ORDER.filter(f=>counts[f]>0);
+  const ratios=FINGER_ORDER.map(f=>counts[f]/total);
+  if(used.length<=1) return { counts, total, balance:0, weakest:used[0]||null, strongest:used[0]||null, ratios };
+  // 在"实际使用的手指"之间计算均匀程度
+  const mean=1/used.length;
+  const variance=used.reduce((a,f)=>{ const r=counts[f]/total; return a+(r-mean)*(r-mean); },0)/used.length;
+  const balance=Math.max(0,Math.min(1,1-Math.sqrt(variance)/mean));
+  let weakest=used[0], strongest=used[0];
+  for(const f of used){ if(counts[f]<counts[weakest]) weakest=f; if(counts[f]>counts[strongest]) strongest=f; }
+  return { counts, total, balance, weakest, strongest, ratios, usedCount:used.length };
+}
+
 /* ------------------------------------------------------------ 存档菜单 */
 function openSaveMenu(){
   const body=document.createElement("div");
@@ -2641,6 +2984,7 @@ function bind(){
   $("#btnDaily2").onclick=()=>startGame(STORE.daily.cfg);
   $("#btnCustom").onclick=()=>openCustomImport();
   $("#btnLibrary").onclick=()=>openLibraryManager();
+  $("#btnFav").onclick=()=>openFavorites();
   $("#btnWrong").onclick=()=>openWrongWords();
   $("#btnPyMode").onclick=()=>{
     setPyMode((STORE.settings.pyMode||"full")==="full" ? "initial" : "full");
