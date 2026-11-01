@@ -509,6 +509,69 @@ body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{
 .ime-tip .ii{font-size:15px}
 .ime-tip .btn.sm{padding:4px 10px;font-size:11.5px;flex:0 0 auto}
 
+/* ============ 结算页节奏卡片 ============ */
+.res-rhythm{
+  display:flex;align-items:center;gap:14px;margin:4px 0 18px;padding:13px 16px;
+  border-radius:var(--radius);border:1px solid var(--line);background:var(--panel2);
+}
+.rr-score{font-family:var(--mono);font-size:32px;font-weight:800;line-height:1;flex:0 0 auto;text-align:center}
+.rr-score small{display:block;font-size:10px;color:var(--dim2);font-weight:600;margin-top:4px;letter-spacing:1px}
+.rr-txt{flex:1;min-width:0;text-align:left}
+.rr-txt b{font-size:13.5px}
+.rr-sub{font-size:11.5px;color:var(--dim2);line-height:1.55}
+
+/* ============ 节奏分析 ============ */
+.rhythm-score{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.rhythm-ring{
+  width:76px;height:76px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+  font-family:var(--mono);font-weight:800;font-size:22px;position:relative;
+}
+.rhythm-ring i{
+  position:absolute;inset:6px;border-radius:50%;background:var(--panel2);
+  display:grid;place-items:center;font-style:normal;
+}
+.rhythm-ring b{position:relative;z-index:2;font-size:9px;color:var(--dim2);font-weight:700;letter-spacing:1px}
+.rhythm-ring .rs-num{position:relative;z-index:2;font-size:21px;color:var(--txt)}
+.rhythm-info{flex:1;min-width:0}
+.rhythm-verdict{font-size:13.5px;font-weight:700;color:var(--txt);margin-bottom:4px}
+.rhythm-sub{font-size:11.5px;color:var(--dim2);line-height:1.6}
+.rhythm-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.rhythm-stat{
+  flex:1 1 96px;min-width:0;padding:9px 11px;border-radius:10px;
+  background:var(--panel2);border:1px solid var(--line);
+}
+.rhythm-stat .rk{font-size:10.5px;color:var(--dim2);margin-bottom:3px}
+.rhythm-stat .rv{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--txt)}
+.rhythm-hist{margin-top:12px}
+.rhythm-hist .rh-row{display:flex;align-items:center;gap:9px;margin-top:6px;font-size:11.5px;color:var(--dim2)}
+.rhythm-hist .rh-bar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.rhythm-hist .rh-bar i{display:block;height:100%;border-radius:99px;background:var(--acc)}
+.rhythm-hist .rh-v{font-family:var(--mono);min-width:44px;text-align:right;color:var(--txt)}
+.rhythm-empty{font-size:12.5px;color:var(--dim2);padding:10px 0}
+
+/* ============ 数据管理面板 ============ */
+.data-report{
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--panel2);padding:14px;margin-bottom:14px;
+}
+.dr-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.dr-total{font-size:26px;font-weight:800;font-family:var(--mono);color:var(--txt);line-height:1.1}
+.dr-sub{font-size:11.5px;color:var(--dim2);margin-top:3px}
+.dr-pct{font-size:19px;font-weight:800;color:var(--acc);font-family:var(--mono);flex:0 0 auto}
+.dr-bar{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:12px}
+.dr-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+.dr-parts{display:flex;flex-direction:column;gap:6px}
+.dr-row{display:flex;align-items:center;gap:10px;font-size:12.5px;padding:5px 0;border-top:1px solid var(--line)}
+.dr-row:first-child{border-top:none}
+.dr-row .k{color:var(--dim);flex:0 0 auto;min-width:66px}
+.dr-row .n{color:var(--txt);font-weight:600;font-family:var(--mono);flex:0 0 auto;min-width:64px}
+.dr-row .s{color:var(--dim2);font-family:var(--mono);margin-left:auto}
+.dr-row .w{color:var(--warn);font-size:11px;font-weight:700;flex:0 0 auto}
+.data-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.data-actions .btn{flex:1 1 calc(50% - 4px);justify-content:center}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.danger:hover{border-color:var(--bad);background:rgba(255,107,129,.12)}
+
 /* ============ 响应式 ============ */
 @media (max-width:980px){
   .side{width:250px;flex-basis:250px;padding:12px}
@@ -668,6 +731,10 @@ body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{
           <div id="modeBestWrap"></div>
         </div>
         <div class="chart-box" style="margin-top:14px;min-width:0;overflow:hidden">
+          <h3>打字节奏分析 <span style="color:var(--dim2);font-weight:600;text-transform:none;letter-spacing:0">（同样的速度，节奏稳的人实际效率更高）</span></h3>
+          <div id="rhythmWrap"></div>
+        </div>
+        <div class="chart-box" style="margin-top:14px;min-width:0;overflow:hidden">
           <h3>手指分工分析 <span style="color:var(--dim2);font-weight:600;text-transform:none;letter-spacing:0">（打字讲究八指分工，越均衡越快）</span></h3>
           <div id="fingerWrap"></div>
         </div>
@@ -808,6 +875,18 @@ const ACHIEVEMENTS = [
   { id:"balance",  ic:"🖐️", nm:"八指并用", ds:"手指均衡度达到 60% 以上", chk:s=>{
     const fb=fingerBalance((s&&s.stats&&s.stats.keys)||{});
     return fb.total>0 && fb.balance>=0.6;
+  }},
+  { id:"rhythm85", ic:"🎼", nm:"节拍器", ds:"单局节奏稳定性达到 85 分", chk:s=>{
+    const rb=(s&&s.stats&&s.stats.rhythmBest)||null;
+    return !!rb && (rb.score||0)>=85;
+  }},
+  { id:"rhythm90", ic:"🥁", nm:"行云流水", ds:"单局节奏稳定性达到 90 分", chk:s=>{
+    const rb=(s&&s.stats&&s.stats.rhythmBest)||null;
+    return !!rb && (rb.score||0)>=90;
+  }},
+  { id:"rhythm500",ic:"⏱️", nm:"节奏大师", ds:"累计采集 500 次击键间隔", chk:s=>{
+    const r=(s&&s.stats&&s.stats.rhythm)||[];
+    return Array.isArray(r) && r.length>=500;
   }}
 ];
 const RANKS = [
@@ -1305,22 +1384,46 @@ function newSlotData(name){
     customWords:[],
     stats:{ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0, bestScore:0,
             accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, heat:{},
-            ghost:null, modeBest:{} }   // modeBest: 各模式独立最佳（不同时长不可横向比较）
+            ghost:null, modeBest:{},
+            rhythm:[], rhythmBest:null }   // 节奏：击键间隔序列 + 历史最佳节奏评分
   };
 }
 function defaultStore(){
-  return { v:1, active:0, slots:[newSlotData("存档 1"),newSlotData("存档 2"),newSlotData("存档 3")],
+  return { v:1, active:0, rev:0, savedAt:0, slots:[newSlotData("存档 1"),newSlotData("存档 2"),newSlotData("存档 3")],
            settings:{ sound:true, theme:"dark", particles:true, showPinyin:true, tone:"sine", pyMode:"full", vkb:"auto",
                       cvd:false, reduceMotion:false, seenGuide:false, imeMode:"auto" },
            daily:{ date:"", best:0, done:false, cfg:null } };
 }
 let STORE = loadStore();
+/* 载入基线快照：多标签页合并时用来计算"本标签页的实际增量"，
+   避免把两个标签页共享的基线重复累加 */
+let _loadBase = snapshotBase(STORE);
+function snapshotBase(store){
+  const out=[];
+  for(const s of (store.slots||[])){
+    const st=(s&&s.stats)||{};
+    out.push({
+      games:st.games||0, chars:st.chars||0, words:st.words||0,
+      time:st.time||0, accSum:st.accSum||0, accN:st.accN||0,
+      byMode:Object.assign({}, st.byMode||{}),
+      byLang:Object.assign({}, st.byLang||{}),
+      keys:Object.assign({}, st.keys||{}),
+      wrongWords:Object.assign({}, (s&&s.wrongWords)||{})
+    });
+  }
+  return out;
+}
 function loadStore(){
   try{
     const raw=localStorage.getItem(SAVE_KEY);
     if(!raw) return defaultStore();
     const d=JSON.parse(raw);
     if(!d||!Array.isArray(d.slots)) return defaultStore();
+    return loadStoreFrom(d);
+  }catch(e){ return defaultStore(); }
+}
+/* 从任意存档对象补齐所有缺失字段（读盘与导入共用同一套逻辑） */
+function loadStoreFrom(d){
     const def=defaultStore();
     // 逐槽补齐缺失字段，保证旧存档平滑升级
     d.slots=d.slots.map((s,i)=>{
@@ -1328,7 +1431,12 @@ function loadStore(){
       const merged=Object.assign(base,s||{});
       // 二级字段单独兜底（Object.assign 遇到 undefined 会覆盖默认值）
       merged.stats=Object.assign({ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0,
-        bestScore:0, accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, ghost:null, modeBest:{} }, s&&s.stats);
+        bestScore:0, accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, ghost:null, modeBest:{},
+        rhythm:[], rhythmBest:null }, s&&s.stats);
+      // 节奏数据校验：结构不合法则丢弃，避免污染统计
+      if(merged.stats.rhythm && !Array.isArray(merged.stats.rhythm)) merged.stats.rhythm=[];
+      if(merged.stats.rhythm && merged.stats.rhythm.length>600) merged.stats.rhythm=merged.stats.rhythm.slice(-600);
+      if(merged.stats.rhythmBest && typeof merged.stats.rhythmBest!=="object") merged.stats.rhythmBest=null;
       // 幽灵数据校验：结构不合法则丢弃，避免污染回放
       if(merged.stats.ghost){
         const g=merged.stats.ghost;
@@ -1356,6 +1464,23 @@ function loadStore(){
       merged.favorites=Object.assign({}, s&&s.favorites);
       merged.wrongWords=Object.assign({}, s&&s.wrongWords);
       merged.history=Array.isArray(s&&s.history)?s.history:[];
+      // 错词本上限：防止长期游玩后无限膨胀撑爆存储配额
+      if(Object.keys(merged.wrongWords||{}).length>300){
+        const ks=Object.keys(merged.wrongWords);
+        ks.sort((a,b)=>{
+          const x=merged.wrongWords[a]||{}, y=merged.wrongWords[b]||{};
+          return ((y.n||0)*1e6+(y.last||0))-((x.n||0)*1e6+(x.last||0));
+        });
+        const keep=new Set(ks.slice(0,300));
+        for(const k of ks) if(!keep.has(k)) delete merged.wrongWords[k];
+      }
+      // 自定义词库：限制数量与原始文本长度
+      if(Array.isArray(merged.customWords)){
+        if(merged.customWords.length>20) merged.customWords=merged.customWords.slice(-20);
+        for(const w of merged.customWords){
+          if(w && typeof w.raw==="string" && w.raw.length>600) w.raw=w.raw.slice(0,600)+"…";
+        }
+      }
       merged.skins=Array.isArray(s&&s.skins)&&s.skins.length?s.skins:["storm"];
       if(!merged.skins.includes("storm")) merged.skins.unshift("storm");
       merged.skin=merged.skins.includes(merged.skin)?merged.skin:"storm";
@@ -1364,11 +1489,244 @@ function loadStore(){
     d.settings=Object.assign(def.settings,d.settings||{});
     d.daily=Object.assign(def.daily,d.daily||{});
     d.active=d.active||0; d.v=1;
+    d.rev=Number(d.rev)||0;
+    d.savedAt=Number(d.savedAt)||0;
     return d;
-  }catch(e){ return defaultStore(); }
 }
+/* ------------------------------------------------------------ 存档写入层 */
+/* 版本化 + 多标签页合并 + 配额降级
+
+   问题背景：
+   ① 多标签页并发 —— 标签页 A 与 B 都从同一份存档出发，各自玩了一会儿，
+      后保存者会用旧内存状态覆盖先保存者的进度，玩家毫无察觉地丢档。
+   ② localStorage 配额（通常 5MB）写满时 setItem 抛 QuotaExceededError，
+      原实现 catch 后静默吞掉，玩家以为保存了其实没有。
+
+   对策：
+   ① 每个存档带 rev（版本号）与 savedAt（时间戳）。保存前先读盘，
+      若盘上的 rev 更新，说明有别的标签页写过 → 做字段级合并而非覆盖。
+   ② 写入失败时自动裁剪历史数据重试；仍失败则提示玩家导出备份。 */
+function readDiskStore(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    const d=JSON.parse(raw);
+    if(!d||!Array.isArray(d.slots)) return null;
+    return d;
+  }catch(e){ return null; }
+}
+
+/* 合并两个存档：数值字段取较大者（增量型字段相加过于危险，取 max 更安全），
+   集合型字段取并集，history 按时间戳去重合并
+
+   增量型字段（累计统计）不能直接相加 —— 两个标签页都从同一基线出发，
+   直接相加会把共享的基线重复计算。正确做法是：
+     合并值 = 内存值 + (盘上值 - 基线值)
+   基线值 = 本标签页载入存档时的快照。 */
+function mergeStores(disk, mem){
+  if(!disk) return mem;
+  if(!disk.rev || !mem.rev || disk.rev<=mem.rev) return mem;   // 盘上不更新，无需合并
+  const out=mem;
+  const BASE=_loadBase||{};                                   // 载入基线快照
+  // 累计字段：内存值 + (盘上增量)
+  const addDelta=(dv,mv,bv)=>{
+    const d=(Number(dv)||0)-(Number(bv)||0);
+    return (Number(mv)||0)+Math.max(0,d);
+  };
+  // 逐槽合并
+  for(let i=0;i<Math.max(disk.slots.length,mem.slots.length);i++){
+    const ds=disk.slots[i], ms=mem.slots[i];
+    if(!ds) continue;
+    if(!ms){ out.slots[i]=ds; continue; }
+    // 进度类字段：取较大者，避免玩家倒退
+    for(const k of ["lvl","xp","sp","coins"]) {
+      if(typeof ds[k]==="number" && typeof ms[k]==="number") ms[k]=Math.max(ds[k],ms[k]);
+    }
+    // 统计：累计字段用增量合并，最佳值取 max
+    const ds2=ds.stats||{}, ms2=ms.stats||{}, bs2=BASE[i]||{};
+    const addKeys=["games","chars","words","time","accSum","accN"];
+    for(const k of addKeys){
+      ms2[k]=addDelta(ds2[k], ms2[k], bs2[k]);
+    }
+    for(const k of ["bestWpm","bestCombo","bestScore"]){
+      ms2[k]=Math.max(Number(ds2[k])||0, Number(ms2[k])||0);
+    }
+    // 分模式统计：增量合并
+    ms2.byMode=Object.assign({}, ms2.byMode||{});
+    for(const k in (ds2.byMode||{})) ms2.byMode[k]=addDelta(ds2.byMode[k], ms2.byMode[k], (bs2.byMode||{})[k]);
+    ms2.byLang=Object.assign({}, ms2.byLang||{});
+    for(const k in (ds2.byLang||{})) ms2.byLang[k]=addDelta(ds2.byLang[k], ms2.byLang[k], (bs2.byLang||{})[k]);
+    // 按键统计：次数增量合并、总耗时取 max（平均才有意义）
+    ms2.keys=Object.assign({}, ms2.keys||{});
+    for(const k in (ds2.keys||{})){
+      const a=ds2.keys[k]||{}, b=ms2.keys[k]||{n:0,s:0};
+      const baseN=((bs2.keys||{})[k]||{}).n||0;
+      ms2.keys[k]={ n:addDelta(a.n, b.n, baseN), s:Math.max(Number(a.s)||0,Number(b.s)||0) };
+    }
+    // 成就 / 标记 / 技能：取并集，技能等级取 max
+    for(const k of ["ach","flags","skills","favorites"]){
+      ms[k]=Object.assign({}, ds[k]||{}, ms[k]||{});
+      if(k==="skills"||k==="ach"){
+        for(const sk in (ds[k]||{})){
+          if(typeof ds[k][sk]==="number" && typeof ms[k][sk]==="number") ms[k][sk]=Math.max(ds[k][sk],ms[k][sk]);
+        }
+      }
+    }
+    // 错词本：次数增量合并
+    ms.wrongWords=Object.assign({}, ds.wrongWords||{}, ms.wrongWords||{});
+    for(const k in (ds.wrongWords||{})){
+      const a=ds.wrongWords[k]||{}, b=ms.wrongWords[k]||{};
+      const baseN=((BASE[i]||{}).wrongWords||{})[k];
+      const baseN2=(baseN&&baseN.n)||0;
+      ms.wrongWords[k]={ n:Math.max((Number(b.n)||0), addDelta(a.n, b.n, baseN2)),
+                         last:Math.max(Number(a.last)||0,Number(b.last)||0),
+                         lang:b.lang||a.lang, text:b.text||a.text, input:b.input||a.input, syl:b.syl||a.syl };
+    }
+    // 历史：按 ts 去重合并，按时间排序后保留最近 60 条
+    const seen=new Set();
+    const hist=[];
+    for(const h of [...(ms.history||[]),...(ds.history||[])]){
+      if(!h||typeof h!=="object") continue;
+      const key=h.ts||JSON.stringify(h);
+      if(seen.has(key)) continue;
+      seen.add(key); hist.push(h);
+    }
+    hist.sort((a,b)=>(a.ts||0)-(b.ts||0));
+    ms.history=hist.slice(-60);
+    // 皮肤：取并集
+    ms.skins=[...new Set([...(ds.skins||[]),...(ms.skins||[])])];
+    if(!ms.skins.includes("storm")) ms.skins.unshift("storm");
+    ms.skin=ms.skins.includes(ms.skin)?ms.skin:"storm";
+    // 自定义词库：按名称去重，保留 units 更完整的一份
+    const libs=new Map();
+    for(const w of [...(ds.customWords||[]),...(ms.customWords||[])]){
+      if(!w||typeof w!=="object") continue;
+      const key=w.name||("lib"+(libs.size));
+      const old=libs.get(key);
+      if(!old || (w.units&&w.units.length>(old.units||[]).length)) libs.set(key,w);
+    }
+    ms.customWords=[...libs.values()];
+    // 幽灵与各模式最佳：取 updatedAt 更新的那份
+    if(ds2.ghost && (!ms2.ghost || (ds2.ghost.at||0)>(ms2.ghost.at||0))) ms2.ghost=ds2.ghost;
+    if(ds2.modeBest) ms2.modeBest=Object.assign({}, ds2.modeBest, ms2.modeBest||{});
+  }
+  out.rev=Math.max(disk.rev||0, mem.rev||0);
+  // 合并后重置基线：合并结果本身成为新的共同基线，避免下次重复累加增量
+  _loadBase=snapshotBase(out);
+  return out;
+}
+
+/* 数据裁剪：配额吃紧时按优先级丢弃可再生数据，保留玩家核心进度
+   level 1 = 温和（只丢最老的历史）
+   level 2 = 激进（错词本、词库原文、按键统计都可再生，进一步瘦身） */
+function compactStore(store, level){
+  const s=store.slots&&store.slots[store.active];
+  if(!s) return false;
+  const lv=level||1;
+  let changed=false;
+  // 1) 历史记录：趋势图只用最近 12 条
+  const histLimit = lv===1 ? 12 : 5;
+  if(Array.isArray(s.history) && s.history.length>histLimit){ s.history=s.history.slice(-histLimit); changed=true; }
+  // 2) 错词本：保留最近若干条（按错误次数与时间综合排序）
+  const wwLimit = lv===1 ? 200 : 60;
+  const ww=Object.keys(s.wrongWords||{});
+  if(ww.length>wwLimit){
+    ww.sort((a,b)=>{
+      const x=s.wrongWords[a]||{}, y=s.wrongWords[b]||{};
+      return ((y.n||0)*1e6+(y.last||0))-((x.n||0)*1e6+(x.last||0));
+    });
+    const keep=new Set(ww.slice(0,wwLimit));
+    for(const k of ww) if(!keep.has(k)) delete s.wrongWords[k];
+    changed=true;
+  }
+  // 3) 自定义词库：原始文本只留摘要（units 已足够练习）
+  if(Array.isArray(s.customWords)){
+    const rawLimit = lv===1 ? 600 : 120;
+    for(const w of s.customWords){
+      if(w && typeof w.raw==="string" && w.raw.length>rawLimit){ w.raw=w.raw.slice(0,rawLimit)+"…"; changed=true; }
+    }
+    // 激进模式下：只保留最后一个词库（units 占空间最大）
+    if(lv>=2 && s.customWords.length>1){
+      s.customWords=s.customWords.slice(-1);
+      changed=true;
+    }
+  }
+  // 4) 按键统计：只保留常用字符集；激进模式下只保留高频键
+  const kk=Object.keys(s.stats&&s.stats.keys||{});
+  if(kk.length>80){
+    for(const k of kk) if(!/^[a-z0-9]$/i.test(k)){ delete s.stats.keys[k]; changed=true; }
+  }
+  if(lv>=2 && kk.length>26){
+    // 保留次数最多的 26 个字母键
+    const sorted=kk.filter(k=>/^[a-z0-9]$/i.test(k)).sort((a,b)=>{
+      const x=s.stats.keys[a]||{}, y=s.stats.keys[b]||{};
+      return (y.n||0)-(x.n||0);
+    });
+    const keep=new Set(sorted.slice(0,26));
+    for(const k of Object.keys(s.stats.keys||{})) if(!keep.has(k)){ delete s.stats.keys[k]; changed=true; }
+  }
+  // 5) 极限模式（level 3）：只保留核心进度 —— 等级/成就/技能/统计总量
+  if(lv>=3){
+    if(Array.isArray(s.history) && s.history.length){ s.history=s.history.slice(-2); changed=true; }
+    const wk=Object.keys(s.wrongWords||{});
+    if(wk.length){ s.wrongWords={}; changed=true; }
+    if(Array.isArray(s.customWords)){
+      for(const w of s.customWords){ if(w) delete w.raw; }
+      if(s.customWords.length>1){ s.customWords=s.customWords.slice(-1); changed=true; }
+    }
+    // 节奏序列体积较大，极限模式下只留评分
+    if(s.stats && Array.isArray(s.stats.rhythm) && s.stats.rhythm.length>20){
+      s.stats.rhythm=s.stats.rhythm.slice(-20); changed=true;
+    }
+  }
+  return changed;
+}
+
+/* 存储占用估算（字节） */
+function storeSize(store){
+  const json=JSON.stringify(store);
+  try{
+    const b=new Blob([json]);
+    // 部分环境（如某些 WebView / 测试桩）Blob 无 size 属性，必须校验后再用
+    if(b && typeof b.size==="number") return b.size;
+  }catch(e){}
+  return json.length;
+}
+
+let _lastSaveWarned=0;
 function saveStore(){
-  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(STORE)); }catch(e){}
+  try{
+    // ① 多标签页冲突检测：盘上版本更新则先合并
+    const disk=readDiskStore();
+    if(disk && disk.rev && STORE.rev && disk.rev>STORE.rev){
+      STORE=mergeStores(disk, STORE);
+      if(typeof toast==="function") toast("🔄 检测到其他页面也在游戏，已自动合并进度");
+    }
+    STORE.rev=(STORE.rev||0)+1;
+    STORE.savedAt=Date.now();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(STORE));
+    // 保存后刷新基线：当前状态成为新的共同起点
+    _loadBase=snapshotBase(STORE);
+    return true;
+  }catch(e){
+    // ② 配额超限：分级裁剪后重试（温和 → 激进 → 极限）
+    for(const lv of [1,2,3]){
+      try{
+        compactStore(STORE, lv);
+        localStorage.setItem(SAVE_KEY, JSON.stringify(STORE));
+        if(typeof toast==="function") toast(lv===1?"💾 存储空间紧张，已自动清理部分历史数据"
+          :lv===2?"💾 存储空间很紧张，已大幅精简数据":"💾 存储空间告急，仅保留核心进度");
+        _loadBase=snapshotBase(STORE);
+        return true;
+      }catch(e2){ /* 继续下一级 */ }
+    }
+    // ③ 仍失败：明确告知玩家，而不是静默丢数据
+    if(Date.now()-_lastSaveWarned>8000){
+      _lastSaveWarned=Date.now();
+      if(typeof toast==="function") toast("⚠️ 存档写入失败（存储已满），请到设置里导出备份后清理数据");
+    }
+    return false;
+  }
 }
 const S = () => STORE.slots[STORE.active];
 const lvlNeed = l => 200 + (l-1)*120;
@@ -1445,7 +1803,8 @@ const G = {
   customName:"", customTotal:0, customDone:0,   // 自定义词库进度
   paused:false, pauseAt:0, pauseShift:0,         // 暂停状态
   ghost:null, timeline:[],                       // 幽灵对手与本局时间线
-  wordScore:0, perfect:true, lastKeyTs:0, keyDelay:{}
+  wordScore:0, perfect:true, lastKeyTs:0, keyDelay:{},
+  rhythm:[], rhythmBest:null                          // 击键间隔序列 + 本局节奏统计
 };
 const CONFIG = { mode:"sprint", diff:"normal", lang:"cn" };
 
@@ -1584,6 +1943,7 @@ function startGame(dailyCfg){
   G.units=[]; G.idx=0; G.ci=0; G.gi=0; G.input="";
   G.combo=0; G.maxCombo=0; G.correct=0; G.wrong=0; G.score=0; G.words=0;
   G.perfect=true; G.wordScore=0; G.keyDelay={};
+  G.rhythm=[]; G.rhythmBest=null;
   G.timeline=[]; G.ghost=null; G.imeTipShown=false;
   imeReset();
   const it=$("#imeTip"); if(it) it.style.display="none";
@@ -1735,6 +2095,8 @@ function handleKey(ch){
   // 按键统计：只记录字母/数字/常用符号，避免异常按键让字典无限膨胀
   if(G.lastKeyTs && ch && ch.length===1 && /[a-zA-Z0-9`~!@#$%^&*()_+=\-[\]\\|;:'",.<>\/?]/.test(ch)){
     G.keyDelay[ch]=(G.keyDelay[ch]||0)*0.88+((now-G.lastKeyTs))*0.12;
+    // 节奏分析：记录击键间隔序列（最多 400 个点）
+    if(G.rhythm && G.rhythm.length<400) G.rhythm.push(now-G.lastKeyTs);
   }
   G.lastKeyTs=now;
 
@@ -2224,6 +2586,39 @@ function imeBlocksKey(e){
   return IME.composing;
 }
 
+/* ------------------------------------------------------------ 节奏分析 */
+/* 打字节奏（rhythm）：指相邻两次击键的时间间隔序列。
+   专业打字测试不只看速度，更看节奏是否稳定 ——
+   同样的 WPM，节奏稳定的人比忽快忽慢的人实际效率更高。
+
+   采集：击键间隔序列 + 每个词的完成耗时（用于找出"卡壳的词"） */
+function rhythmStats(intervals){
+  const arr=(intervals||[]).filter(x=>typeof x==="number"&&x>0&&x<5000);
+  if(arr.length<4) return null;
+  const n=arr.length;
+  const mean=arr.reduce((a,b)=>a+b,0)/n;
+  if(mean<=0) return null;
+  const variance=arr.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n;
+  const sd=Math.sqrt(variance);
+  const cv=sd/mean;                              // 变异系数：越小越稳定
+  // 稳定性评分：把 CV 映射到 0~100，CV=0 满分，CV≥0.8 归零
+  const score=Math.max(0,Math.min(100,Math.round((1-cv/0.8)*100)));
+  const sorted=arr.slice().sort((a,b)=>a-b);
+  const median=sorted[Math.floor(n/2)];
+  const p95=sorted[Math.floor(n*0.95)];
+  return { n, mean, sd, cv, score, median, p95, fastest:sorted[0], slowest:sorted[n-1] };
+}
+
+/* 从节奏统计生成评价 */
+function rhythmVerdict(rs){
+  if(!rs) return { level:"none", text:"数据不足，多打几局就能看到你的节奏曲线" };
+  if(rs.score>=85) return { level:"great", text:"节奏非常稳 —— 你的输出像节拍器，这是高手的标志" };
+  if(rs.score>=70) return { level:"good",  text:"节奏不错，偶尔有几下停顿，注意保持匀速" };
+  if(rs.score>=50) return { level:"mid",   text:"节奏有起伏 —— 试着盯着屏幕而不是手指，慢一点反而更快" };
+  if(rs.score>=30) return { level:"low",   text:"节奏较乱，容易连击断掉，建议先放慢速度追求稳定" };
+  return { level:"bad", text:"节奏很不稳定 —— 建议切到简单难度，先把每个键都打准" };
+}
+
 /* -------------------------------------------------------------- 特效层 */
 /* 屏幕阅读器播报：写入 aria-live 区域（节流避免刷屏） */
 let _lastAnnounce=0;
@@ -2329,6 +2724,16 @@ function endGame(){
   s.stats.byLang.cn=(s.stats.byLang.cn||0)+G.cnChars;
   s.stats.byLang.en=(s.stats.byLang.en||0)+G.enChars;
   for(const k in G.keyDelay){ s.stats.keys[k]=s.stats.keys[k]||{n:0,s:0}; s.stats.keys[k].n++; s.stats.keys[k].s+=G.keyDelay[k]; }
+  // 节奏分析：保存本局击键间隔序列与统计（用于节奏稳定性评估）
+  const rs=rhythmStats(G.rhythm);
+  if(rs){
+    G.rhythmBest=rs;
+    s.stats.rhythm=Array.isArray(s.stats.rhythm)?s.stats.rhythm:[];
+    s.stats.rhythm=s.stats.rhythm.concat(G.rhythm.slice(0,200)).slice(-600);
+    // 历史最佳节奏评分
+    const prev=s.stats.rhythmBest;
+    if(!prev || rs.score>(prev.score||0)) s.stats.rhythmBest=rs;
+  }
   if(G.mode==="precision"&&G.perfect) s.flags.perfect=true;
   if(G.mode==="climb"&&G.stage>=10) s.flags.peak=true;
   if(G.mode==="survival"&&G.elapsed>=120) s.flags.survive120=true;
@@ -2383,6 +2788,19 @@ function renderResult(r){
   if(r.levelUp) html+=`<span class="rw purple">🎊 升级 Lv.${s.lvl}！获得 1 技能点</span>`;
   for(const a of r.unlocked) html+=`<span class="rw gold">🏆 ${a.nm}</span>`;
   html+=`</div>`;
+  // 本局节奏评价
+  const rs=G.rhythmBest||rhythmStats(G.rhythm);
+  if(rs){
+    const v=rhythmVerdict(rs);
+    const rc = v.level==="great"?"var(--acc)": v.level==="good"?"var(--good)"
+             : v.level==="mid"?"var(--warn)":"var(--bad)";
+    html+=`<div class="res-rhythm">
+      <div class="rr-score" style="color:${rc}">${rs.score}<small>节奏分</small></div>
+      <div class="rr-txt"><b style="color:${rc}">${v.level==="great"?"节奏优秀":v.level==="good"?"节奏良好":v.level==="mid"?"节奏一般":"节奏需改进"}</b>
+        <div class="rr-sub">${v.text}</div>
+        <div class="rr-sub" style="margin-top:3px">平均间隔 ${Math.round(rs.mean)}ms · 波动 ${Math.round(rs.sd)}ms</div>
+      </div></div>`;
+  }
   html+=`<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
     <button class="btn pri" onclick="startGame()">🔄 再来一局 <kbd>R</kbd></button>
     <button class="btn" onclick="showView('Home');renderHome()">🏠 返回首页</button>
@@ -2660,6 +3078,60 @@ function renderStats(){
       fw.innerHTML=html;
     }
   }
+  // 节奏分析
+  renderRhythm(st);
+}
+
+/* 渲染节奏稳定性分析面板 */
+function renderRhythm(st){
+  const rw=$("#rhythmWrap");
+  if(!rw) return;
+  const all=Array.isArray(st.rhythm)?st.rhythm:[];
+  const rs=rhythmStats(all);
+  if(!rs){
+    rw.innerHTML='<div class="rhythm-empty">数据不足，多打几局后这里会分析你的打字节奏稳定性</div>';
+    return;
+  }
+  const v=rhythmVerdict(rs);
+  const color = v.level==="great"?"var(--acc)": v.level==="good"?"var(--good)"
+              : v.level==="mid"?"var(--warn)": v.level==="low"?"var(--bad)":"var(--bad)";
+  const best=st.rhythmBest;
+  // 分布直方图：把击键间隔分 6 档
+  const buckets=new Array(6).fill(0);
+  const lo=rs.fastest, hi=rs.slowest, span=Math.max(1,hi-lo);
+  for(const x of all){
+    let i=Math.floor((x-lo)/span*6);
+    if(i<0)i=0; if(i>5)i=5;
+    buckets[i]++;
+  }
+  const maxB=Math.max(1,...buckets);
+  const labels=["<100","100-150","150-200","200-300","300-450",">450"];
+  let html=`<div class="rhythm-score">
+    <div class="rhythm-ring" style="background:conic-gradient(${color} ${rs.score*3.6}deg,var(--line) 0)">
+      <i></i><span class="rs-num">${rs.score}</span>
+    </div>
+    <div class="rhythm-info">
+      <div class="rhythm-verdict" style="color:${color}">节奏稳定性 ${rs.score} 分 · ${v.level==="great"?"优秀":v.level==="good"?"良好":v.level==="mid"?"一般":v.level==="low"?"偏弱":"需改进"}</div>
+      <div class="rhythm-sub">${v.text}</div>
+    </div>
+  </div>
+  <div class="rhythm-stats">
+    <div class="rhythm-stat"><div class="rk">平均间隔</div><div class="rv">${Math.round(rs.mean)}ms</div></div>
+    <div class="rhythm-stat"><div class="rk">中位间隔</div><div class="rv">${Math.round(rs.median)}ms</div></div>
+    <div class="rhythm-stat"><div class="rk">波动（标准差）</div><div class="rv">${Math.round(rs.sd)}ms</div></div>
+    <div class="rhythm-stat"><div class="rk">最快 / 最慢</div><div class="rv">${Math.round(rs.fastest)}/${Math.round(rs.slowest)}</div></div>
+    ${best?`<div class="rhythm-stat"><div class="rk">历史最佳</div><div class="rv">${best.score||rs.score} 分</div></div>`:""}
+  </div>
+  <div class="rhythm-hist">
+    <div style="font-size:11.5px;color:var(--dim2);margin-bottom:4px">击键间隔分布（共 ${all.length} 次采样）—— 分布越集中，节奏越稳</div>`;
+  for(let i=0;i<6;i++){
+    const w=Math.round(buckets[i]/maxB*100);
+    html+=`<div class="rh-row"><span style="min-width:64px;font-family:var(--mono)">${labels[i]}ms</span>
+      <span class="rh-bar"><i style="width:${w}%"></i></span>
+      <span class="rh-v">${buckets[i]}</span></div>`;
+  }
+  html+='</div>';
+  rw.innerHTML=html;
 }
 
 /* ------------------------------------------------------------ 主题 */
@@ -3373,13 +3845,132 @@ function renderGuide(body){
 }
 function guideSeen(){ return !!STORE.settings.seenGuide; }
 
+/* ------------------------------------------------------------ 数据管理 */
+/* 导出 / 导入 / 清空 + 存储占用体检。
+   导出用 Blob + a[download]，导入用 FileReader，file:// 下也能工作。 */
+function exportSaveData(){
+  try{
+    const payload=JSON.stringify(STORE,null,2);
+    const blob=new Blob([payload],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    const d=new Date();
+    const stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+    a.href=url; a.download="打字风暴存档-"+stamp+".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    toast("✅ 存档已导出");
+    return true;
+  }catch(e){
+    toast("❌ 导出失败："+e.message);
+    return false;
+  }
+}
+
+function importSaveData(text){
+  try{
+    const d=JSON.parse(text);
+    if(!d || !Array.isArray(d.slots)) throw new Error("不是有效的存档文件");
+    if(!confirm("导入将覆盖当前全部数据，确定继续？\n（建议先导出备份）")) return false;
+    STORE=loadStoreFrom(d);
+    saveStore();
+    applyTheme(); renderHome();
+    toast("✅ 存档已导入");
+    return true;
+  }catch(e){
+    toast("❌ 导入失败："+e.message);
+    return false;
+  }
+}
+
+/* 存储占用体检：给玩家看得懂的数据体积诊断 */
+function storageReport(){
+  const total=storeSize(STORE);
+  const per=STORE.slots.map(s=>storeSize(s));
+  const cur=STORE.slots[STORE.active];
+  const parts=[
+    { k:"对局历史", v:storeSize(cur.history||[]), n:(cur.history||[]).length, unit:"条", limit:60 },
+    { k:"错词本",   v:storeSize(cur.wrongWords||{}), n:Object.keys(cur.wrongWords||{}).length, unit:"词", limit:300 },
+    { k:"收藏夹",   v:storeSize(cur.favorites||{}), n:Object.keys(cur.favorites||{}).length, unit:"词", limit:"—" },
+    { k:"自定义词库", v:storeSize(cur.customWords||[]), n:(cur.customWords||[]).length, unit:"个", limit:20 },
+    { k:"按键统计", v:storeSize((cur.stats&&cur.stats.keys)||{}), n:Object.keys((cur.stats&&cur.stats.keys)||{}).length, unit:"键", limit:"—" }
+  ];
+  return { total, per, parts, quota:5*1024*1024, pct:Math.min(100, total/(5*1024*1024)*100) };
+}
+
+function openDataPanel(){
+  const body=document.createElement("div");
+  body.className="mask";
+  const rep=storageReport();
+  const kb=n=>n<1024? n+" B" : n<1024*1024? (n/1024).toFixed(1)+" KB" : (n/1024/1024).toFixed(2)+" MB";
+  // 体积小于 8 字节说明只有 JSON 结构开销（空数组/空对象），显示为"—"更易读
+  const sz=n=>n<8? "—" : kb(n);
+  body.innerHTML=`<div class="modal">
+    <h3>🗄️ 数据管理</h3>
+    <div class="data-report">
+      <div class="dr-head">
+        <div><div class="dr-total">${kb(rep.total)}</div>
+          <div class="dr-sub">当前存档占用（浏览器上限约 5 MB）</div></div>
+        <div class="dr-pct">${rep.pct<1?"<1":rep.pct.toFixed(1)}%</div>
+      </div>
+      <div class="dr-bar"><i style="width:${Math.max(1.5,Math.min(100,rep.pct))}%"></i></div>
+      <div class="dr-parts">
+        ${rep.parts.map(p=>`<div class="dr-row">
+          <span class="k">${p.k}</span>
+          <span class="n">${p.n} ${p.unit}</span>
+          <span class="s">${sz(p.v)}</span>
+          ${p.limit!=="—"&&p.n>=p.limit?'<span class="w">已达上限</span>':""}
+        </div>`).join("")}
+      </div>
+    </div>
+    <div class="data-actions">
+      <button class="btn" id="dpExport">📤 导出存档</button>
+      <button class="btn" id="dpImport">📥 导入存档</button>
+      <button class="btn" id="dpCompact">🧹 清理冗余</button>
+      <button class="btn danger" id="dpClear">🗑️ 清空全部数据</button>
+    </div>
+    <input type="file" id="dpFile" accept=".json,application/json" style="display:none">
+    <div class="tip-line">导出的 JSON 可在另一台设备导入，实现跨设备迁移。</div>
+    <div style="margin-top:16px;text-align:right"><button class="btn pri" id="dpClose">关闭</button></div>
+  </div>`;
+  $("#modalRoot").appendChild(body);
+  body.querySelector("#dpClose").onclick=()=>body.remove();
+  body.querySelector("#dpExport").onclick=()=>exportSaveData();
+  const file=body.querySelector("#dpFile");
+  body.querySelector("#dpImport").onclick=()=>file.click();
+  file.onchange=()=>{
+    const f=file.files&&file.files[0];
+    if(!f) return;
+    const rd=new FileReader();
+    rd.onload=()=>{ importSaveData(String(rd.result||"")); body.remove(); };
+    rd.onerror=()=>toast("❌ 文件读取失败");
+    rd.readAsText(f);
+  };
+  body.querySelector("#dpCompact").onclick=()=>{
+    if(compactStore(STORE)){ saveStore(); body.remove(); openDataPanel(); toast("🧹 已清理冗余数据"); }
+    else toast("数据已经很精简，无需清理");
+  };
+  body.querySelector("#dpClear").onclick=()=>{
+    if(!confirm("这会删除全部存档、成就、收藏与词库，且无法撤销。\n建议先导出备份。确定继续？")) return;
+    if(!confirm("再次确认：真的要清空所有数据吗？")) return;
+    try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+    STORE=defaultStore();
+    saveStore(); applyTheme(); renderHome(); body.remove();
+    toast("已清空全部数据");
+  };
+  body.onclick=e=>{ if(e.target===body) body.remove(); };
+}
+
 /* ------------------------------------------------------------ 存档菜单 */
 function openSaveMenu(){
   const body=document.createElement("div");
   body.className="mask";
   body.innerHTML=`<div class="modal"><h3>💾 存档管理</h3>
     <div id="slotWrap"></div>
-    <div style="margin-top:16px;text-align:right"><button class="btn pri" id="btnCloseSave">关闭</button></div></div>`;
+    <div style="margin-top:16px;display:flex;gap:8px;align-items:center">
+      <button class="btn sm" id="btnDataPanel" style="flex:1">🗄️ 数据管理</button>
+      <button class="btn pri" id="btnCloseSave">关闭</button>
+    </div></div>`;
   $("#modalRoot").appendChild(body);
   const sw=body.querySelector("#slotWrap");
   STORE.slots.forEach((sl,i)=>{
@@ -3413,6 +4004,7 @@ function openSaveMenu(){
     sw.appendChild(el);
   });
   body.querySelector("#btnCloseSave").onclick=()=>body.remove();
+  body.querySelector("#btnDataPanel").onclick=()=>{ body.remove(); openDataPanel(); };
   body.onclick=e=>{ if(e.target===body) body.remove(); };
 }
 
