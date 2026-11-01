@@ -6,21 +6,47 @@
 <meta name="theme-color" content="#0b1020">
 <title>打字风暴 · Typing Storm</title>
 <style>
+/* Safari 兼容：color-mix() 需 Safari 16.4+，iOS 16.3 及以下不支持。
+   策略：关键背景用语义化变量 —— 变量声明两次（后者带 @supports 覆盖），
+   旧浏览器解析第一条（纯色），新浏览器解析第二条（color-mix 增强）。 */
 :root{
   --bg:#0b1020; --bg2:#121a33; --panel:#161f3d; --panel2:#1d2849;
   --line:#2a3760; --txt:#e8ecf8; --dim:#8fa0c8; --dim2:#61729b;
   --acc:#38e1c4; --acc2:#7aa2ff; --warn:#ffb454; --bad:#ff6b81; --good:#5ddc7a;
   --gold:#ffd166; --purple:#b07cff; --radius:14px; --radius2:20px;
   --shadow:0 10px 40px rgba(0,0,0,.45); --fs:16px;
+  /* 毛玻璃背景（旧浏览器纯色，新浏览器半透明） */
+  --glass:rgba(22,31,61,.94);
+  --glass-side:rgba(22,31,61,.92);
+  --glass-nav:rgba(22,31,61,.95);
   --font:"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans CJK SC",system-ui,sans-serif;
   --mono:"SF Mono",Menlo,Consolas,"Courier New",monospace;
+}
+@supports (background:color-mix(in srgb,red 50%,transparent)){
+  :root{
+    --glass:color-mix(in srgb,var(--panel) 72%,transparent);
+    --glass-side:color-mix(in srgb,var(--panel) 42%,transparent);
+    --glass-nav:color-mix(in srgb,var(--panel) 78%,transparent);
+  }
 }
 html[data-theme="light"]{
   --bg:#eef2fb; --bg2:#e2e9f8; --panel:#ffffff; --panel2:#f4f7ff;
   --line:#cfd9f0; --txt:#182036; --dim:#5b6b90; --dim2:#8494b8;
   --shadow:0 8px 28px rgba(30,50,100,.13);
+  --glass:rgba(255,255,255,.96);
+  --glass-side:rgba(255,255,255,.92);
+  --glass-nav:rgba(255,255,255,.96);
+}
+@supports (background:color-mix(in srgb,red 50%,transparent)){
+  html[data-theme="light"]{
+    --glass:color-mix(in srgb,var(--panel) 72%,transparent);
+    --glass-side:color-mix(in srgb,var(--panel) 42%,transparent);
+    --glass-nav:color-mix(in srgb,var(--panel) 78%,transparent);
+  }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* iOS Safari：禁用点击延迟与双击缩放，虚拟键盘按键才能跟手 */
+button, .vkb-key, .mode, .tabbar button, .seg button{-webkit-touch-callout:none;touch-action:manipulation}
 html,body{margin:0;padding:0;height:100%}
 body{
   background:
@@ -28,6 +54,8 @@ body{
     radial-gradient(900px 600px at 95% 8%,rgba(122,162,255,.12),transparent 60%),
     var(--bg);
   color:var(--txt); font-family:var(--font); font-size:var(--fs);
+  /* iOS 100vh 不含地址栏，改用动态视口高度 */
+  height:100dvh; min-height:100vh;
   overflow:hidden; transition:background .3s,color .3s;
 }
 body::before{
@@ -50,7 +78,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
   padding:12px 20px;border-bottom:1px solid var(--line);
-  background:color-mix(in srgb,var(--panel) 72%,transparent);backdrop-filter:blur(14px);flex:0 0 auto;
+  background:var(--glass);-webkit-backdrop-filter:blur(14px);-webkit--webkit-backdrop-filter:blur(14px);flex:0 0 auto;
 }
 .brand{display:flex;align-items:baseline;gap:9px;font-weight:800;font-size:19px;letter-spacing:.4px;white-space:nowrap}
 .brand .sub{font-size:11px;font-weight:600;color:var(--dim2);letter-spacing:2.4px;text-transform:uppercase}
@@ -79,7 +107,7 @@ main{flex:1;min-height:0;display:flex;overflow:hidden}
 .col-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .side{
   width:308px;flex:0 0 308px;border-left:1px solid var(--line);overflow-y:auto;
-  padding:16px;display:flex;flex-direction:column;gap:14px;background:color-mix(in srgb,var(--panel) 42%,transparent);
+  padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--glass-side);
 }
 .pad{padding:20px 24px}
 
@@ -93,7 +121,7 @@ main{flex:1;min-height:0;display:flex;overflow:hidden}
   background:var(--panel);border:1px solid var(--line);transition:.2s;overflow:hidden;
 }
 .mode:hover{border-color:var(--acc);transform:translateY(-3px);box-shadow:var(--shadow)}
-.mode.on{border-color:var(--acc);background:linear-gradient(150deg,color-mix(in srgb,var(--acc) 15%,var(--panel)),var(--panel))}
+.mode.on{border-color:var(--acc);background:var(--panel2)}
 .mode .ico{font-size:26px;display:block;margin-bottom:7px}
 .mode .nm{font-weight:800;font-size:15.5px;margin-bottom:4px}
 .mode .ds{font-size:12px;color:var(--dim);line-height:1.55}
@@ -113,15 +141,15 @@ html[data-theme="light"] .seg button.on{color:#04211c}
   background:var(--panel2);border:1px solid var(--line);
 }
 .btn:hover{border-color:var(--acc);transform:translateY(-1px)}
-.btn.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#04211c;border-color:transparent;box-shadow:0 6px 22px color-mix(in srgb,var(--acc) 32%,transparent)}
+.btn.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#04211c;border-color:transparent;box-shadow:0 6px 22px rgba(56,225,196,.32)}
 .btn.pri:hover{filter:brightness(1.08)}
 .btn.sm{padding:7px 13px;font-size:12.5px;border-radius:9px}
 .btn.gold{background:linear-gradient(135deg,var(--gold),#ff9f45);color:#3a2400;border-color:transparent}
 .btn:disabled{opacity:.4;pointer-events:none}
 .daily{
   display:flex;align-items:center;gap:14px;padding:15px 17px;border-radius:var(--radius);
-  background:linear-gradient(120deg,color-mix(in srgb,var(--purple) 20%,var(--panel)),var(--panel));
-  border:1px solid color-mix(in srgb,var(--purple) 40%,var(--line));
+  background:linear-gradient(120deg,rgba(176,124,255,.16),var(--panel));
+  border:1px solid rgba(176,124,255,.42);
 }
 .daily .ic{font-size:30px}
 .daily .tt{font-weight:800;font-size:14.5px}
@@ -151,16 +179,16 @@ html[data-theme="light"] .seg button.on{color:#04211c}
 .combo-num{
   font-size:52px;font-weight:900;line-height:.92;font-variant-numeric:tabular-nums;letter-spacing:-2px;
   background:linear-gradient(180deg,#fff,var(--acc));-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 0 18px color-mix(in srgb,var(--acc) 45%,transparent));
+  filter:drop-shadow(0 0 18px rgba(56,225,196,.45));
 }
 .combo-num.pop{animation:cpop .28s ease-out}
 .combo-wrap.hot .combo-num{
-  filter:drop-shadow(0 0 26px color-mix(in srgb,var(--warn) 70%,transparent));
+  filter:drop-shadow(0 0 26px rgba(255,180,84,.70));
   background:linear-gradient(180deg,#fff,var(--warn));
 }
 .combo-wrap.hot .combo-lb{color:var(--warn)}
 .combo-wrap.blaze .combo-num{
-  filter:drop-shadow(0 0 34px color-mix(in srgb,var(--bad) 80%,transparent));
+  filter:drop-shadow(0 0 34px rgba(255,107,129,.80));
   background:linear-gradient(180deg,#fff,var(--bad));
   animation:blaze .5s ease-in-out infinite alternate;
 }
@@ -185,19 +213,19 @@ html[data-theme="light"] .seg button.on{color:#04211c}
   font-size:38px;font-weight:700;line-height:1.16;padding:2px 4px;border-radius:9px;
   color:var(--dim);transition:.16s;font-family:var(--font);
 }
-.cn-char.g{color:var(--good);text-shadow:0 0 16px color-mix(in srgb,var(--good) 45%,transparent)}
-.cn-char.hit{color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,transparent)}
-.cn-char.miss{color:var(--bad);background:color-mix(in srgb,var(--bad) 15%,transparent);animation:shk .2s}
+.cn-char.g{color:var(--good);text-shadow:0 0 16px rgba(93,220,122,.45)}
+.cn-char.hit{color:var(--acc);background:rgba(56,225,196,.14)}
+.cn-char.miss{color:var(--bad);background:rgba(255,107,129,.15);animation:shk .2s}
 .py-row{display:flex;gap:11px;flex-wrap:wrap}
 .py-syl{display:flex;gap:1px;font-family:var(--mono);font-size:13.5px;color:var(--dim2);letter-spacing:.6px}
 .py-syl b{font-weight:600;transition:.12s;display:inline-block;min-width:.62em;text-align:center}
-.py-syl b.c{color:var(--acc);text-shadow:0 0 12px color-mix(in srgb,var(--acc) 50%,transparent)}
+.py-syl b.c{color:var(--acc);text-shadow:0 0 12px rgba(56,225,196,.50)}
 .py-syl b.cur{color:var(--txt)}
 .py-syl b.w{color:var(--bad)}
 .en-row{display:flex;gap:1px;font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:1.5px}
 .en-row b{font-weight:600;transition:.12s;color:var(--dim)}
-.en-row b.c{color:var(--acc);text-shadow:0 0 14px color-mix(in srgb,var(--acc) 42%,transparent)}
-.en-row b.w{color:var(--bad);text-shadow:0 0 14px color-mix(in srgb,var(--bad) 42%,transparent)}
+.en-row b.c{color:var(--acc);text-shadow:0 0 14px rgba(56,225,196,.42)}
+.en-row b.w{color:var(--bad);text-shadow:0 0 14px rgba(255,107,129,.42)}
 .en-row b.cur{color:var(--txt)}
 .unit .ahead{font-size:12px;color:var(--dim2);font-family:var(--mono);letter-spacing:2px}
 .fav-star{position:absolute;right:16px;font-size:15px;opacity:.85;line-height:1}
@@ -222,15 +250,15 @@ kbd{
 .res-cell.hero .v{color:var(--acc)} .res-cell.warn .v{color:var(--warn)} .res-cell.bad .v{color:var(--bad)}
 .rewards{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
 .rw{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);font-size:13px;font-weight:700}
-.rw.gold{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 40%,var(--line))}
-.rw.acc{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
-.rw.purple{color:var(--purple);border-color:color-mix(in srgb,var(--purple) 45%,var(--line))}
+.rw.gold{color:var(--gold);border-color:rgba(255,209,102,.45)}
+.rw.acc{color:var(--acc);border-color:rgba(56,225,196,.45)}
+.rw.purple{color:var(--purple);border-color:rgba(176,124,255,.45)}
 .newrec{display:inline-block;padding:6px 15px;border-radius:999px;background:linear-gradient(135deg,var(--gold),#ff9f45);color:#3a2400;font-size:12px;font-weight:900;letter-spacing:1px;margin-bottom:18px;animation:cpop .5s}
 
 /* ============ 底部导航 ============ */
 .tabbar{
   flex:0 0 auto;display:flex;gap:4px;padding:8px 16px;border-top:1px solid var(--line);
-  background:color-mix(in srgb,var(--panel) 78%,transparent);backdrop-filter:blur(14px);overflow-x:auto;
+  background:var(--glass-nav);-webkit-backdrop-filter:blur(14px);-webkit--webkit-backdrop-filter:blur(14px);overflow-x:auto;
 }
 .tabbar button{padding:8px 17px;border-radius:10px;font-size:13.5px;font-weight:700;color:var(--dim);transition:.16s;white-space:nowrap}
 .tabbar button.on{background:var(--acc);color:#04211c}
@@ -246,7 +274,7 @@ kbd{
   display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;margin-bottom:8px;
   background:var(--panel2);border:1px solid var(--line);transition:.18s;
 }
-.skill.maxed{border-color:color-mix(in srgb,var(--gold) 45%,var(--line))}
+.skill.maxed{border-color:rgba(255,209,102,.45)}
 .skill.locked{opacity:.45}
 .skill .ic{font-size:20px;width:26px;text-align:center;flex:0 0 auto}
 .skill .tx{flex:1;min-width:0}
@@ -263,7 +291,7 @@ kbd{
   padding:14px;border-radius:var(--radius);background:var(--panel);border:1px solid var(--line);
   text-align:center;transition:.2s;position:relative;
 }
-.ach.got{background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 16%,var(--panel)),var(--panel));border-color:color-mix(in srgb,var(--gold) 42%,var(--line))}
+.ach.got{background:linear-gradient(160deg,rgba(255,209,102,.16),var(--panel));border-color:rgba(255,209,102,.42)}
 .ach .ic{font-size:27px;filter:grayscale(1);opacity:.45}
 .ach.got .ic{filter:none;opacity:1}
 .ach .nm{font-weight:800;font-size:12.5px;margin-top:6px}
@@ -287,7 +315,7 @@ canvas{width:100%;display:block;border-radius:8px}
 
 /* ============ 弹窗 ============ */
 .mask{
-  position:fixed;inset:0;background:rgba(4,8,20,.76);backdrop-filter:blur(7px);z-index:60;
+  position:fixed;inset:0;background:rgba(4,8,20,.76);-webkit-backdrop-filter:blur(7px);-webkit--webkit-backdrop-filter:blur(7px);z-index:60;
   display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .2s;
 }
 @keyframes fade{from{opacity:0}to{opacity:1}}
@@ -319,8 +347,8 @@ canvas{width:100%;display:block;border-radius:8px}
   padding:11px 20px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);
   font-size:13.5px;font-weight:700;box-shadow:var(--shadow);animation:tin .3s cubic-bezier(.2,.9,.3,1);
 }
-.toast.gold{border-color:color-mix(in srgb,var(--gold) 55%,var(--line));color:var(--gold)}
-.toast.acc{border-color:color-mix(in srgb,var(--acc) 55%,var(--line));color:var(--acc)}
+.toast.gold{border-color:rgba(255,209,102,.55);color:var(--gold)}
+.toast.acc{border-color:rgba(56,225,196,.55);color:var(--acc)}
 @keyframes tin{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
 .float-txt{
   position:absolute;z-index:9;font-weight:900;font-size:17px;pointer-events:none;
@@ -364,10 +392,10 @@ canvas{width:100%;display:block;border-radius:8px}
   background:var(--panel2);border:1px solid var(--line);color:var(--dim);
   transition:.2s;position:relative;flex:0 0 auto;
 }
-.heat-key.lv1{background:color-mix(in srgb,var(--acc) 22%,var(--panel2));color:var(--txt);border-color:color-mix(in srgb,var(--acc) 30%,var(--line))}
-.heat-key.lv2{background:color-mix(in srgb,var(--acc) 45%,var(--panel2));color:#04211c;border-color:transparent}
-.heat-key.lv3{background:color-mix(in srgb,var(--warn) 62%,var(--panel2));color:#2a1a00;border-color:transparent}
-.heat-key.lv4{background:color-mix(in srgb,var(--bad) 68%,var(--panel2));color:#fff;border-color:transparent}
+.heat-key.lv1{background:rgba(56,225,196,.22);color:var(--txt);border-color:rgba(56,225,196,.30)}
+.heat-key.lv2{background:rgba(56,225,196,.45);color:#04211c;border-color:transparent}
+.heat-key.lv3{background:rgba(255,180,84,.62);color:#2a1a00;border-color:transparent}
+.heat-key.lv4{background:rgba(255,107,129,.68);color:#fff;border-color:transparent}
 .heat-key.slow{box-shadow:inset 0 0 0 2px var(--bad)}
 .heat-legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim2);margin-top:10px;flex-wrap:wrap}
 .heat-legend i{width:16px;height:11px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
@@ -387,21 +415,21 @@ canvas{width:100%;display:block;border-radius:8px}
 /* ============ 幽灵竞速 ============ */
 .ghost-badge{
   position:absolute;left:26px;top:16px;z-index:6;display:flex;align-items:center;gap:9px;
-  padding:7px 14px;border-radius:999px;background:rgba(176,124,255,.13);
-  border:1px solid color-mix(in srgb,var(--purple) 45%,var(--line));
+  padding:7px 14px;border-radius:999px;background:rgba(176,124,255,.16);
+  border:1px solid rgba(176,124,255,.45);
   font-size:12.5px;font-weight:700;color:var(--purple);pointer-events:none;
 }
 .ghost-badge .gi{font-size:15px}
 .ghost-badge b{color:var(--txt);font-variant-numeric:tabular-nums}
 .ghost-badge .gs{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--dim)}
-.ghost-badge .gs.ahead{color:var(--good);background:color-mix(in srgb,var(--good) 18%,transparent)}
-.ghost-badge .gs.behind{color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,transparent)}
+.ghost-badge .gs.ahead{color:var(--good);background:rgba(93,220,122,.18)}
+.ghost-badge .gs.behind{color:var(--bad);background:rgba(255,107,129,.18)}
 
 /* ============ 移动端虚拟键盘 ============ */
 .vkb{
   position:absolute;left:0;right:0;bottom:0;z-index:12;padding:6px 5px 8px;
-  background:color-mix(in srgb,var(--panel) 94%,transparent);
-  border-top:1px solid var(--line);backdrop-filter:blur(12px);
+  background:var(--glass);
+  border-top:1px solid var(--line);-webkit-backdrop-filter:blur(12px);-webkit--webkit-backdrop-filter:blur(12px);
   display:none;flex-direction:column;gap:5px;user-select:none;-webkit-user-select:none;
 }
 .vkb.on{display:flex}
@@ -416,6 +444,50 @@ canvas{width:100%;display:block;border-radius:8px}
 .vkb-key.wide{flex:1.6 1 0;max-width:82px;font-size:12px}
 .vkb-key.sp{flex:4 1 0;max-width:none}
 .vkb-tip{text-align:center;font-size:10.5px;color:var(--dim2);padding-top:1px}
+
+/* ============ 无障碍 / 色盲友好 ============ */
+/* 约 8% 男性存在色觉障碍，"绿色=对/红色=错" 单靠颜色无法区分。
+   开启后追加形状标记（✓ / ✗）与下划线，色弱用户也能识别。 */
+.cn-char.g,.en-row b.c{ position:relative }
+body.cvd .cn-char.g::after{ content:"✓"; position:absolute; right:-2px; top:-4px; font-size:11px; color:var(--good); font-family:var(--mono) }
+body.cvd .en-row b.c{ text-decoration:underline; text-decoration-color:var(--good); text-underline-offset:3px }
+body.cvd .cn-char.miss{ text-decoration:line-through; text-decoration-color:var(--bad) }
+body.cvd .en-row b.w{ text-decoration:line-through; text-decoration-color:var(--bad); opacity:.95 }
+/* 键盘焦点可见 */
+:focus-visible{ outline:2px solid var(--acc); outline-offset:2px; border-radius:6px }
+:focus:not(:focus-visible){ outline:none }
+/* 减少动画：尊重系统偏好 */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important }
+}
+/* 手动开关的"减少动画"（覆盖系统偏好） */
+body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{
+  animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;
+}
+/* 屏幕阅读器专用文本 */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ============ 新手引导 ============ */
+.guide{position:relative;text-align:center;padding:30px 26px}
+.guide .ic{font-size:46px;margin-bottom:12px}
+.guide h2{margin:0 0 8px;font-size:22px;font-weight:900}
+.guide p{color:var(--dim);font-size:13.5px;line-height:1.85;margin:0 0 20px}
+.guide .demo{
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  padding:16px;margin-bottom:20px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);
+}
+.guide .demo .k{
+  display:inline-grid;place-items:center;min-width:34px;height:34px;padding:0 8px;border-radius:8px;
+  background:var(--bg2);border:1px solid var(--line);border-bottom-width:3px;
+  font-family:var(--mono);font-size:15px;font-weight:700;color:var(--txt);
+}
+.guide .demo .k.hit{background:var(--acc);color:#04211c;border-color:transparent}
+.guide .demo .arrow{color:var(--dim2);font-size:15px}
+.guide .demo .word{font-size:26px;font-weight:800;letter-spacing:2px}
+.guide-steps{display:flex;gap:7px;justify-content:center;margin-bottom:18px}
+.guide-steps i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block}
+.guide-steps i.on{background:var(--acc)}
+.guide .tip-line{font-size:12px;color:var(--dim2);line-height:1.7;margin-top:14px}
 
 /* ============ 响应式 ============ */
 @media (max-width:980px){
@@ -478,6 +550,7 @@ canvas{width:100%;display:block;border-radius:8px}
           <button class="btn" id="btnLibrary" style="display:none">📂 词库管理</button>
           <button class="btn" id="btnWrong">🩹 错词本 <span id="wwBadge"></span></button>
           <button class="btn" id="btnFav">⭐ 收藏夹 <span id="favBadge"></span></button>
+          <button class="btn" id="btnHow">❓ 玩法说明</button>
         </div>
         <div style="height:18px"></div>
         <div class="modes" id="modeCards"></div>
@@ -497,25 +570,26 @@ canvas{width:100%;display:block;border-radius:8px}
     <section class="view" id="vPlay">
       <div class="col-main">
         <div class="hud">
-          <div class="metric big"><span class="v" id="mSpeed">0</span><span class="k" id="kSpeed">字/分</span></div>
-          <div class="metric"><span class="v" id="mAcc">100%</span><span class="k">准确率</span></div>
-          <div class="metric warn"><span class="v" id="mScore">0</span><span class="k">得分</span></div>
-          <div class="metric"><span class="v" id="mTime">60</span><span class="k" id="kTime">剩余秒</span></div>
+          <div class="metric big" role="status" aria-live="off"><span class="v" id="mSpeed">0</span><span class="k" id="kSpeed">字/分</span></div>
+          <div class="metric" role="status" aria-live="off"><span class="v" id="mAcc">100%</span><span class="k">准确率</span></div>
+          <div class="metric warn" role="status" aria-live="off"><span class="v" id="mScore">0</span><span class="k">得分</span></div>
+          <div class="metric" role="status" aria-live="off"><span class="v" id="mTime">60</span><span class="k" id="kTime">剩余秒</span></div>
           <div class="sp"></div>
           <div class="hud-r">
-            <div class="lives" id="mLives"></div>
-            <button class="icon-btn" id="btnPause" title="暂停">⏸️</button>
-            <button class="icon-btn" id="btnQuit">✕</button>
+            <div class="lives" id="mLives" role="status" aria-label="剩余生命"></div>
+            <button class="icon-btn" id="btnPause" title="暂停" aria-label="暂停游戏">⏸️</button>
+            <button class="icon-btn" id="btnQuit" title="退出" aria-label="退出本局">✕</button>
           </div>
         </div>
         <div class="play-area" id="playArea">
-          <div class="combo-wrap" id="comboWrap">
+          <div class="combo-wrap" id="comboWrap" role="status" aria-live="off">
             <div class="combo-num" id="comboNum">0</div>
             <div class="combo-lb">Combo</div>
           </div>
           <div class="flow-wrap">
-            <div class="flow" id="flow"></div>
+            <div class="flow" id="flow" role="log" aria-live="polite" aria-atomic="false" aria-label="打字区"></div>
           </div>
+          <div class="sr-only" id="srLive" role="status" aria-live="polite"></div>
           <div class="hint-line" id="hintLine"><span id="hintNext" style="display:none"></span></div>
           <div class="ghost-badge" id="ghostBadge" style="display:none">
             <span class="gi">👻</span>
@@ -572,10 +646,10 @@ canvas{width:100%;display:block;border-radius:8px}
           <h3>键盘热力图 <span style="color:var(--dim2);font-weight:600;text-transform:none;letter-spacing:0">（越亮=用得越多，红框=较慢）</span></h3>
           <div class="heat-grid" id="heatGrid"></div>
           <div class="heat-legend">
-            <i style="background:color-mix(in srgb,var(--acc) 22%,var(--panel2))"></i>少
-            <i style="background:color-mix(in srgb,var(--acc) 45%,var(--panel2))"></i>
-            <i style="background:color-mix(in srgb,var(--warn) 62%,var(--panel2))"></i>
-            <i style="background:color-mix(in srgb,var(--bad) 68%,var(--panel2))"></i>多
+            <i style="background:rgba(56,225,196,.22)"></i>少
+            <i style="background:rgba(56,225,196,.45)"></i>
+            <i style="background:rgba(255,180,84,.62)"></i>
+            <i style="background:rgba(255,107,129,.68)"></i>多
             <span style="margin-left:6px">🔴 红框 = 拖沓键</span>
           </div>
         </div>
@@ -1207,7 +1281,8 @@ function newSlotData(name){
 }
 function defaultStore(){
   return { v:1, active:0, slots:[newSlotData("存档 1"),newSlotData("存档 2"),newSlotData("存档 3")],
-           settings:{ sound:true, theme:"dark", particles:true, showPinyin:true, tone:"sine", pyMode:"full", vkb:"auto" },
+           settings:{ sound:true, theme:"dark", particles:true, showPinyin:true, tone:"sine", pyMode:"full", vkb:"auto",
+                      cvd:false, reduceMotion:false, seenGuide:false },
            daily:{ date:"", best:0, done:false, cfg:null } };
 }
 let STORE = loadStore();
@@ -1437,6 +1512,12 @@ function customFinished(){
 /* -------------------------------------------------------------- 开始游戏 */
 function startGame(dailyCfg){
   Audio2.init();
+  // 用户已开始游戏 → 不再自动弹引导（避免打断正在进行的对局）
+  if(!guideSeen()){
+    STORE.settings.seenGuide=true; saveStore();
+    const gm=document.querySelector("#guideMask");
+    if(gm && gm.remove) gm.remove();
+  }
   const s=S();
   // 每日挑战使用独立的临时配置，不污染玩家的全局设置
   if(dailyCfg){
@@ -1601,7 +1682,10 @@ function handleKey(ch){
   if(!G.on) return;
   if(G.paused) return;               // 暂停中不响应任何游戏输入
   const now=Date.now();
-  if(G.lastKeyTs){ G.keyDelay[ch]=(G.keyDelay[ch]||0)*0.88+((now-G.lastKeyTs))*0.12; }
+  // 按键统计：只记录字母/数字/常用符号，避免异常按键让字典无限膨胀
+  if(G.lastKeyTs && ch && ch.length===1 && /[a-zA-Z0-9`~!@#$%^&*()_+=\-[\]\\|;:'",.<>\/?]/.test(ch)){
+    G.keyDelay[ch]=(G.keyDelay[ch]||0)*0.88+((now-G.lastKeyTs))*0.12;
+  }
   G.lastKeyTs=now;
 
   // 专注技能：失误后 1 秒免疫
@@ -1659,7 +1743,9 @@ function onMistake(ch){
   if(focusOn()) G.immuneUntil=Date.now()+1000;
   Audio2.err();
   const area=$("#playArea");
-  area.classList.remove("shake"); void area.offsetWidth; area.classList.add("shake");
+  if(!STORE.settings.reduceMotion){
+    area.classList.remove("shake"); void area.offsetWidth; area.classList.add("shake");
+  }
   const edge=$("#dangerEdge"); edge.classList.remove("hit"); void edge.offsetWidth; edge.classList.add("hit");
   $("#comboWrap").style.opacity="0.35";
   setTimeout(()=>$("#comboWrap").style.opacity="1",260);
@@ -1700,6 +1786,8 @@ function completeWord(){
   }
   G.idx++; G.ci=0; G.input=""; G.gi=0;
   G.timeline.push(Date.now()-G.startTs);   // 记录每词完成时刻，供幽灵回放
+  // 屏幕阅读器播报（每完成一个词播报一次，避免过于频繁）
+  announce("已完成 "+G.words+" 词，连击 "+G.combo);
   if(G.mode==="custom"||G.mode==="review"||G.mode==="fav"){
     G.customDone++;
     if(G.customDone>=G.customTotal){ endGame(); return; }
@@ -2035,8 +2123,22 @@ function setPyMode(mode){
   saveStore();
 }
 /* -------------------------------------------------------------- 特效层 */
+/* 屏幕阅读器播报：写入 aria-live 区域（节流避免刷屏） */
+let _lastAnnounce=0;
+function announce(text){
+  const el=$("#srLive");
+  if(!el) return;
+  const now=Date.now();
+  if(now-_lastAnnounce<400) return;
+  _lastAnnounce=now;
+  el.textContent=text;
+}
+/* 特效层：统一受"减少动画"开关控制 */
+function effectsOff(){
+  return !STORE.settings.particles || !!STORE.settings.reduceMotion;
+}
 function floatTxt(txt,anchor){
-  if(!STORE.settings.particles) return;
+  if(effectsOff()) return;
   const el=document.createElement("div");
   el.className="float-txt"; el.textContent=txt;
   const ar=$("#playArea").getBoundingClientRect();
@@ -2047,7 +2149,7 @@ function floatTxt(txt,anchor){
   setTimeout(()=>el.remove(),1050);
 }
 function spawnFlame(){
-  if(!STORE.settings.particles) return;
+  if(effectsOff()) return;
   const box=$("#comboWrap");
   const ar=$("#playArea").getBoundingClientRect();
   const br=box.getBoundingClientRect();
@@ -2069,7 +2171,7 @@ function spawnFlame(){
   }
 }
 function spawnParticle(anchor){
-  if(!STORE.settings.particles) return;
+  if(effectsOff()) return;
   const ar=$("#playArea").getBoundingClientRect();
   const r=(anchor&&anchor.getBoundingClientRect)?anchor.getBoundingClientRect():ar;
   const cols=["var(--acc)","var(--acc2)","var(--gold)","var(--purple)"];
@@ -2175,7 +2277,9 @@ function renderResult(r){
     <button class="btn pri" onclick="startGame()">🔄 再来一局 <kbd>R</kbd></button>
     <button class="btn" onclick="showView('Home');renderHome()">🏠 返回首页</button>
     <button class="btn" onclick="showView('Skill');renderTree()">🌿 分配技能点</button>
+    <button class="btn" onclick="openShareCard()">🖼️ 生成战报</button>
   </div>`;
+  html+=`<div id="shareSlot" style="margin-top:20px"></div>`;
   w.innerHTML=html;
 }
 
@@ -2438,6 +2542,9 @@ function applyTheme(){
   document.documentElement.style.setProperty("--acc2",sk.c2);
   const meta=document.querySelector('meta[name="theme-color"]');
   if(meta) meta.content=t==="dark"?"#0b1020":"#eef2fb";
+  // 无障碍偏好应用到 body
+  document.body.classList.toggle("cvd", !!STORE.settings.cvd);
+  document.body.classList.toggle("reduce-motion", !!STORE.settings.reduceMotion);
 }
 
 /* ------------------------------------------------------------ 设置弹窗 */
@@ -2470,6 +2577,10 @@ function openSettings(){
         <button data-v="always" class="${s.vkb==="always"?"on":""}">总是</button>
         <button data-v="never" class="${s.vkb==="never"?"on":""}">关闭</button>
       </div></div>
+    <div class="set-row"><div><div class="t">色盲友好模式</div><div class="d">用 ✓ ✗ 符号与下划线辅助区分，不再只靠红绿颜色</div></div>
+      <button class="switch ${s.cvd?"on":""}" data-k="cvd"><i></i></button></div>
+    <div class="set-row"><div><div class="t">减少动画</div><div class="d">关闭粒子、震动等动效（也会遵循系统「减弱动态效果」设置）</div></div>
+      <button class="switch ${s.reduceMotion?"on":""}" data-k="reduceMotion"><i></i></button></div>
     <div class="set-row" style="display:block">
       <div style="margin-bottom:10px"><div class="t">皮肤</div><div class="d">用星尘解锁不同配色</div></div>
       <div class="skins" id="skinWrap"></div>
@@ -2485,7 +2596,13 @@ function openSettings(){
   </div>`;
   $("#modalRoot").appendChild(body);
   body.querySelectorAll(".switch").forEach(btn=>{
-    btn.onclick=()=>{ const k=btn.dataset.k; s[k]=!s[k]; btn.classList.toggle("on",s[k]); saveStore(); };
+    btn.onclick=()=>{
+      const k=btn.dataset.k; s[k]=!s[k];
+      btn.classList.toggle("on",s[k]);
+      saveStore();
+      if(k==="cvd"||k==="reduceMotion"){ applyTheme(); renderFlow(); }
+      if(k==="reduceMotion"&&s[k]) toast("已减少动画效果");
+    };
   });
   body.querySelectorAll("#segTone button").forEach(b=>{
     b.onclick=()=>{ s.tone=b.dataset.v; body.querySelectorAll("#segTone button").forEach(x=>x.classList.toggle("on",x===b)); saveStore(); };
@@ -2934,6 +3051,186 @@ function fingerBalance(keys){
   return { counts, total, balance, weakest, strongest, ratios, usedCount:used.length };
 }
 
+/* ------------------------------------------------------------ 战报分享图 */
+/* 用 canvas 画一张成绩卡片，玩家可保存/分享 —— 让"破纪录"这件事更有仪式感 */
+function drawShareCard(data){
+  const W=720, H=880;
+  const cv=document.createElement("canvas");
+  cv.width=W; cv.height=H;
+  const c=cv.getContext("2d");
+  const sk=SKINS.find(x=>x.id===S().skin)||SKINS[0];
+  const dark=STORE.settings.theme!=="light";
+  // 背景
+  const bg=c.createLinearGradient(0,0,W,H);
+  if(dark){ bg.addColorStop(0,"#101830"); bg.addColorStop(1,"#0a0f1e"); }
+  else { bg.addColorStop(0,"#ffffff"); bg.addColorStop(1,"#eef2fb"); }
+  c.fillStyle=bg; c.fillRect(0,0,W,H);
+  // 顶部装饰条
+  const tg=c.createLinearGradient(0,0,W,0);
+  tg.addColorStop(0,sk.c1); tg.addColorStop(1,sk.c2);
+  c.fillStyle=tg; c.fillRect(0,0,W,8);
+  // 标题
+  c.textAlign="center";
+  c.fillStyle=dark?"#e8ecf8":"#182036";
+  c.font="bold 42px 'PingFang SC',sans-serif";
+  c.fillText("打字风暴", W/2, 92);
+  c.font="20px 'PingFang SC',sans-serif";
+  c.fillStyle=dark?"#8fa0c8":"#5b6b90";
+  c.fillText(data.title, W/2, 126);
+  // 主数据：速度
+  c.fillStyle=sk.c1;
+  c.font="bold 108px 'SF Mono',Menlo,monospace";
+  c.fillText(String(data.wpm), W/2, 268);
+  c.fillStyle=dark?"#8fa0c8":"#5b6b90";
+  c.font="20px 'PingFang SC',sans-serif";
+  c.fillText(data.speedLabel, W/2, 300);
+  // 分隔
+  c.strokeStyle=dark?"rgba(255,255,255,.12)":"rgba(0,0,0,.10)";
+  c.lineWidth=1;
+  c.beginPath(); c.moveTo(70,336); c.lineTo(W-70,336); c.stroke();
+  // 三个副数据
+  const cells=[["准确率",data.acc+"%"],["最高连击",String(data.combo)],["得分",fmt(data.score)]];
+  cells.forEach((cell,i)=>{
+    const x=W/2+(i-1)*190;
+    c.fillStyle=dark?"#e8ecf8":"#182036";
+    c.font="bold 34px 'SF Mono',Menlo,monospace";
+    c.fillText(cell[1], x, 396);
+    c.fillStyle=dark?"#8fa0c8":"#5b6b90";
+    c.font="17px 'PingFang SC',sans-serif";
+    c.fillText(cell[0], x, 426);
+  });
+  // 段位徽章
+  const rk=rankOf(data.wpm);
+  c.fillStyle=sk.c1;
+  c.beginPath(); c.arc(W/2, 500, 44, 0, 7); c.fill();
+  c.fillStyle="#04211c";
+  c.font="bold 26px 'PingFang SC',sans-serif";
+  c.fillText(rk.nm, W/2, 510);
+  c.fillStyle=dark?"#8fa0c8":"#5b6b90";
+  c.font="16px 'PingFang SC',sans-serif";
+  c.fillText(rk.nm+"段位", W/2, 574);
+  // 底部信息
+  c.fillStyle=dark?"#61729b":"#8494b8";
+  c.font="16px 'PingFang SC',sans-serif";
+  c.fillText(data.footer, W/2, 640);
+  c.fillStyle=dark?"#8fa0c8":"#5b6b90";
+  c.font="bold 22px 'PingFang SC',sans-serif";
+  c.fillText("用 AI 写的网页打字游戏", W/2, 700);
+  c.font="15px 'SF Mono',Menlo,monospace";
+  c.fillStyle=dark?"#61729b":"#8494b8";
+  c.fillText("github.com/TAILAI86/game", W/2, 730);
+  // 边框
+  c.strokeStyle=dark?"rgba(255,255,255,.10)":"rgba(0,0,0,.08)";
+  c.lineWidth=2; c.strokeRect(1,1,W-2,H-2);
+  return cv;
+}
+function openShareCard(){
+  const slot=$("#shareSlot");
+  if(!slot) return;
+  const isCN=G.lang==="en";
+  const data={
+    title:(MODES.find(m=>m.id===G.mode)||{name:"挑战"}).name+" · "+(DIFFS.find(d=>d.id===G.diff)||{name:""}).name,
+    wpm:Math.round((G.correct/5)/Math.max(G.elapsed/60,1/600)),
+    speedLabel:isCN?"字 / 分":"WPM",
+    acc:Math.round(G.correct/(G.correct+G.wrong||1)*100),
+    combo:G.maxCombo, score:Math.round(G.score),
+    footer:new Date().toLocaleDateString("zh-CN")+" · "+G.words+" 词 · 打字风暴"
+  };
+  const cv=drawShareCard(data);
+  slot.innerHTML="";
+  const wrap=document.createElement("div");
+  wrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px";
+  cv.style.cssText="max-width:100%;height:auto;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--line)";
+  wrap.appendChild(cv);
+  const btns=document.createElement("div");
+  btns.style.cssText="display:flex;gap:10px;flex-wrap:wrap;justify-content:center";
+  const dl=document.createElement("button");
+  dl.className="btn pri"; dl.textContent="💾 下载战报图";
+  dl.onclick=()=>{
+    try{
+      const url=cv.toDataURL("image/png");
+      const a=document.createElement("a");
+      a.href=url;
+      a.download="打字风暴战报-"+todayKey()+".png";
+      a.click();
+      toast("战报图已保存");
+    }catch(e){ toast("保存失败：浏览器阻止了导出"); }
+  };
+  const cl=document.createElement("button");
+  cl.className="btn"; cl.textContent="✕ 关闭";
+  cl.onclick=()=>{ slot.innerHTML=""; };
+  btns.appendChild(dl); btns.appendChild(cl);
+  wrap.appendChild(btns);
+  slot.appendChild(wrap);
+  slot.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+/* ------------------------------------------------------------ 新手引导 */
+/* 三步引导：玩法 → 输入方式 → 开始。第一次打开自动弹出，也可随时从首页重看 */
+const GUIDE_STEPS=[
+  { ic:"⌨️", title:"欢迎来到打字风暴",
+    desc:"这是一个中文打字游戏。屏幕中央会显示<b style='color:var(--txt)'>汉字</b>和它的<b style='color:var(--txt)'>拼音</b>，你要用键盘敲出拼音字母。",
+    demo:`<span class="word">你好</span><span class="arrow">→</span><span class="k">n</span><span class="k">i</span><span class="k">h</span><span class="k">a</span><span class="k">o</span>`,
+    tip:"敲完一个词会自动跳到下一个，连击越高得分倍率越高。" },
+  { ic:"🔤", title:"两种输入方式",
+    desc:"中文有两种敲法：<b style='color:var(--txt)'>全拼</b>要敲完整拼音，<b style='color:var(--txt)'>首字母</b>只敲每个字的第一个字母。",
+    demo:`<span class="word">你好</span><span class="arrow">全拼 →</span><span class="k">n</span><span class="k">i</span><span class="k">h</span><span class="k">a</span><span class="k">o</span><span class="arrow" style="margin-left:10px"></span><span class="word">你好</span><span class="arrow">首字母 →</span><span class="k">n</span><span class="k">h</span>`,
+    tip:"首字母更快，适合熟练后使用。首页可随时切换；手机上推荐用首字母。" },
+  { ic:"🚀", title:"准备好开始了吗",
+    desc:"选定模式后点击「开始游戏」。<br><kbd>Esc</kbd> 退出 · <kbd>空格</kbd> 暂停 · <kbd>F</kbd> 收藏当前词",
+    demo:`<span class="k">Esc</span><span class="k">空格</span><span class="k">F</span>`,
+    tip:"还有每日挑战、错词本、幽灵竞速等玩法，随时可以在首页切换。" }
+];
+let _guideIdx=0;
+function openGuide(idx){
+  // 避免重复叠层：先移除已存在的引导
+  const exist=document.querySelector("#guideMask");
+  if(exist && exist.remove) exist.remove();
+  _guideIdx=idx||0;
+  const body=document.createElement("div");
+  body.className="mask"; body.id="guideMask";
+  renderGuide(body);
+  $("#modalRoot").appendChild(body);
+}
+function renderGuide(body){
+  const st=GUIDE_STEPS[_guideIdx];
+  const dots=GUIDE_STEPS.map((_,i)=>`<i class="${i===_guideIdx?"on":""}"></i>`).join("");
+  const isLast=_guideIdx===GUIDE_STEPS.length-1;
+  body.innerHTML=`<div class="modal" style="max-width:460px">
+    <div class="guide">
+      <div class="ic">${st.ic}</div>
+      <h2>${st.title}</h2>
+      <div class="guide-steps">${dots}</div>
+      <div class="demo">${st.demo}</div>
+      <p>${st.desc}</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        ${_guideIdx>0?'<button class="btn" id="gPrev">上一步</button>':""}
+        <button class="btn pri" id="gNext">${isLast?"开始游戏 →":"下一步 →"}</button>
+      </div>
+      ${_guideIdx===0?'<button class="btn sm" id="gSkip" style="margin-top:12px">跳过</button>':""}
+      <div class="tip-line">${st.tip}</div>
+    </div>
+  </div>`;
+  const next=body.querySelector("#gNext");
+  next.onclick=()=>{
+    if(isLast){
+      body.remove();
+      STORE.settings.seenGuide=true; saveStore();
+      showView("Home"); renderHome();
+      return;
+    }
+    _guideIdx++; renderGuide(body);
+  };
+  const prev=body.querySelector("#gPrev");
+  if(prev) prev.onclick=()=>{ _guideIdx--; renderGuide(body); };
+  const skip=body.querySelector("#gSkip");
+  if(skip) skip.onclick=()=>{
+    body.remove();
+    STORE.settings.seenGuide=true; saveStore();
+  };
+}
+function guideSeen(){ return !!STORE.settings.seenGuide; }
+
 /* ------------------------------------------------------------ 存档菜单 */
 function openSaveMenu(){
   const body=document.createElement("div");
@@ -2985,6 +3282,7 @@ function bind(){
   $("#btnCustom").onclick=()=>openCustomImport();
   $("#btnLibrary").onclick=()=>openLibraryManager();
   $("#btnFav").onclick=()=>openFavorites();
+  $("#btnHow").onclick=()=>openGuide(0);
   $("#btnWrong").onclick=()=>openWrongWords();
   $("#btnPyMode").onclick=()=>{
     setPyMode((STORE.settings.pyMode||"full")==="full" ? "initial" : "full");
@@ -3007,6 +3305,8 @@ window.startGame = startGame;
 window.showView = showView;
 window.renderHome = renderHome;
 window.renderTree = renderTree;
+window.openShareCard = openShareCard;
+window.openGuide = openGuide;
 
 /* ------------------------------------------------------------ 启动 */
 function boot(){
@@ -3017,6 +3317,8 @@ function boot(){
   // 每日挑战状态刷新
   if(STORE.daily.date!==todayKey()){ STORE.daily.date=todayKey(); STORE.daily.done=false; STORE.daily.best=0; }
   saveStore();
+  // 首次访问自动弹出新手引导
+  if(!guideSeen()) setTimeout(()=>openGuide(0), 420);
 }
 boot();
 </script>
