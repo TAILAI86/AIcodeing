@@ -398,11 +398,106 @@
   .ms-item.done { border-color: var(--gold); background: #fff9ec; color: var(--text); }
   html[data-theme="dark"] .ms-item.done { background: #2a2a1a; }
   .ms-item .mb { font-weight: 700; color: var(--gold-dark); }
+
+  /* ============ 天赋树 ============ */
+  .perk-branch { margin-bottom: 18px; }
+  .perk-branch .bt {
+    font-size: 13px; font-weight: 700; margin-bottom: 8px;
+    padding-bottom: 6px; border-bottom: 1px dashed var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .perk-branch .bt span { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .perk {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 9px 11px; margin-bottom: 6px; background: #f9fafc;
+  }
+  html[data-theme="dark"] .perk { background: #232838; }
+  .perk.maxed { border-color: var(--gold); background: #fff9ec; }
+  html[data-theme="dark"] .perk.maxed { background: #2a2a1a; }
+  .perk .pi { font-size: 20px; flex: none; }
+  .perk .pn { flex: 1; min-width: 0; }
+  .perk .pn .t { font-weight: 700; font-size: 13px; }
+  .perk .pn .d { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .perk .pl { font-size: 11px; color: var(--blue); font-weight: 700; margin-top: 3px; }
+  .perk .pb {
+    border: none; border-radius: 8px; padding: 7px 10px; flex: none;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    background: var(--green); color: #fff; min-width: 62px;
+  }
+  .perk .pb:disabled { background: #c9cdd6; cursor: not-allowed; }
+  html[data-theme="dark"] .perk .pb:disabled { background: #3a4156; }
+  .perk-points {
+    border: 1px solid var(--gold); background: #fff9ec;
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+    font-size: 13px; color: var(--text);
+  }
+  html[data-theme="dark"] .perk-points { background: #2a2a1a; }
+  .perk-points b { color: var(--gold-dark); font-size: 20px; }
+
+  /* ============ 每日任务 ============ */
+  .quest {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 13px; margin-bottom: 8px; background: #f9fafc;
+  }
+  html[data-theme="dark"] .quest { background: #232838; }
+  .quest.done { border-color: var(--green); background: #f0fdf5; }
+  html[data-theme="dark"] .quest.done { background: #1b3326; }
+  .quest .qh { display: flex; align-items: center; gap: 8px; }
+  .quest .qh .qi { font-size: 19px; }
+  .quest .qh .qt { font-weight: 700; font-size: 14px; flex: 1; }
+  .quest .qd { font-size: 12px; color: var(--muted); margin: 6px 0 7px; line-height: 1.5; }
+  .quest .qf { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .quest .qr { font-size: 12px; font-weight: 700; color: var(--gold-dark); }
+  .quest .qb {
+    border: none; border-radius: 8px; padding: 6px 12px;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    background: var(--green); color: #fff;
+  }
+  .quest .qb:disabled { background: #c9cdd6; cursor: not-allowed; }
+  html[data-theme="dark"] .quest .qb:disabled { background: #3a4156; }
+  .quest-all {
+    border: 1px dashed var(--gold); border-radius: 10px;
+    padding: 11px 13px; margin-top: 10px; font-size: 12px;
+    color: var(--muted); line-height: 1.6;
+  }
+  .quest-all b { color: var(--gold-dark); }
+
+  /* ============ 图表 ============ */
+  .chart-wrap {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 8px 6px; margin-bottom: 14px; background: #f9fafc;
+  }
+  html[data-theme="dark"] .chart-wrap { background: #232838; }
+  #chartCanvas { width: 100%; height: 168px; display: block; }
+  .chart-legend {
+    display: flex; gap: 14px; font-size: 11px; color: var(--muted);
+    padding: 4px 6px 0; flex-wrap: wrap;
+  }
+  .chart-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+  /* 自动采购开关按钮 */
+  .shop-item .btns .auto-btn {
+    min-width: 34px; padding: 8px 6px; font-size: 12px;
+    background: #eef0f4; border: none; border-radius: 8px; color: #9aa3b5;
+    font-weight: 700; cursor: pointer;
+  }
+  .shop-item .btns .auto-btn.on { background: var(--blue); color: #fff; }
+  html[data-theme="dark"] .shop-item .btns .auto-btn { background: #3a4156; color: #9aa3b5; }
+  html[data-theme="dark"] .shop-item .btns .auto-btn.on { background: var(--blue); color: #fff; }
+
+  .mini-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+  .mini-btn {
+    border: 1px solid var(--border); background: #f2f4f8; color: var(--muted);
+    border-radius: 7px; padding: 5px 11px; font-size: 12px; cursor: pointer; font-weight: 700;
+  }
+  .mini-btn:hover { color: var(--text); border-color: var(--blue); }
+  html[data-theme="dark"] .mini-btn { background: #232838; }
 </style>
 </head>
 <body>
-  <h1>💰 金币工厂<span class="ver">v0.0.4</span></h1>
-  <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 自动存档 · 离线也能赚</div>
+  <h1>💰 金币工厂<span class="ver">v1.0.0</span></h1>
+  <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 天赋成长 · 每日任务 · 离线也能赚</div>
 
   <div class="layout">
     <!-- 左：主点击区 -->
@@ -428,6 +523,8 @@
         <button class="tab" data-tab="prestige">♻️ 重生</button>
         <button class="tab" data-tab="checkin">📅 签到</button>
         <button class="tab" data-tab="stats">📊 数据</button>
+        <button class="tab" data-tab="quest">📋 任务</button>
+        <button class="tab" data-tab="perk">🌟 天赋</button>
         <button class="tab" data-tab="settings">⚙️ 设置</button>
       </div>
 
@@ -456,6 +553,14 @@
 
       <div id="tab-stats" style="display:none">
         <div id="statsBox"></div>
+      </div>
+
+      <div id="tab-quest" style="display:none">
+        <div id="questBox"></div>
+      </div>
+
+      <div id="tab-perk" style="display:none">
+        <div id="perkBox"></div>
       </div>
 
       <div id="tab-settings" style="display:none">
@@ -534,6 +639,51 @@ const UPGRADES = [
 ];
 
 // 里程碑：按「历史累计财富」解锁，永久全局加成（重生不清空累计财富，故永久有效）
+/* 天赋树：用「天赋点」解锁的永久成长，分为三条线
+ * 每个天赋有 max 级，每级收益递减；天赋点在每日任务与重生时获得
+ */
+const PERK_BRANCHES = [
+  { id: 'gold',  name: '💰 财富线', desc: '让钱生钱', color: 'var(--gold-dark)' },
+  { id: 'tech',  name: '⚙️ 效率线', desc: '花更少、赚更多', color: 'var(--blue)' },
+  { id: 'fort',  name: '🍀 稳健线', desc: '抗风险、稳收益', color: 'var(--green)' },
+];
+
+const PERKS = [
+  // 财富线
+  { id: 'pk_money',  br: 'gold', name: '生财有道', ico: '💰', max: 10, base: 1, growth: 1.6,
+    desc: '全局收益 +4%/级', effect: '所有收益 ×(1 + 0.04×级)' },
+  { id: 'pk_click',  br: 'gold', name: '点石成金', ico: '👆', max: 8, base: 2, growth: 1.7,
+    desc: '点击收益 +12%/级', effect: '点击 ×(1 + 0.12×级)' },
+  { id: 'pk_off',    br: 'gold', name: '复利机器', ico: '🏦', max: 8, base: 3, growth: 1.8,
+    desc: '离线收益 +20%/级', effect: '离线 ×(1 + 0.20×级)' },
+  // 效率线
+  { id: 'pk_discount', br: 'tech', name: '批量议价', ico: '🏷️', max: 8, base: 2, growth: 1.7,
+    desc: '升级价格 -3%/级（最低 -24%）', effect: '价格 ×(1 - 0.03×级)' },
+  { id: 'pk_crit',   br: 'tech', name: '幸运加成', ico: '🎲', max: 8, base: 3, growth: 1.8,
+    desc: '暴击率 +3%/级', effect: '暴击率 +3%×级' },
+  { id: 'pk_growth', br: 'tech', name: '通货膨胀', ico: '📈', max: 8, base: 4, growth: 1.9,
+    desc: '升级涨价幅度 -2%/级（最低 -16%）', effect: '成长率 ×(1 - 0.02×级)' },
+  // 稳健线
+  { id: 'pk_offcap', br: 'fort', name: '长线待机', ico: '🔋', max: 6, base: 3, growth: 1.8,
+    desc: '离线结算上限 +2 小时/级', effect: '离线上限 +2h×级' },
+  { id: 'pk_quest',  br: 'fort', name: '勤能补拙', ico: '📋', max: 6, base: 2, growth: 1.7,
+    desc: '每日任务奖励 +25%/级', effect: '任务金币 ×(1 + 0.25×级)' },
+  { id: 'pk_keep',   br: 'fort', name: '细水长流', ico: '🛟', max: 5, base: 5, growth: 2.0,
+    desc: '重生保留 5%/级 累计财富（最高 25%）', effect: '重生保留累计财富比例' },
+  { id: 'pk_start',  br: 'fort', name: '及时行乐', ico: '🎁', max: 5, base: 4, growth: 1.9,
+    desc: '每次签到额外获得 1 点天赋点（每日上限 5 点）', effect: '签到送天赋点' },
+];
+
+// 每日任务：每天 3 个，完成后结算奖励
+const QUESTS = [
+  { id: 'q_click', name: '手动党', ico: '👆', desc: '点击金币 200 次', target: 200, stat: 'clickQuest' },
+  { id: 'q_buy',   name: '扩张计划', ico: '🏗️', desc: '购买 10 个升级', target: 10, stat: 'buyQuest' },
+  { id: 'q_crit',  name: '赌徒', ico: '🎲', desc: '触发 15 次暴击', target: 15, stat: 'critQuest' },
+  { id: 'q_earn',  name: '营业额', ico: '💵', desc: '累计赚取 ¥5,000', target: 5000, stat: 'earnQuest' },
+  { id: 'q_staff', name: '招兵买马', ico: '👥', desc: '拥有 30 名员工', target: 30, stat: 'staffQuest' },
+  { id: 'q_milestone', name: '里程碑', ico: '🎖️', desc: '达成 1 个里程碑', target: 1, stat: 'msQuest' },
+];
+
 const MILESTONES = [
   { id: 'm1', name: '小有积蓄',   th: 100000,       bonus: 0.05, ico: '🪙' },
   { id: 'm2', name: '百万俱乐部', th: 1000000,      bonus: 0.05, ico: '💰' },
@@ -558,6 +708,10 @@ const ACHIEVEMENTS = [
   { id: 'a12',name: '初代首富', cond: s => s.prestige >= 1,       prog: s => s.prestige },
   { id: 'a13',name: '声望巨头', cond: s => s.prestige >= 25,      prog: s => s.prestige / 25 },
   { id: 'a14',name: '天选之人', cond: s => s.events >= 10,        prog: s => s.events / 10 },
+  { id: 'a15',name: '点石成金', cond: s => s.lifeClicks >= 500,   prog: s => (s.lifeClicks || 0) / 500 },
+  { id: 'a16',name: '扩张先锋', cond: s => s.lifeBuys >= 100,     prog: s => (s.lifeBuys || 0) / 100 },
+  { id: 'a17',name: '天赋加身', cond: s => s.perkPointsTotal >= 10, prog: s => (s.perkPointsTotal || 0) / 10 },
+  { id: 'a18',name: '劳模 CEO', cond: s => s.lifeStaff >= 100,    prog: s => (s.lifeStaff || 0) / 100 },
 ];
 
 /* ============ 游戏状态 ============ */
@@ -582,6 +736,21 @@ let state = {
   checkin: { last: '', streak: 0, day: 0 }, // 每日签到：上次签到日期、连续天数、当前周期第几天(1-7)
   ms: {},         // { milestoneId: true } 已解锁里程碑（仅用于解锁提示）
   startedAt: 0,   // 首次开始游戏的时间戳
+  perks: {},      // { perkId: 等级 }
+  perkPoints: 0,  // 天赋点（未使用的）
+  perkPointsTotal: 0, // 历史累计获得的天赋点
+  quest: { date: '', ids: [], progress: {}, claimed: {}, bonusClaimed: false },
+  clickQuest: 0,  // 今日点击次数
+  buyQuest: 0,    // 今日购买次数
+  critQuest: 0,   // 今日暴击次数
+  earnQuest: 0,   // 今日赚取金额
+  staffQuest: 0,  // 今日员工峰值
+  msQuest: 0,     // 今日达成里程碑数
+  lifeClicks: 0,  // 终身点击次数（成就用，不受重生/跨天影响）
+  lifeBuys: 0,    // 终身购买次数
+  lifeStaff: 0,   // 终身员工峰值
+  autoSel: {},    // { upgradeId: true } 自动采购范围（默认全部开启）
+  chart: [],      // 收益曲线采样 [{ t, v }]
 };
 
 function load() {
@@ -604,28 +773,72 @@ function load() {
   }
   if (typeof state.theme !== 'string' || (state.theme !== 'light' && state.theme !== 'dark')) state.theme = 'light';
   if (!state.checkin || typeof state.checkin !== 'object') state.checkin = { last: '', streak: 0, day: 0 };
-  if (!state.ms || typeof state.ms !== 'object') state.ms = {};
-  if (typeof state.startedAt !== 'number' || state.startedAt <= 0) state.startedAt = Date.now();
-}
-function save() {
+  ensureFields(state);
+}function save() {
   state.lastSave = Date.now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
 }
 
 /* ============ 计算函数 ============ */
+// 天赋等级
+function perkLv(id) { return (state.perks && state.perks[id]) || 0; }
+// 天赋点是否足够
+function perkCost(p) {
+  const lv = perkLv(p.id);
+  if (lv >= p.max) return Infinity;
+  return Math.ceil(p.base * Math.pow(p.growth, lv));
+}
+// 天赋全局收益倍率（财富线「生财有道」）
+function perkMult() {
+  return 1 + 0.04 * perkLv('pk_money');
+}
+// 天赋点击加成
+function perkClickMult() {
+  return 1 + 0.12 * perkLv('pk_click');
+}
+// 天赋离线加成
+function perkOfflineMult() {
+  return 1 + 0.20 * perkLv('pk_off');
+}
+// 天赋价格折扣（最低 -24%）
+function perkDiscount() {
+  return Math.max(0.76, 1 - 0.03 * perkLv('pk_discount'));
+}
+// 天赋涨价幅度削减（最低 -16%）
+function perkGrowth() {
+  return Math.max(0.84, 1 - 0.02 * perkLv('pk_growth'));
+}
+// 天赋暴击率加成
+function perkCritChance() {
+  return 3 * perkLv('pk_crit');
+}
+// 天赋离线时长上限加成（秒）
+function perkOfflineCap() {
+  return 7200 * perkLv('pk_offcap');
+}
+// 天赋任务奖励加成
+function perkQuestMult() {
+  return 1 + 0.25 * perkLv('pk_quest');
+}
+// 天赋重生保留累计财富比例
+function perkKeepRatio() {
+  return 0.05 * perkLv('pk_keep');
+}
+
 function cost(u) {
   const n = state.owned[u.id] || 0;
-  return Math.floor(u.baseCost * Math.pow(u.growth, n));
+  const g = Math.max(1.0001, u.growth * perkGrowth());
+  return Math.floor(u.baseCost * Math.pow(g, n) * perkDiscount());
 }
 function clickPower() {
   let p = 1;
   for (const u of UPGRADES) if (u.type === 'click') p += (state.owned[u.id] || 0) * u.val;
-  return p * globalMult();
+  return p * globalMult() * perkClickMult();
 }
 function incomePerSec() {
   let v = 0;
   for (const u of UPGRADES) if (u.type === 'auto') v += (state.owned[u.id] || 0) * u.val;
-  return v * globalMult();
+  return v * globalMult(); // globalMult 已包含天赋「生财有道」
 }
 function staffTotal() {
   let v = 0;
@@ -637,7 +850,8 @@ function globalMult() {
   const prestigeMult = 1 + 0.08 * (state.prestige || 0);
   const achMult = 1 + 0.012 * achCount(); // 每达成一个成就永久 +1.2%
   const msMult = 1 + milestoneBonus();   // 里程碑永久加成（最高 +80%）
-  return prestigeMult * achMult * msMult;
+  const pkMult = perkMult();             // 天赋「生财有道」永久加成
+  return prestigeMult * achMult * msMult * pkMult;
 }
 // 已达成成就数量（用于成就奖励倍率）
 function achCount() {
@@ -651,15 +865,15 @@ function milestoneBonus() {
   for (const m of MILESTONES) if (state.total >= m.th) b += m.bonus;
   return b;
 }
-// 离线收益倍率（offline 类升级）
+// 离线收益倍率（offline 类升级 × 天赋加成）
 function offlineMult() {
   let v = 1;
   for (const u of UPGRADES) if (u.type === 'offline') v += (state.owned[u.id] || 0) * u.val;
-  return v;
+  return v * perkOfflineMult();
 }
 // 离线结算时长上限（秒）
 function offlineCapSecs() {
-  let c = OFFLINE_CAP;
+  let c = OFFLINE_CAP + perkOfflineCap();
   for (const u of UPGRADES) if (u.type === 'offline' && u.cap) c += (state.owned[u.id] || 0) * u.cap;
   return c;
 }
@@ -673,6 +887,7 @@ function canPrestige() {
 function critChance() { // 百分比 0~100
   let c = 5; // 基础暴击率
   for (const u of UPGRADES) if (u.type === 'crit') c += (state.owned[u.id] || 0) * u.chance;
+  c += perkCritChance();
   return Math.min(c, 100);
 }
 function critMult() {
@@ -738,11 +953,37 @@ function buildShop() {
     sellBtn.className = 'sell-btn';
     sellBtn.textContent = '卖';
     sellBtn.onclick = () => sellOne(u);
-    btns.append(btn, maxBtn, sellBtn);
+    const autoBtn = document.createElement('button');
+    autoBtn.className = 'auto-btn';
+    autoBtn.textContent = 'A';
+    autoBtn.title = '自动采购范围开关';
+    autoBtn.onclick = () => toggleAutoSel(u);
+    btns.append(btn, maxBtn, sellBtn, autoBtn);
     row.append(info, btns);
     list.appendChild(row);
-    shopRefs[u.id] = { name, own, btn, maxBtn, sellBtn };
+    shopRefs[u.id] = { name, own, btn, maxBtn, sellBtn, autoBtn };
   }
+}
+// 自动采购范围：某升级是否参与自动采购（默认全部参与）
+function autoSelOn(u) {
+  if (!state.autoSel || typeof state.autoSel !== 'object') return true;
+  return state.autoSel[u.id] !== false;
+}
+function toggleAutoSel(u) {
+  if (!state.autoSel || typeof state.autoSel !== 'object') state.autoSel = {};
+  state.autoSel[u.id] = !autoSelOn(u);
+  updateShopState();
+  save();
+  addLog(state.autoSel[u.id]
+    ? `🎯 ${u.name} 已加入自动采购范围`
+    : `🎯 ${u.name} 已移出自动采购范围`);
+}
+function setAllAutoSel(on) {
+  if (!state.autoSel || typeof state.autoSel !== 'object') state.autoSel = {};
+  for (const u of UPGRADES) state.autoSel[u.id] = !!on;
+  updateShopState();
+  save();
+  addLog(on ? '🎯 已开启全部升级的自动采购' : '🎯 已关闭全部升级的自动采购');
 }
 // 轻量更新：只改文本和按钮状态，不再重建 DOM
 function updateShopState() {
@@ -757,6 +998,9 @@ function updateShopState() {
     r.maxBtn.disabled = state.money < c;
     r.sellBtn.disabled = n <= 0;
     r.sellBtn.title = n > 0 ? `卖出 1 个，返还 ¥${fmt(sellRefund(u))}` : '还没有可卖的';
+    const aOn = autoSelOn(u);
+    r.autoBtn.className = 'auto-btn' + (aOn ? ' on' : '');
+    r.autoBtn.title = aOn ? '自动采购：已开启（点击移出）' : '自动采购：已关闭（点击加入）';
   }
 }
 
@@ -786,6 +1030,181 @@ function addLog(msg) {
   while (log.children.length > 5) log.removeChild(log.lastChild);
 }
 
+/* ============ 天赋树 ============ */
+function addPerkPoints(n, reason) {
+  n = Math.floor(n);
+  if (n <= 0) return;
+  state.perkPoints = (state.perkPoints || 0) + n;
+  state.perkPointsTotal = (state.perkPointsTotal || 0) + n;
+  addLog(`🌟 获得 ${n} 点天赋点（${reason}）`);
+  SFX.event();
+}
+function canBuyPerk(p) {
+  return perkLv(p.id) < p.max && (state.perkPoints || 0) >= perkCost(p);
+}
+function buyPerk(p) {
+  const c = perkCost(p);
+  if (!isFinite(c) || (state.perkPoints || 0) < c) return;
+  state.perkPoints -= c;
+  state.perks[p.id] = perkLv(p.id) + 1;
+  addLog(`🌟 天赋【${p.name}】升到 Lv.${state.perks[p.id]}`);
+  SFX.prestige();
+  refresh();
+  renderPerks();
+  save();
+}
+function renderPerks() {
+  const box = $('perkBox');
+  let html = `<div class="perk-points">
+    可用天赋点：<b>${state.perkPoints || 0}</b> ｜ 历史累计：<b>${state.perkPointsTotal || 0}</b>
+    <div style="margin-top:6px;font-size:12px;color:var(--muted);">
+      天赋点是<strong>永久</strong>的，重生不会清空。天赋等级只在购买时提升一级，性价比随等级递减——前期优先点满低等级的高回报天赋。
+    </div>
+  </div>`;
+  for (const br of PERK_BRANCHES) {
+    const items = PERKS.filter(p => p.br === br.id);
+    const total = items.reduce((s, p) => s + perkLv(p.id), 0);
+    const maxTotal = items.reduce((s, p) => s + p.max, 0);
+    html += `<div class="perk-branch">
+      <div class="bt" style="border-color:${br.color}">${br.name} · ${br.desc}<span>${total}/${maxTotal} 级</span></div>`;
+    for (const p of items) {
+      const lv = perkLv(p.id);
+      const maxed = lv >= p.max;
+      const cost = perkCost(p);
+      const can = canBuyPerk(p);
+      html += `<div class="perk${maxed ? ' maxed' : ''}">
+        <span class="pi">${p.ico}</span>
+        <div class="pn">
+          <div class="t">${p.name} <span style="color:var(--blue);font-size:11px">Lv.${lv}/${p.max}</span></div>
+          <div class="d">${p.desc}</div>
+          <div class="pl">${maxed ? '已满级' : `下一级：${p.effect.replace('级', lv + 1 + '级')}`}</div>
+        </div>
+        <button class="pb" data-perk="${p.id}" ${maxed || !can ? 'disabled' : ''}>
+          ${maxed ? '满级' : '🌟 ' + cost}
+        </button>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('button.pb').forEach(b => {
+    b.onclick = () => {
+      const p = PERKS.find(x => x.id === b.dataset.perk);
+      if (p) buyPerk(p);
+    };
+  });
+}
+
+/* ============ 每日任务 ============ */
+// 每天固定 3 个任务：用日期做种子，保证同一天刷新页面任务不变
+function questSeed() {
+  const d = todayStr();
+  let h = 0;
+  for (let i = 0; i < d.length; i++) h = (h * 31 + d.charCodeAt(i)) >>> 0;
+  return h;
+}
+function todayQuests() {
+  const today = todayStr();
+  if (state.quest && state.quest.date === today && state.quest.ids && state.quest.ids.length === 3) {
+    return state.quest.ids.map(id => QUESTS.find(q => q.id === id)).filter(Boolean);
+  }
+  // 新的一天：重置任务与全部「今日计数」（终身计数 lifeXxx 不受影响）
+  state.quest = { date: today, ids: [], progress: {}, claimed: {}, bonusClaimed: false, pkStartGiven: 0 };
+  state.clickQuest = 0;
+  state.buyQuest = 0;
+  state.critQuest = 0;
+  state.earnQuest = 0;
+  state.staffQuest = 0;
+  state.msQuest = 0;
+  const seed = questSeed();
+  const pool = QUESTS.slice();
+  const picked = [];
+  for (let i = 0; i < 3 && pool.length; i++) {
+    const idx = (seed + i * 7) % pool.length;
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  state.quest.ids = picked.map(q => q.id);
+  return picked;
+}
+function questProgress(q) {
+  switch (q.stat) {
+    case 'clickQuest': return state.clickQuest || 0;
+    case 'buyQuest': return state.buyQuest || 0;
+    case 'critQuest': return state.critQuest || 0;
+    case 'earnQuest': return state.earnQuest || 0;
+    case 'staffQuest': return state.staffQuest || 0;
+    case 'msQuest': return state.msQuest || 0;
+    default: return 0;
+  }
+}
+// 任务奖励：金币（随每秒收益缩放，保证后期仍有价值）
+function questReward(q) {
+  const base = Math.max(incomePerSec() * 30, 1000);
+  const scale = { clickQuest: 0.6, buyQuest: 1.0, critQuest: 0.8, earnQuest: 1.2, staffQuest: 1.0, msQuest: 1.5 }[q.stat] || 1;
+  return Math.floor(base * scale * perkQuestMult());
+}
+function questDone(q) { return questProgress(q) >= q.target; }
+function claimQuest(q) {
+  if (!questDone(q) || state.quest.claimed[q.id]) return;
+  const reward = questReward(q);
+  state.money += reward;
+  state.total += reward;
+  state.earnQuest = (state.earnQuest || 0) + reward;
+  state.quest.claimed[q.id] = true;
+  SFX.event();
+  addLog(`📋 完成任务【${q.name}】，获得 ¥${fmt(reward)}`);
+  // 三个全完成额外送天赋点
+  const list = todayQuests();
+  if (!state.quest.bonusClaimed && list.every(x => state.quest.claimed[x.id])) {
+    state.quest.bonusClaimed = true;
+    addPerkPoints(1, '每日任务全清');
+  }
+  refresh();
+  renderQuests();
+  save();
+}
+function renderQuests() {
+  const list = todayQuests();
+  const box = $('questBox');
+  let html = '';
+  const doneCount = list.filter(q => state.quest.claimed[q.id]).length;
+  html += `<div class="note-box" style="margin-top:0;margin-bottom:12px;">
+    每日任务每天自动刷新 3 个，完成后手动领取奖励。<b>全部完成额外送 1 点天赋点 🌟</b>。
+    今日进度会一直累计，关掉页面也不会丢。
+  </div>`;
+  for (const q of list) {
+    const p = questProgress(q);
+    const done = questDone(q);
+    const claimed = !!state.quest.claimed[q.id];
+    const pct = Math.min(100, Math.round(p / q.target * 100));
+    html += `<div class="quest${done ? ' done' : ''}">
+      <div class="qh">
+        <span class="qi">${q.ico}</span>
+        <span class="qt">${q.name}</span>
+        <span class="qr">${claimed ? '✅ 已领取' : '¥' + fmt(questReward(q))}</span>
+      </div>
+      <div class="qd">${q.desc}</div>
+      <div class="ach-bar"><i style="width:${pct}%"></i></div>
+      <div class="qf" style="margin-top:7px">
+        <span style="font-size:11px;color:var(--muted)">${fmt(p)} / ${fmt(q.target)}（${pct}%）</span>
+        <button class="qb" data-quest="${q.id}" ${(!done || claimed) ? 'disabled' : ''}>
+          ${claimed ? '已领取' : done ? '领取奖励' : '未完成'}
+        </button>
+      </div>
+    </div>`;
+  }
+  html += `<div class="quest-all">
+    今日完成 <b>${doneCount}/3</b>。${doneCount === 3 ? '全部完成，天赋点已到账！' : '全部完成可额外获得 1 点天赋点 🌟'}
+  </div>`;
+  box.innerHTML = html;
+  box.querySelectorAll('button.qb').forEach(b => {
+    b.onclick = () => {
+      const q = QUESTS.find(x => x.id === b.dataset.quest);
+      if (q) claimQuest(q);
+    };
+  });
+}
+
 /* ============ 数据分析 ============ */
 function fmtDuration(sec) {
   sec = Math.max(0, Math.floor(sec));
@@ -805,7 +1224,8 @@ function fmtPayback(sec) {
 }
 // 单级升级的回本时间：auto 类型按秒，click 类型按点击次数
 function paybackOf(u) {
-  const gain = (u.val || 0) * globalMult();
+  let gain = (u.val || 0) * globalMult();
+  if (u.type === 'click') gain *= perkClickMult();
   if (!gain) return Infinity;
   return cost(u) / gain;
 }
@@ -813,6 +1233,7 @@ function checkMilestones() {
   for (const m of MILESTONES) {
     if (!state.ms[m.id] && state.total >= m.th) {
       state.ms[m.id] = true;
+      state.msQuest = (state.msQuest || 0) + 1;
       addLog(`🎖️ 达成里程碑【${m.name}】！全局收益永久 +${Math.round(m.bonus * 100)}%`);
     }
   }
@@ -843,9 +1264,21 @@ function renderStats() {
 
   html += `<div class="sec-title">🏅 全局加成来源</div>
     <div class="metric"><div class="v">+${Math.round(0.08 * state.prestige * 100)}%</div><div class="k">声望（${state.prestige} 点 × 8%）</div></div>
-    <div class="metric" style="margin-top:8px;"><div class="v">+${Math.round(0.012 * achCount() * 100)}%</div><div class="k">成就（${achCount()}/14 × 1.2%）</div></div>
+    <div class="metric" style="margin-top:8px;"><div class="v">+${Math.round(0.012 * achCount() * 100)}%</div><div class="k">成就（${achCount()}/${ACHIEVEMENTS.length} × 1.2%）</div></div>
     <div class="metric" style="margin-top:8px;"><div class="v">+${Math.round(milestoneBonus() * 100)}%</div><div class="k">里程碑（${msDone}/${MILESTONES.length}）</div></div>
+    <div class="metric" style="margin-top:8px;"><div class="v">+${Math.round((perkMult() - 1) * 100)}%</div><div class="k">天赋·生财有道（Lv.${perkLv('pk_money')}）</div></div>
     <div class="metric" style="margin-top:8px;"><div class="v">+${Math.round((globalMult() - 1) * 100)}%</div><div class="k">合计全局加成</div></div>`;
+
+  html += `<div class="sec-title" style="margin-top:16px;">📈 收益曲线（最近 ${(state.chart || []).length} 个采样点）</div>
+    <div class="chart-wrap">
+      <canvas id="chartCanvas"></canvas>
+      <div class="chart-legend">
+        <span><i style="background:#f5a623"></i>每秒收益</span>
+        <span>峰值 ¥${fmt((state.chart || []).length ? Math.max(...(state.chart || []).map(p => p.v)) : 0)}</span>
+        <span>当前 ¥${fmt(incomePerSec())}</span>
+        <span>已采样 ${(state.chart || []).length}/120</span>
+      </div>
+    </div>`;
 
   html += `<div class="sec-title" style="margin-top:16px;">🎖️ 里程碑（按历史累计财富永久解锁）</div>`;
   for (const m of MILESTONES) {
@@ -856,8 +1289,7 @@ function renderStats() {
       <span class="mb">+${Math.round(m.bonus * 100)}%</span></div>`;
   }
 
-  html += `<div class="sec-title" style="margin-top:16px;">💹 升级性价比（回本时间越短越划算）</div>`;
-  const rows = UPGRADES.filter(u => u.type === 'auto' || u.type === 'click')
+  html += `<div class="sec-title" style="margin-top:16px;">💹 升级性价比（回本时间越短越划算）</div>`;  const rows = UPGRADES.filter(u => u.type === 'auto' || u.type === 'click')
     .map(u => ({ u, pb: paybackOf(u) }))
     .sort((a, b) => a.pb - b.pb);
   const best = rows.length ? rows[0].pb : Infinity;
@@ -881,6 +1313,93 @@ function renderStats() {
   }
 
   $('statsBox').innerHTML = html;
+  drawChart();
+}
+
+// 绘制收益曲线（每秒收益随时间变化）
+function drawChart() {
+  const cv = $('chartCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return;
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = cv.clientWidth || 300;
+  const cssH = 168;
+  cv.width = cssW * dpr;
+  cv.height = cssH * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const data = (state.chart || []).filter(p => p && isFinite(p.v));
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridCol = dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.07)';
+  const textCol = dark ? '#9aa3b5' : '#7a8090';
+
+  const padL = 44, padR = 8, padT = 10, padB = 20;
+  const w = cssW - padL - padR, h = cssH - padT - padB;
+
+  if (data.length < 2) {
+    ctx.fillStyle = textCol;
+    ctx.font = '12px sans-serif';
+    ctx.fillText('正在收集数据，稍等片刻…', padL, padT + h / 2);
+    return;
+  }
+
+  const vals = data.map(p => p.v);
+  const maxV = Math.max(...vals, 1);
+  const minV = Math.min(...vals, 0);
+  const range = Math.max(maxV - minV, 1);
+  const top = maxV + range * 0.15;
+
+  // 网格与刻度
+  ctx.strokeStyle = gridCol;
+  ctx.fillStyle = textCol;
+  ctx.font = '10px sans-serif';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 3; i++) {
+    const y = padT + (h * i) / 3;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(padL + w, y);
+    ctx.stroke();
+    const val = top - (top - minV) * (i / 3);
+    ctx.fillText(fmt(val), 4, y + 3);
+  }
+
+  // 面积 + 折线
+  const x = i => padL + (w * i) / (data.length - 1);
+  const y = v => padT + h - ((v - minV) / range) * h;
+  const grad = ctx.createLinearGradient(0, padT, 0, padT + h);
+  grad.addColorStop(0, 'rgba(245,166,35,.35)');
+  grad.addColorStop(1, 'rgba(245,166,35,.02)');
+  ctx.beginPath();
+  ctx.moveTo(x(0), padT + h);
+  data.forEach((p, i) => ctx.lineTo(x(i), y(p.v)));
+  ctx.lineTo(x(data.length - 1), padT + h);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.beginPath();
+  data.forEach((p, i) => (i ? ctx.lineTo(x(i), y(p.v)) : ctx.moveTo(x(i), y(p.v))));
+  ctx.strokeStyle = '#f5a623';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 末端点
+  const last = data[data.length - 1];
+  ctx.beginPath();
+  ctx.arc(x(data.length - 1), y(last.v), 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#f5a623';
+  ctx.fill();
+
+  // 时间轴
+  ctx.fillStyle = textCol;
+  const t0 = new Date(data[0].t);
+  const t1 = new Date(last.t);
+  const hh = d => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  ctx.fillText(hh(t0), padL, cssH - 5);
+  const rightTxt = hh(t1);
+  ctx.fillText(rightTxt, padL + w - ctx.measureText(rightTxt).width, cssH - 5);
 }
 
 /* ============ 音效引擎（WebAudio 实时合成，无需外部文件）============ */
@@ -922,8 +1441,9 @@ const SFX = {
 /* ============ 自动采购 ============ */
 function autoBuy() {
   if (!state.autoBuy) return;
-  // 按价格从低到高，买得起就买；一轮最多买 3 个，避免瞬间清空钱包
-  const affordable = UPGRADES.filter(u => state.money >= cost(u)).sort((a, b) => cost(a) - cost(b));
+  // 只采购被勾选进「自动采购范围」的升级；按价格从低到高，一轮最多买 3 个
+  const affordable = UPGRADES.filter(u => autoSelOn(u) && state.money >= cost(u))
+    .sort((a, b) => cost(a) - cost(b));
   let bought = 0;
   for (const u of affordable) {
     if (bought >= 3) break;
@@ -934,6 +1454,7 @@ function autoBuy() {
     bought++;
   }
   if (bought > 0) {
+    countBuy(bought);
     updateShopState();
     renderMoney();
   }
@@ -974,14 +1495,40 @@ function renderSettings() {
     row.appendChild(sw);
     box.appendChild(row);
   }
+  // 自动采购范围控制
+  if (state.autoBuy) {
+    const row = document.createElement('div');
+    row.className = 'set-row';
+    row.innerHTML = `<div><div class="t">🎯 自动采购范围</div>
+      <div class="d">勾选哪些升级允许被自动采购。默认全部开启；点击商店每行右侧的「A」按钮可单独开关。</div></div>`;
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.gap = '6px';
+    wrap.style.flexWrap = 'wrap';
+    const all = document.createElement('button');
+    all.className = 'mini-btn';
+    all.textContent = '全选';
+    all.onclick = () => { setAllAutoSel(true); renderSettings(); };
+    const none = document.createElement('button');
+    none.className = 'mini-btn';
+    none.textContent = '全不选';
+    none.onclick = () => { setAllAutoSel(false); renderSettings(); };
+    wrap.append(all, none);
+    row.appendChild(wrap);
+    box.appendChild(row);
+  }
   const note = document.createElement('div');
   note.className = 'note-box';
   note.innerHTML = `
-    <b>金币工厂 v0.0.4</b> ｜ 单文件网页游戏，双击即玩<br>
+    <b>金币工厂 v1.0.0</b> ｜ 单文件网页游戏，双击即玩<br>
+    <span class="v">🌟 天赋树</span>10 个永久天赋，三条线，随重生与任务累积天赋点<br>
+    <span class="v">📋 每日任务</span>每天 3 个任务，全清额外送天赋点<br>
+    <span class="v">📈 收益曲线</span>数据页实时图表，看清增长拐点<br>
+    <span class="v">🎯 采购范围</span>逐个升级开关自动采购<br>
     <span class="v">📊 数据分析</span>回本时间排行，帮你买对不买错<br>
     <span class="v">🎖️ 里程碑</span>累计财富 6 档永久加成，最高 +80%<br>
     <span class="v">💰 卖出</span>买错了能退 60%，不心疼<br>
-    <span class="v">💤 离线增益</span>离线收益 +110%，上限 12 小时<br>
+    <span class="v">💤 离线增益</span>离线收益可叠加天赋，上限最高 32 小时<br>
     <span class="v">🏆 成就奖励</span>每达成一个成就，全局收益永久 +1.2%<br>
     <span class="v">📅 每日签到</span>连续 7 天循环，第 7 天送声望 +1<br>
     <span class="v">🎵 音效</span>实时合成，无需任何外部文件<br>
@@ -991,11 +1538,18 @@ function renderSettings() {
 }
 
 /* ============ 交互 ============ */
+// 计数购买次数（供每日任务统计）
+function countBuy(n) {
+  state.buyQuest = (state.buyQuest || 0) + n;
+  state.lifeBuys = (state.lifeBuys || 0) + n;
+}
+
 function buy(u) {
   const c = cost(u);
   if (state.money < c) return;
   state.money -= c;
   state.owned[u.id] = (state.owned[u.id] || 0) + 1;
+  countBuy(1);
   if (u.type === 'crit') addLog(`🔥 买了 ${u.name}，暴击更猛了！`);
   else if (u.type === 'offline') addLog(`⚙️ 升级了 ${u.name}，离线收益提升！`);
   else addLog(`💸 雇了 ${u.name}，花了 ¥${fmt(c)}！`);
@@ -1014,6 +1568,7 @@ function buyMax(u) {
     if (n > 100000) break; // 安全护栏
   }
   if (n === 0) return;
+  countBuy(n);
   if (u.type === 'crit') addLog(`🔥 批量购买 ${u.name} ×${n}，暴击更猛了！`);
   else if (u.type === 'offline') addLog(`⚙️ 批量升级 ${u.name} ×${n}，离线效率更高了！`);
   else addLog(`💸 批量雇了 ${u.name} ×${n}！`);
@@ -1051,7 +1606,11 @@ function doClick(e) {
   state.money += gain;
   state.total += gain;
   state.clicks++;
+  state.lifeClicks = (state.lifeClicks || 0) + 1;
+  state.clickQuest = (state.clickQuest || 0) + 1;
+  state.earnQuest = (state.earnQuest || 0) + gain;
   if (isCrit) state.crits++;
+  if (isCrit) state.critQuest = (state.critQuest || 0) + 1;
 
   if (state.floatNum) {
     const f = document.createElement('div');
@@ -1101,15 +1660,14 @@ document.querySelectorAll('.tab').forEach(t => {
   t.onclick = () => {
     document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
-    $('tab-shop').style.display = t.dataset.tab === 'shop' ? '' : 'none';
-    $('tab-ach').style.display = t.dataset.tab === 'ach' ? '' : 'none';
-    $('tab-prestige').style.display = t.dataset.tab === 'prestige' ? '' : 'none';
-    $('tab-checkin').style.display = t.dataset.tab === 'checkin' ? '' : 'none';
-    $('tab-stats').style.display = t.dataset.tab === 'stats' ? '' : 'none';
-    $('tab-settings').style.display = t.dataset.tab === 'settings' ? '' : 'none';
+    for (const name of ['shop','ach','prestige','checkin','stats','quest','perk','settings']) {
+      $('tab-' + name).style.display = t.dataset.tab === name ? '' : 'none';
+    }
     if (t.dataset.tab === 'prestige') renderPrestige();
     if (t.dataset.tab === 'checkin') renderCheckin();
     if (t.dataset.tab === 'stats') renderStats();
+    if (t.dataset.tab === 'quest') renderQuests();
+    if (t.dataset.tab === 'perk') renderPerks();
     if (t.dataset.tab === 'settings') renderSettings();
   };
 });
@@ -1122,7 +1680,12 @@ document.querySelectorAll('.tab').forEach(t => {
       owned: {}, ach: {}, lastSave: 0, prestige: 0, events: 0,
       sound: true, autoBuy: false, bigNumber: true, floatNum: true,
       theme: 'light', checkin: { last: '', streak: 0, day: 0 },
-      ms: {}, startedAt: Date.now()
+      ms: {}, startedAt: Date.now(),
+      perks: {}, perkPoints: 0, perkPointsTotal: 0,
+      quest: { date: '', ids: [], progress: {}, claimed: {}, bonusClaimed: false, pkStartGiven: 0 },
+      clickQuest: 0, buyQuest: 0, critQuest: 0, earnQuest: 0, staffQuest: 0, msQuest: 0,
+      lifeClicks: 0, lifeBuys: 0, lifeStaff: 0,
+      autoSel: {}, chart: []
     });
     save();
     addLog('🔄 存档已重置，从头开始搬砖吧。');
@@ -1164,13 +1727,40 @@ $('exportDownload').onclick = () => {
 };
 
 // 读取（导入）存档
+/* 统一补齐缺失字段（用于读取存档、导入存档、重置后的兜底）
+ * 新增字段必须在这里登记，否则老存档会因字段缺失而报错 */
+function ensureFields(s) {
+  if (!s.owned || typeof s.owned !== 'object') s.owned = {};
+  if (!s.ach || typeof s.ach !== 'object') s.ach = {};
+  if (!s.ms || typeof s.ms !== 'object') s.ms = {};
+  if (typeof s.startedAt !== 'number' || s.startedAt <= 0) s.startedAt = Date.now();
+  if (!s.checkin || typeof s.checkin !== 'object') s.checkin = { last: '', streak: 0, day: 0 };
+  // v0.0.5 / v1.0.0 新增
+  if (!s.perks || typeof s.perks !== 'object') s.perks = {};
+  if (typeof s.perkPoints !== 'number' || s.perkPoints < 0) s.perkPoints = 0;
+  if (typeof s.perkPointsTotal !== 'number' || s.perkPointsTotal < 0) s.perkPointsTotal = s.perkPoints;
+  if (!s.quest || typeof s.quest !== 'object') s.quest = { date: '', ids: [], claimed: {}, bonusClaimed: false, pkStartGiven: 0 };
+  if (!s.quest.claimed || typeof s.quest.claimed !== 'object') s.quest.claimed = {};
+  if (!s.autoSel || typeof s.autoSel !== 'object') s.autoSel = {};
+  if (!Array.isArray(s.chart)) s.chart = [];
+  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest','lifeClicks','lifeBuys','lifeStaff']) {
+    if (typeof s[k] !== 'number' || s[k] < 0) s[k] = 0;
+  }
+  return s;
+}
+
 function defaultState() {
   return {
     money: 0, total: 0, clicks: 0, crits: 0, offlineBest: 0,
     owned: {}, ach: {}, lastSave: 0, prestige: 0, events: 0,
     sound: true, autoBuy: false, bigNumber: true, floatNum: true,
     theme: 'light', checkin: { last: '', streak: 0, day: 0 },
-    ms: {}, startedAt: 0
+    ms: {}, startedAt: 0,
+    perks: {}, perkPoints: 0, perkPointsTotal: 0,
+    quest: { date: '', ids: [], progress: {}, claimed: {}, bonusClaimed: false, pkStartGiven: 0 },
+    clickQuest: 0, buyQuest: 0, critQuest: 0, earnQuest: 0, staffQuest: 0, msQuest: 0,
+    lifeClicks: 0, lifeBuys: 0, lifeStaff: 0,
+    autoSel: {}, chart: []
   };
 }
 $('importBtn').onclick = () => {
@@ -1230,6 +1820,17 @@ $('importGo').onclick = () => {
   if (!state.checkin || typeof state.checkin !== 'object') state.checkin = { last: '', streak: 0, day: 0 };
   if (!state.ms || typeof state.ms !== 'object') state.ms = {};
   if (typeof state.startedAt !== 'number' || state.startedAt <= 0) state.startedAt = Date.now();
+  // v0.0.5 新增字段兜底
+  if (!state.perks || typeof state.perks !== 'object') state.perks = {};
+  if (typeof state.perkPoints !== 'number' || state.perkPoints < 0) state.perkPoints = 0;
+  if (typeof state.perkPointsTotal !== 'number' || state.perkPointsTotal < 0) state.perkPointsTotal = state.perkPoints;
+  if (!state.quest || typeof state.quest !== 'object') state.quest = { date: '', ids: [], progress: {}, claimed: {}, bonusClaimed: false };
+  if (!state.quest.claimed || typeof state.quest.claimed !== 'object') state.quest.claimed = {};
+  if (!state.autoSel || typeof state.autoSel !== 'object') state.autoSel = {};
+  if (!Array.isArray(state.chart)) state.chart = [];
+  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest']) {
+    if (typeof state[k] !== 'number' || state[k] < 0) state[k] = 0;
+  }
   save();
   refresh();
   renderPrestige();
@@ -1246,9 +1847,11 @@ function renderPrestige() {
       <div class="v">${state.prestige}</div><div class="k">当前声望</div>
     </div>
     <div class="own">声望加成：<b style="color:var(--gold-dark)">+${Math.round(0.08 * state.prestige * 100)}%</b>（每点 +8%）</div>
-    <div class="own">成就加成：<b style="color:var(--gold-dark)">+${Math.round(0.012 * achCount() * 100)}%</b>（${achCount()}/14 个 · 每个 +1.2%）</div>
+    <div class="own">成就加成：<b style="color:var(--gold-dark)">+${Math.round(0.012 * achCount() * 100)}%</b>（${achCount()}/${ACHIEVEMENTS.length} 个 · 每个 +1.2%）</div>
     <div class="own">里程碑加成：<b style="color:var(--gold-dark)">+${Math.round(milestoneBonus() * 100)}%</b>（${MILESTONES.filter(m => state.total >= m.th).length}/${MILESTONES.length} 档 · 最高 +80%）</div>
+    <div class="own">天赋加成：<b style="color:var(--gold-dark)">+${Math.round((perkMult() - 1) * 100)}%</b>（生财有道 Lv.${perkLv('pk_money')} · 共 ${Object.values(state.perks || {}).reduce((a, b) => a + b, 0)} 级）</div>
     <div class="own">全局总加成：<b style="color:var(--gold-dark)">+${Math.round((globalMult() - 1) * 100)}%</b></div>
+    <div class="own">可用天赋点：<b style="color:var(--gold-dark)">${state.perkPoints || 0} 🌟</b>（去「🌟 天赋」页使用）</div>
     <div class="own">累计财富可换声望：<b>${avail}</b> 点（需累计 ≥ 100 万）</div>`;
   const btn = $('prestigeBtn');
   btn.textContent = can ? `立即重生（+${avail} 声望）`
@@ -1263,10 +1866,22 @@ function doPrestige() {
   state.money = 0;
   state.owned = {};
   state.clicks = 0;
+  // 注意：state.total 是「历史累计财富」，重生不清零 —— 它是里程碑与声望的计算基础
+  // 天赋「细水长流」：按比例把历史累计财富的一部分折算为重生后的启动资金（不改变 total 本身）
+  const keepRatio = perkKeepRatio();
+  if (keepRatio > 0) {
+    const keepMoney = state.total * keepRatio;
+    state.money = keepMoney;
+    addLog(`🛟 天赋保留 ${Math.round(keepRatio * 100)}% 累计财富为启动资金：¥${fmt(keepMoney)}`);
+  }
+  // 重生按声望量给予天赋点（1 声望 ≈ 0.5 点，至少 1 点）
+  const pts = Math.max(1, Math.floor(g * 0.5));
+  addPerkPoints(pts, '重生回馈');
   SFX.prestige();
   addLog(`♻️ 重生成功！获得 ${g} 点声望，全局加成 +${Math.round((globalMult() - 1) * 100)}%`);
   refresh();
   renderPrestige();
+  renderPerks();
   save();
 }
 $('prestigeBtn').onclick = doPrestige;
@@ -1302,11 +1917,13 @@ function triggerRandomEvent() {
   } else if (roll < 0.75) {
     const instant = Math.max(incomePerSec() * 30, clickPower() * 50, 200);
     state.money += instant; state.total += instant;
+    state.earnQuest = (state.earnQuest || 0) + instant;
     showBanner('💰 一笔横财！+' + fmt(instant));
     addLog(`💰 天降横财 +¥${fmt(instant)}！`);
   } else {
     const instant = Math.max(incomePerSec() * 15, 100);
     state.money += instant; state.total += instant;
+    state.earnQuest = (state.earnQuest || 0) + instant;
     showBanner('📈 投资红利！+' + fmt(instant));
     addLog(`📈 收到投资红利 +¥${fmt(instant)}！`);
   }
@@ -1351,7 +1968,9 @@ function renderCheckin() {
   const todayIdx = (state.checkin.day % 7) + 1;
   for (let d = 1; d <= 7; d++) {
     const rw = CHECKIN_REWARDS[d];
-    const done = claimed && (state.checkin.day % 7) === d;
+    // 已领取的那一天：第 day%7 === 0 表示刚领的是第 7 天，用 (day-1)%7+1 反推实际天数
+    const claimedIdx = state.checkin.day > 0 ? ((state.checkin.day - 1) % 7) + 1 : 0;
+    const done = claimed && d === claimedIdx;
     const todayCell = !claimed && todayIdx === d;
     const div = document.createElement('div');
     div.className = 'checkin-day' + (done ? ' done' : '') + (todayCell ? ' today' : '');
@@ -1375,13 +1994,23 @@ function doCheckin() {
   }
   state.checkin.last = today;
   const rw = CHECKIN_REWARDS[state.checkin.day];
-  const rewardCoins = rw.coins(incomePerSec());
+  const rewardCoins = Math.floor(rw.coins(incomePerSec()) * perkQuestMult());
   state.money += rewardCoins;
   state.total += rewardCoins;
+  state.earnQuest = (state.earnQuest || 0) + rewardCoins;
   if (rw.prestige) state.prestige += rw.prestige;
   SFX.event();
   const extra = rw.prestige ? ` 并获得 ${rw.prestige} 点声望！` : '';
   addLog(`📅 第 ${state.checkin.day} 天签到：+¥${fmt(rewardCoins)}${extra}`);
+  // 天赋「及时行乐」：每次签到额外获得天赋点（受每日上限约束）
+  const pkStart = perkLv('pk_start');
+  if (pkStart > 0) {
+    const given = Math.min(pkStart, 5, 5 - (state.quest.pkStartGiven || 0));
+    if (given > 0) {
+      state.quest.pkStartGiven = (state.quest.pkStartGiven || 0) + given;
+      addPerkPoints(given, '天赋·及时行乐');
+    }
+  }
   renderCheckin();
   refresh();
   save();
@@ -1401,6 +2030,7 @@ function applyOffline() {
   const gain = rate * elapsed * mult;
   state.money += gain;
   state.total += gain;
+  state.earnQuest = (state.earnQuest || 0) + gain;
   if (gain > state.offlineBest) state.offlineBest = gain;
 
   const h = Math.floor(elapsed / 3600);
@@ -1445,16 +2075,38 @@ setInterval(() => {
   if (gain > 0) {
     state.money += gain;
     state.total += gain;
+    state.earnQuest = (state.earnQuest || 0) + gain; // 被动收益也计入今日赚取
     renderMoney();
     updateShopState();
   }
   checkAch();
   checkMilestones();
   autoBuy();
+  // 员工峰值（每日任务用）+ 终身峰值（成就用）
+  const staffNow = staffTotal();
+  if (staffNow > (state.staffQuest || 0)) state.staffQuest = staffNow;
+  if (staffNow > (state.lifeStaff || 0)) state.lifeStaff = staffNow;
+  tickCount++;
+  // 收益曲线采样：每 5 秒记一个点，保留最近 120 个（约 10 分钟）
+  if (tickCount % 5 === 0) {
+    state.chart = state.chart || [];
+    state.chart.push({ t: Date.now(), v: incomePerSec() });
+    if (state.chart.length > 120) state.chart.splice(0, state.chart.length - 120);
+    save();
+  }
+  // 跨天检测：确保「今日计数」与每日任务在日期变化时正确归零（不必打开任务页）
+  if (tickCount % 10 === 1) {
+    const today = todayStr();
+    if (!state.quest || state.quest.date !== today) {
+      todayQuests();
+      addLog('🌅 新的一天，每日任务已刷新！');
+      renderQuests();
+    }
+  }
   // 数据页每 5 秒刷新一次即可，避免每秒重排 DOM
   if (tickCount % 5 === 4 && document.getElementById('tab-stats').style.display !== 'none') renderStats();
-  // 存档节流：每 5 秒写一次；放在 if 外，保证纯点击玩家也能定时落盘
-  if (++tickCount % 5 === 0) save();
+  // 任务页进度有变化时刷新
+  if (tickCount % 3 === 0 && document.getElementById('tab-quest').style.display !== 'none') renderQuests();
 }, 1000);
 
 // 切走/关闭页面时立刻存档，保证离线结算准确
