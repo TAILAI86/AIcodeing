@@ -373,6 +373,19 @@ canvas{width:100%;display:block;border-radius:8px}
 .pause-card h2{margin:0 0 8px;font-size:26px;font-weight:900}
 .pause-card p{color:var(--dim);font-size:13.5px;margin:0 0 22px;line-height:1.7}
 
+/* ============ 幽灵竞速 ============ */
+.ghost-badge{
+  position:absolute;left:26px;top:16px;z-index:6;display:flex;align-items:center;gap:9px;
+  padding:7px 14px;border-radius:999px;background:rgba(176,124,255,.13);
+  border:1px solid color-mix(in srgb,var(--purple) 45%,var(--line));
+  font-size:12.5px;font-weight:700;color:var(--purple);pointer-events:none;
+}
+.ghost-badge .gi{font-size:15px}
+.ghost-badge b{color:var(--txt);font-variant-numeric:tabular-nums}
+.ghost-badge .gs{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--dim)}
+.ghost-badge .gs.ahead{color:var(--good);background:color-mix(in srgb,var(--good) 18%,transparent)}
+.ghost-badge .gs.behind{color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,transparent)}
+
 /* ============ 响应式 ============ */
 @media (max-width:980px){
   .side{width:250px;flex-basis:250px;padding:12px}
@@ -429,7 +442,9 @@ canvas{width:100%;display:block;border-radius:8px}
         <div class="row" style="margin-top:20px">
           <button class="btn pri" id="btnStart" style="font-size:16px;padding:13px 34px">🚀 开始游戏</button>
           <button class="btn" id="btnDaily">🎯 每日挑战</button>
+          <button class="btn" id="btnPyMode">🔤 <span id="pyModeTxt">全拼</span></button>
           <button class="btn" id="btnCustom">📚 自定义词库</button>
+          <button class="btn" id="btnLibrary" style="display:none">📂 词库管理</button>
           <button class="btn" id="btnWrong">🩹 错词本 <span id="wwBadge"></span></button>
         </div>
         <div style="height:18px"></div>
@@ -470,6 +485,11 @@ canvas{width:100%;display:block;border-radius:8px}
             <div class="flow" id="flow"></div>
           </div>
           <div class="hint-line" id="hintLine"><span id="hintNext" style="display:none"></span></div>
+          <div class="ghost-badge" id="ghostBadge" style="display:none">
+            <span class="gi">👻</span>
+            <span class="gt">幽灵 <b id="ghostWpm">0</b></span>
+            <span class="gs" id="ghostState">领先中</span>
+          </div>
           <div class="danger-edge" id="dangerEdge"></div>
         </div>
       </div>
@@ -633,7 +653,14 @@ const ACHIEVEMENTS = [
   { id:"import",   ic:"📚", nm:"博闻强记", ds:"导入你的第一份自定义词库", chk:s=>((s&&Array.isArray(s.customWords)?s.customWords.length:0))>0 },
   { id:"fixword",  ic:"🩹", nm:"知错能改", ds:"错词本收集到 10 个错词", chk:s=>Object.keys((s&&s.wrongWords)||{}).length>=10 },
   { id:"review",   ic:"🎓", nm:"查漏补缺", ds:"完成一次错词复习", chk:s=>flagOf(s,"reviewDone") },
-  { id:"heat",     ic:"⌨️", nm:"键不离手", ds:"累计按键次数达 5000", chk:s=>Object.values((s&&s.stats&&s.stats.keys)||{}).reduce((a,v)=>a+(v.n||0),0)>=5000 }
+  { id:"heat",     ic:"⌨️", nm:"键不离手", ds:"累计按键次数达 5000", chk:s=>{
+    const ks=(s&&s.stats&&s.stats.keys)||{};
+    let total=0; for(const k in ks){ const v=ks[k]; if(v&&typeof v.n==="number") total+=v.n; }
+    return total>=5000;
+  }},
+  { id:"ghost",    ic:"👻", nm:"追影者", ds:"解锁幽灵对手（刷新一次速度纪录）", chk:s=>!!(s&&s.stats&&s.stats.ghost&&s.stats.ghost.wpm>0) },
+  { id:"beatG",    ic:"🏃", nm:"超越自我", ds:"在幽灵竞速中领先 10 词", chk:s=>flagOf(s,"beatGhost") },
+  { id:"multiLib", ic:"📂", nm:"博采众长", ds:"同时拥有 3 个自定义词库", chk:s=>(s&&Array.isArray(s.customWords)?s.customWords.length:0)>=3 }
 ];
 const RANKS = [
   { id:"bronze", nm:"青铜", min:0 },{ id:"silver", nm:"白银", min:20 },
@@ -1127,12 +1154,13 @@ function newSlotData(name){
     // 自定义词库：玩家导入的文本片段（数组，每项 {text, lang}）
     customWords:[],
     stats:{ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0, bestScore:0,
-            accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, heat:{} }
+            accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, heat:{},
+            ghost:null }
   };
 }
 function defaultStore(){
   return { v:1, active:0, slots:[newSlotData("存档 1"),newSlotData("存档 2"),newSlotData("存档 3")],
-           settings:{ sound:true, theme:"dark", particles:true, showPinyin:true, tone:"sine" },
+           settings:{ sound:true, theme:"dark", particles:true, showPinyin:true, tone:"sine", pyMode:"full" },
            daily:{ date:"", best:0, done:false, cfg:null } };
 }
 let STORE = loadStore();
@@ -1149,7 +1177,11 @@ function loadStore(){
       const merged=Object.assign(base,s||{});
       // 二级字段单独兜底（Object.assign 遇到 undefined 会覆盖默认值）
       merged.stats=Object.assign({ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0,
-        bestScore:0, accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{} }, s&&s.stats);
+        bestScore:0, accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, ghost:null }, s&&s.stats);
+      // 幽灵数据校验：结构不合法则丢弃，避免污染回放
+      if(merged.stats.ghost && (!Array.isArray(merged.stats.ghost.timeline) || typeof merged.stats.ghost.wpm!=="number")){
+        merged.stats.ghost=null;
+      }
       merged.skills=Object.assign({}, s&&s.skills);
       merged.ach=Object.assign({}, s&&s.ach);
       merged.flags=Object.assign({}, s&&s.flags);
@@ -1242,6 +1274,7 @@ const G = {
   custom:null,                                   // 自定义词库单元数组（非空时启用）
   customName:"", customTotal:0, customDone:0,   // 自定义词库进度
   paused:false, pauseAt:0, pauseShift:0,         // 暂停状态
+  ghost:null, timeline:[],                       // 幽灵对手与本局时间线
   wordScore:0, perfect:true, lastKeyTs:0, keyDelay:{}
 };
 const CONFIG = { mode:"sprint", diff:"normal", lang:"cn" };
@@ -1283,17 +1316,37 @@ function poolKeyFor(diff){
     default:       return {cn:"cn-easy",en:"en-easy"};
   }
 }
+/* 中文单元的输入串：全拼（nihao）与首字母（nh） */
+function cnInputs(syl){
+  const full=syl.join("");
+  const initials=syl.map(s=>s.charAt(0)).join("");
+  return { full, initials };
+}
+
+/* 当前生效的输入串：按设置决定用全拼还是首字母 */
+function activeInput(u){
+  if(!u) return "";
+  if(u.lang!=="cn") return u.input||"";
+  const st=STORE.settings.pyMode||"full";
+  if(st==="initial") return u.initials || (u.syl||[]).map(s=>String(s).charAt(0)).join("");
+  return u.input || (u.syl||[]).join("");
+}
+/* 单字拼音的首字母（用于 UI 提示） */
+function sylInitial(syl){ return (syl||[]).map(s=>String(s).charAt(0)).join(""); }
+
 function makeUnit(rng){
-  // 自定义词库模式：按导入顺序推进（不打乱），符合"练我的文章"的预期
+  // 自定义词库 / 错词复习：按导入顺序推进（不打乱），符合"练我的文章"的预期
   if(G.custom && G.custom.length){
     const idx=G.customDone % G.custom.length;
     const item=G.custom[idx];
     if(item){
-      const syl = Array.isArray(item.syl) ? item.syl.filter(x=>typeof x==="string"&&x.length) : [];
-      const useSyl = syl.length ? syl : [String(item.input||item.text||"-")];
-      const input = String(item.input||useSyl.join("")||"-");
-      const text = String(item.text||useSyl.join(""));
-      return { lang:item.lang==="en"?"en":"cn", text, syl:useSyl, input, typed:"" };
+      let syl = Array.isArray(item.syl) ? item.syl.filter(x=>typeof x==="string"&&x.length) : [];
+      if(!syl.length) syl=[String(item.input||item.text||"-")];
+      const input=String(item.input||syl.join("")||"-");
+      const text=String(item.text||syl.join(""));
+      const ci=cnInputs(syl);
+      return { lang:item.lang==="en"?"en":"cn", text, syl, input,
+               initials:ci.initials, typed:"" };
     }
   }
   const pk=poolKey();
@@ -1304,11 +1357,13 @@ function makeUnit(rng){
   const list = useCn ? POOLS[pk.cn] : POOLS[pk.en];
   const item = list[Math.floor(rng()*list.length)];
   const syl = item.syl.slice();
+  const ci=cnInputs(syl);
   return {
     lang: useCn?"cn":"en",
     text: item.text,
     syl,
-    input: syl.join(""),
+    input: useCn ? ci.full : syl.join(""),
+    initials: useCn ? ci.initials : "",
     typed: ""
   };
 }
@@ -1353,6 +1408,11 @@ function startGame(dailyCfg){
   G.units=[]; G.idx=0; G.ci=0; G.gi=0; G.input="";
   G.combo=0; G.maxCombo=0; G.correct=0; G.wrong=0; G.score=0; G.words=0;
   G.perfect=true; G.wordScore=0; G.keyDelay={};
+  G.timeline=[]; G.ghost=null;
+  // 幽灵对手：仅在有历史最佳时启用
+  if(G.mode==="sprint"||G.mode==="combo"){
+    G.ghost=buildGhost();
+  }
   // 自定义词库：优先使用玩家导入的内容；未导入则回退到内置词库
   G.custom = null; G.customName="";
   if(G.mode==="custom"){
@@ -1384,7 +1444,8 @@ function startGame(dailyCfg){
   G.shields = (s.skills&&s.skills.shield)||0;
 
   G.startTs=Date.now(); G.elapsed=0;
-  G.limit = G.mode==="sprint"?60 : G.mode==="combo"?90 : G.mode==="climb"?0 : 0;
+  // 各模式的结束条件：限时 / 血量 / 关卡 / 打完词库
+  G.limit = G.mode==="sprint"?60 : G.mode==="combo"?90 : G.mode==="precision"?120 : 0;
   G.threat=0; G.threatRate=0; G.stage=0; G.stageDone=0; G.stageNeed=8;
   if(G.mode==="climb") G.stageNeed=6;
   if(G.mode==="survival") G.threatRate = Math.max(0.8, 3.2 - (s.skills&&s.skills.meteor||0)*0.29);
@@ -1399,9 +1460,12 @@ function startGame(dailyCfg){
   renderFlow();
   updateHud();
   const hl=$("#hintLine");
-  const guide = G.lang==="en"
-    ? `<span>直接敲击屏幕上的字母</span><span><kbd>Esc</kbd> 退出</span>`
-    : `<span>敲击拼音字母（如 <kbd>ni</kbd> <kbd>hao</kbd>）</span><span><kbd>Esc</kbd> 退出</span>`;
+  const initialMode=(STORE.settings.pyMode||"full")==="initial";
+  let guide;
+  if(G.lang==="en") guide=`<span>直接敲击屏幕上的字母</span>`;
+  else if(initialMode) guide=`<span>只敲每字的拼音<b style="color:var(--acc)">首字母</b>（如 <kbd>ni</kbd> <kbd>hao</kbd> → <kbd>n</kbd><kbd>h</kbd>）</span>`;
+  else guide=`<span>敲击拼音字母（如 <kbd>ni</kbd> <kbd>hao</kbd>）</span>`;
+  guide+=`<span><kbd>Esc</kbd> 退出</span><span><kbd>空格</kbd> 暂停</span>`;
   if(hl) hl.innerHTML=guide+'<span id="hintNext" style="display:none"></span>';
   updateHints();
   G.timer=setInterval(tick,100);
@@ -1412,7 +1476,7 @@ function tick(){
   if(!G.on) return;
   if(G.paused) return;                  // 暂停时不推进计时
   G.elapsed=(Date.now()-G.startTs)/1000;
-  if(G.mode==="sprint"||G.mode==="combo"){
+  if(G.mode==="sprint"||G.mode==="combo"||G.mode==="precision"){
     const left=Math.max(0,Math.ceil(G.limit-G.elapsed));
     $("#mTime").textContent=left;
     $("#kTime").textContent="剩余秒";
@@ -1473,9 +1537,9 @@ function handleKey(ch){
   if(!u) return;
   // 空格：中文拼音无空格需求，英文词间已自动分隔 —— 忽略而非计为失误
   if(ch===" "){ return; }
-  const expected=u.input[G.ci];
+  const expected=activeInput(u)[G.ci];
   // 英文不区分大小写（中文拼音本身全小写，不受影响）
-  const hit = u.lang==="en" ? ch.toLowerCase()===expected.toLowerCase() : ch===expected;
+  const hit = u.lang==="en" ? ch.toLowerCase()===String(expected).toLowerCase() : ch===expected;
   if(hit){
     G.correct++; G.combo++;
     if(u.lang==="cn") G.cnChars++; else G.enChars++;
@@ -1489,7 +1553,8 @@ function handleKey(ch){
     Audio2.key(G.combo);
     if(G.combo>0 && G.combo%25===0){ Audio2.milestone(); floatTxt(G.combo+" 连击!",$("#playArea")); spawnFlame(); }
     updateFlow();
-    if(G.ci>=u.input.length){ completeWord(); }
+    // 整词完成判定：按当前生效的输入串（全拼或首字母）长度
+    if(G.ci>=activeInput(u).length){ completeWord(); }
   } else {
     onMistake(ch);
   }
@@ -1550,6 +1615,7 @@ function completeWord(){
     floatTxt("+"+G.wordScore,u); G.wordScore=0;
   }
   G.idx++; G.ci=0; G.input=""; G.gi=0;
+  G.timeline.push(Date.now()-G.startTs);   // 记录每词完成时刻，供幽灵回放
   if(G.mode==="custom"||G.mode==="review"){
     G.customDone++;
     if(G.customDone>=G.customTotal){ endGame(); return; }
@@ -1589,20 +1655,21 @@ function renderFlow(){
     el.className="unit"+(i===G.idx?" cur":(i<G.idx?" past":""));
     if(u.lang==="cn"){
       const cn=document.createElement("div"); cn.className="cn-row";
-      let acc=0;
       for(let k=0;k<u.syl.length;k++){
         const ch=u.text[k]||"";
         const c=document.createElement("span");
         c.className="cn-char"; c.textContent=ch;
         cn.appendChild(c);
-        acc+=u.syl[k].length;
       }
       el.appendChild(cn);
       if(STORE.settings.showPinyin){
         const py=document.createElement("div"); py.className="py-row";
+        const initialMode = (STORE.settings.pyMode||"full")==="initial";
         for(let k=0;k<u.syl.length;k++){
           const s=document.createElement("div"); s.className="py-syl";
-          for(const ch of u.syl[k]){
+          // 首字母模式只显示每个音节的首字母；全拼模式显示完整音节
+          const shown = initialMode ? [String(u.syl[k]).charAt(0)] : Array.from(String(u.syl[k]));
+          for(const ch of shown){
             const b=document.createElement("b"); b.textContent=ch; s.appendChild(b);
           }
           py.appendChild(s);
@@ -1631,27 +1698,41 @@ function markTyped(){
   const cur=$("#flow .unit.cur"); if(!cur) return;
   const u=G.units[G.idx]; if(!u) return;
   if(u.lang==="cn"){
+    const initialMode = (STORE.settings.pyMode||"full")==="initial";
     const pys=cur.querySelectorAll(".py-syl");
-    let acc=0;
-    pys.forEach((p,k)=>{
+    // 逐音节推进：算出当前处于第几个音节、音节内第几个字符
+    let acc=0, curSyl=0, curPosInSyl=0, doneSyls=0;
+    for(let k=0;k<u.syl.length;k++){
+      const sylLen = initialMode ? 1 : String(u.syl[k]).length;
+      if(G.ci < acc){ curSyl=k; curPosInSyl=G.ci-acc; break; }
+      if(G.ci < acc+sylLen){ curSyl=k; curPosInSyl=G.ci-acc; break; }
+      acc+=sylLen; doneSyls=k+1;
+      if(G.ci===acc){ curSyl=k; curPosInSyl=sylLen; doneSyls=k+1; break; }
+    }    pys.forEach((p,k)=>{
+      const sylStart = accOfSyls(u.syl, initialMode, k);
       [...p.children].forEach((b,j)=>{
-        const idx=acc+j;
-        b.className = idx<G.ci ? "c" : (idx===G.ci ? "cur" : "");
+        const abs = sylStart + j;
+        b.className = abs<G.ci ? "c" : (abs===G.ci ? "cur" : "");
       });
-      acc+=u.syl[k].length;
     });
     const chars=cur.querySelectorAll(".cn-char");
     let a2=0;
     chars.forEach((c,k)=>{
-      const len=u.syl[k].length;
-      c.classList.toggle("g", a2+len<=G.ci);
-      c.classList.toggle("hit", a2<=G.ci && G.ci<a2+len);
-      a2+=len;
+      const sylLen = initialMode ? 1 : String(u.syl[k]).length;
+      c.classList.toggle("g", a2+sylLen<=G.ci);
+      c.classList.toggle("hit", a2<=G.ci && G.ci<a2+sylLen);
+      a2+=sylLen;
     });
   } else {
     const bs=cur.querySelectorAll("b");
     bs.forEach((b,i)=>b.className = i<G.ci?"c":(i===G.ci?"cur":""));
   }
+}
+/* 计算第 k 个音节在输入串中的起始位置 */
+function accOfSyls(syl, initialMode, k){
+  let acc=0;
+  for(let i=0;i<k;i++) acc += initialMode ? 1 : String(syl[i]).length;
+  return acc;
 }
 function updateFlow(){ markTyped(); }
 function updateHints(){
@@ -1660,9 +1741,11 @@ function updateHints(){
   const hl=$("#hintNext");
   if(!hl) return;
   if(sk.eye>=1 && nxt){
+    const initialMode=(STORE.settings.pyMode||"full")==="initial";
     if(nxt.lang==="cn"){
       const syl=nxt.syl[0]||"";
-      hl.innerHTML=`下一个词首字：<b style="color:var(--acc)">${esc(nxt.text[0]||"")}</b>（${esc(syl.slice(0,1))}*）`;
+      const shown = initialMode ? String(syl).charAt(0) : String(syl).slice(0,1);
+      hl.innerHTML=`下一个词首字：<b style="color:var(--acc)">${esc(nxt.text[0]||"")}</b>（${esc(shown)}*）`;
       hl.style.display="";
     } else {
       hl.innerHTML=`下一个词首字母：<b style="color:var(--acc)">${esc(nxt.input[0]||"")}</b>*`;
@@ -1695,6 +1778,26 @@ function updateHud(){
     lv.appendChild(it);
   }
   lv.style.display = (G.mode==="sprint"||G.mode==="combo")?"none":"flex";
+  // 幽灵对手状态
+  const gb=$("#ghostBadge");
+  if(gb){
+    if(G.ghost){
+      gb.style.display="flex";
+      const gw=$("#ghostWpm"); if(gw) gw.textContent=G.ghost.wpm;
+      const gp=ghostProgress();
+      const gs=$("#ghostState");
+      if(gs){
+        const myWords=G.words;
+        if(myWords>gp){ gs.textContent="领先 "+(myWords-gp)+" 词"; gs.className="gs ahead"; }
+        else if(myWords<gp){ gs.textContent="落后 "+(gp-myWords)+" 词"; gs.className="gs behind"; }
+        else { gs.textContent="齐头并进"; gs.className="gs"; }
+        // 领先幽灵 10 词 → 解锁成就
+        if(myWords-gp>=10 && !S().flags.beatGhost){ S().flags.beatGhost=true; toast("👻 超越自我！领先幽灵 10 词"); }
+      }
+    } else {
+      gb.style.display="none";
+    }
+  }
   // 生存威胁条
   if(G.mode==="survival"){
     let bar=$("#threatBar");
@@ -1711,6 +1814,34 @@ function updateHud(){
     const bar=$("#threatBar");
     if(bar) bar.remove();
   }
+}
+
+/* ------------------------------------------------------------ 幽灵竞速 */
+/* 记录每局的"打字时间线"（每个词完成时的毫秒数），下次作为幽灵对手
+   幽灵推进到第几个词，就由 timeLine[idx] 决定它在第几秒到达 */
+function buildGhost(){
+  const s=S();
+  const best=(s.stats.ghost&&s.stats.ghost.wpm)||0;
+  const line=(s.stats.ghost&&s.stats.ghost.timeline)||[];
+  if(!best||!line.length||line.length<3) return null;
+  return { wpm:best, timeline:line.slice(0,400) };
+}
+function saveGhost(){
+  const s=S();
+  // 只在速度创新高时更新幽灵
+  const wpm=Math.round((G.correct/5)/Math.max(G.elapsed/60,1/600));
+  if(!s.stats.ghost || wpm>(s.stats.ghost.wpm||0)){
+    s.stats.ghost={ wpm, timeline:(G.timeline||[]).slice(0,400), at:Date.now() };
+  }
+}
+/* 幽灵当前处于第几个词（用于 UI 显示） */
+function ghostProgress(){
+  if(!G.ghost) return -1;
+  const t=(Date.now()-G.startTs)/1000;
+  const line=G.ghost.timeline;
+  let idx=0;
+  for(let i=0;i<line.length;i++){ if(line[i]<=t*1000) idx=i+1; else break; }
+  return idx;
 }
 
 /* ------------------------------------------------------------ 错词本 */
@@ -1733,6 +1864,18 @@ function wrongWordUnits(){
   return list.map(it=>({ lang:it.lang||"cn", text:it.text, syl:it.syl||[it.input], input:it.input }));
 }
 
+/* 切换拼音输入方式：若正在游戏中，重置当前词进度以免状态错乱 */
+function setPyMode(mode){
+  const old=STORE.settings.pyMode||"full";
+  if(old===mode) return;
+  STORE.settings.pyMode=mode;
+  if(G.on && G.units[G.idx]){
+    const u=G.units[G.idx];
+    G.ci=0; G.input=""; u.typed=""; G.gi=0;
+    renderFlow();
+  }
+  saveStore();
+}
 /* -------------------------------------------------------------- 特效层 */
 function floatTxt(txt,anchor){
   if(!STORE.settings.particles) return;
@@ -1808,6 +1951,8 @@ function endGame(){
   s.stats.games++; s.stats.chars+=G.correct; s.stats.words+=G.words; s.stats.time+=G.elapsed;
   s.stats.accSum+=acc; s.stats.accN++;
   s.stats.byMode[G.mode]=(s.stats.byMode[G.mode]||0)+1;
+  // 幽灵对手：仅在速度创新高时更新
+  saveGhost();
   // 语种统计：按实际打出的字符归属，避免 mix 与 cn/en 重复累加
   s.stats.byLang.cn=(s.stats.byLang.cn||0)+G.cnChars;
   s.stats.byLang.en=(s.stats.byLang.en||0)+G.enChars;
@@ -1832,7 +1977,15 @@ function endGame(){
   renderResult({wpm,acc,finalScore,xp,coins,newRec,unlocked,levelUp:s.lvl>before});
   showView("Result");
 }
-function quitGame(){ if(!G.on) return; G.on=false; clearInterval(G.timer); showView("Home"); renderHome(); }
+function quitGame(){
+  if(!G.on) return;
+  G.on=false; G.paused=false;
+  clearInterval(G.timer);
+  // 清理可能残留的暂停遮罩
+  const pm=document.querySelector("#pauseMask");
+  if(pm && pm.remove) pm.remove();
+  showView("Home"); renderHome();
+}
 function renderResult(r){
   const s=S();
   const modeName=(MODES.find(m=>m.id===G.mode)||{}).name||"挑战";
@@ -1905,7 +2058,10 @@ function renderHome(){
     if(CONFIG.diff==="normal"&&!(sk.erudite>=1)) warn="（未解锁「博闻」，实际为基础词库）";
     else if(CONFIG.diff==="hard"&&!(sk.savant>=1)) warn="（未解锁「通识」，词库已降级）";
     else if(CONFIG.diff==="night"&&!(sk.savant>=1)) warn="（未解锁「通识」，无代码符号）";
-    tier.innerHTML=`当前词库：<b style="color:var(--txt)">${poolTierLabel(CONFIG.diff)}</b> ${warn?`<span style="color:var(--warn)">${warn}</span>`:""}`;
+    const pyMode=STORE.settings.pyMode||"full";
+    const pyTxt = CONFIG.lang==="en" ? "" :
+      (pyMode==="initial" ? ' · <b style="color:var(--acc)">首字母输入</b>' : " · 全拼输入");
+    tier.innerHTML=`当前词库：<b style="color:var(--txt)">${poolTierLabel(CONFIG.diff)}</b>${pyTxt} ${warn?`<span style="color:var(--warn)">${warn}</span>`:""}`;
   }
   const sl=$("#segLang"); sl.innerHTML="";
   const langs=[["cn","中文"],["en","英文"],["mix","混合"]];
@@ -1933,7 +2089,7 @@ function renderHome(){
   const dc=STORE.daily;
   if(dc.date!==todayKey() || !dc.cfg){
     const r=mulberry32(hashStr(todayKey()));
-    const modes=["sprint","survival","precision","combo"];
+    const modes=["sprint","survival","combo","climb"];   // 不含 precision（需限定条件）
     const cfg={ mode:modes[Math.floor(r()*modes.length)], diff:DIFFS[Math.floor(r()*4)].id,
                 lang: r()<0.6?"cn":"en", seed: hashStr(todayKey()+"#ts") };
     if(cfg.mode==="climb") cfg.mode="sprint";
@@ -1953,6 +2109,12 @@ function renderHome(){
   const cw=(s.customWords||[]).length;
   const cb=$("#btnCustom");
   if(cb) cb.innerHTML = cw?`📚 我的词库 <span style="color:var(--acc)">${cw}</span>`:"📚 自定义词库";
+  // 词库管理入口（多词库时显示）
+  const lm=$("#btnLibrary");
+  if(lm) lm.style.display = cw>1 ? "" : "none";
+  // 拼音模式按钮
+  const pm=$("#pyModeTxt");
+  if(pm) pm.textContent = (STORE.settings.pyMode||"full")==="full" ? "全拼" : "首字母";
 }
 
 /* ------------------------------------------------------------ 技能树 */
@@ -2094,6 +2256,11 @@ function openSettings(){
       <button class="switch ${s.particles?"on":""}" data-k="particles"><i></i></button></div>
     <div class="set-row"><div><div class="t">显示拼音</div><div class="d">关闭后需凭汉字读音自行拼写</div></div>
       <button class="switch ${s.showPinyin?"on":""}" data-k="showPinyin"><i></i></button></div>
+    <div class="set-row"><div><div class="t">拼音输入方式</div><div class="d">全拼 = 敲每个字的完整拼音；首字母 = 只敲每字拼音首字母（如「你好」→ nh）</div></div>
+      <div class="seg" id="segPyMode">
+        <button data-v="full" class="${(s.pyMode||"full")==="full"?"on":""}">全拼</button>
+        <button data-v="initial" class="${s.pyMode==="initial"?"on":""}">首字母</button>
+      </div></div>
     <div class="set-row"><div><div class="t">音色</div><div class="d">正弦 / 三角 / 方波</div></div>
       <div class="seg" id="segTone">
         <button data-v="sine" class="${s.tone==="sine"?"on":""}">清脆</button>
@@ -2119,6 +2286,13 @@ function openSettings(){
   });
   body.querySelectorAll("#segTone button").forEach(b=>{
     b.onclick=()=>{ s.tone=b.dataset.v; body.querySelectorAll("#segTone button").forEach(x=>x.classList.toggle("on",x===b)); saveStore(); };
+  });
+  body.querySelectorAll("#segPyMode button").forEach(b=>{
+    b.onclick=()=>{
+      setPyMode(b.dataset.v);
+      body.querySelectorAll("#segPyMode button").forEach(x=>x.classList.toggle("on",x===b));
+      toast("已切换为"+(b.dataset.v==="initial"?"首字母输入":"全拼输入"));
+    };
   });
   const sw=body.querySelector("#skinWrap");
   const owned=S().skins||["storm"];
@@ -2221,13 +2395,72 @@ function openCustomImport(){
   body.querySelector("#impSave").onclick=()=>{
     const units=buildCustomUnits(ta.value);
     if(!units.length){ toast("没有解析到可练习的内容"); return; }
-    s.customWords=[{ name:"我的词库", raw:ta.value.slice(0,4000), units }];
+    const raw=ta.value.slice(0,4000);
+    const has=(s.customWords||[]).length>0;
+    const lib={ name:(has?("词库 "+(s.customWords.length+1)):"我的词库"), raw, units };
+    if(!s.customWords) s.customWords=[];
+    // 追加模式：与已有词库内容相同则不重复添加
+    const dup=(s.customWords||[]).some(x=>x.raw===raw);
+    if(dup){ toast("该内容已导入过了"); return; }
+    s.customWords.push(lib);
     saveStore(); renderHome();
     body.remove();
-    toast("✅ 已保存 "+units.length+" 个练习单元");
+    toast("✅ 已导入 "+units.length+" 个练习单元");
     CONFIG.mode="custom";
     startGame();
   };
+  body.onclick=e=>{ if(e.target===body) body.remove(); };
+}
+
+/* ------------------------------------------------------------ 词库管理 */
+function openLibraryManager(){
+  const s=S();
+  const body=document.createElement("div");
+  body.className="mask";
+  body.innerHTML=`<div class="modal" style="max-width:620px">
+    <h3>📂 我的词库 <span style="font-size:12px;color:var(--dim2);font-weight:600">共 ${(s.customWords||[]).length} 个</span></h3>
+    <div id="libList"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn pri" id="libImport" style="flex:1">➕ 导入新词库</button>
+      <button class="btn" id="libClose">关闭</button>
+    </div>
+  </div>`;
+  $("#modalRoot").appendChild(body);
+  const ll=body.querySelector("#libList");
+  const libs=s.customWords||[];
+  if(!libs.length){
+    ll.innerHTML=`<div class="empty-tip">还没有词库<br>导入课文、单词表或任意文本，中文会自动转成拼音</div>`;
+  } else {
+    const box=document.createElement("div");
+    box.className="ww-list";
+    libs.forEach((lib,idx)=>{
+      const n=(lib.units||[]).length;
+      const d=document.createElement("div");
+      d.className="ww-item";
+      d.innerHTML=`<span class="wd">${esc(lib.name||("词库 "+(idx+1)))}</span>
+        <span class="py">${n} 个练习单元</span>`;
+      const btns=document.createElement("div");
+      btns.style.display="flex"; btns.style.gap="6px"; btns.style.flex="0 0 auto";
+      const bp=document.createElement("button"); bp.className="btn sm"; bp.textContent="练习";
+      bp.onclick=()=>{ body.remove(); CONFIG.mode="custom"; startGame(); };
+      const br=document.createElement("button"); br.className="btn sm"; br.textContent="改名";
+      br.onclick=()=>{
+        const nm=prompt("词库名称",lib.name||"");
+        if(nm!==null&&nm.trim()){ lib.name=nm.trim().slice(0,20); saveStore(); body.remove(); openLibraryManager(); }
+      };
+      const bd=document.createElement("button"); bd.className="btn sm"; bd.textContent="删除"; bd.style.color="var(--bad)";
+      bd.onclick=()=>{
+        if(!confirm("删除词库「"+(lib.name||"")+"」？")) return;
+        s.customWords.splice(idx,1); saveStore(); body.remove(); openLibraryManager(); renderHome();
+      };
+      btns.appendChild(bp); btns.appendChild(br); btns.appendChild(bd);
+      d.appendChild(btns);
+      box.appendChild(d);
+    });
+    ll.appendChild(box);
+  }
+  body.querySelector("#libImport").onclick=()=>{ body.remove(); openCustomImport(); };
+  body.querySelector("#libClose").onclick=()=>body.remove();
   body.onclick=e=>{ if(e.target===body) body.remove(); };
 }
 
@@ -2407,7 +2640,13 @@ function bind(){
   $("#btnDaily").onclick=()=>startGame(STORE.daily.cfg);
   $("#btnDaily2").onclick=()=>startGame(STORE.daily.cfg);
   $("#btnCustom").onclick=()=>openCustomImport();
+  $("#btnLibrary").onclick=()=>openLibraryManager();
   $("#btnWrong").onclick=()=>openWrongWords();
+  $("#btnPyMode").onclick=()=>{
+    setPyMode((STORE.settings.pyMode||"full")==="full" ? "initial" : "full");
+    renderHome();
+    toast(STORE.settings.pyMode==="initial"?"🔤 已切换为首字母输入（如「你好」→ nh）":"🔤 已切换为全拼输入");
+  };
   $("#btnQuit").onclick=()=>quitGame();
   $("#btnPause").onclick=()=>togglePause();
   $("#btnSet").onclick=()=>openSettings();
