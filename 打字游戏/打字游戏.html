@@ -325,6 +325,54 @@ canvas{width:100%;display:block;border-radius:8px}
 .particle{position:absolute;width:7px;height:7px;border-radius:2px;pointer-events:none;z-index:9;animation:pt .85s ease-out forwards}
 @keyframes pt{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(.25)}}
 
+/* ============ 自定义词库 / 错词本 ============ */
+.import-box{
+  width:100%;min-height:150px;padding:12px;border-radius:12px;resize:vertical;
+  background:var(--bg2);border:1px solid var(--line);color:var(--txt);
+  font-family:var(--font);font-size:13.5px;line-height:1.7;
+}
+.import-box:focus{outline:none;border-color:var(--acc)}
+.import-box::placeholder{color:var(--dim2)}
+.import-preview{
+  margin-top:12px;padding:11px 13px;border-radius:12px;background:var(--panel2);
+  border:1px solid var(--line);font-size:12.5px;color:var(--dim);line-height:1.75;min-height:44px;
+}
+.import-preview b{color:var(--acc);font-weight:700}
+.ww-list{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto}
+.ww-item{
+  display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;
+  background:var(--panel2);border:1px solid var(--line);
+}
+.ww-item .wd{font-weight:800;font-size:15px;min-width:64px}
+.ww-item .py{font-family:var(--mono);font-size:11.5px;color:var(--dim2);flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ww-item .ct{font-size:11.5px;color:var(--bad);font-weight:700;flex:0 0 auto}
+.ww-item .ct.ok{color:var(--good)}
+.empty-tip{text-align:center;padding:34px 16px;color:var(--dim2);font-size:13px;line-height:1.8}
+
+/* ============ 键盘热力图 ============ */
+.heat-grid{display:flex;flex-direction:column;gap:4px;align-items:center;padding:6px 0;min-width:0}
+.heat-row{display:flex;gap:4px;justify-content:center;flex-wrap:nowrap}
+.heat-key{
+  width:clamp(22px,3.1vw,38px);height:clamp(24px,3.4vw,38px);border-radius:7px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:clamp(9px,1vw,13px);font-weight:700;
+  background:var(--panel2);border:1px solid var(--line);color:var(--dim);
+  transition:.2s;position:relative;flex:0 0 auto;
+}
+.heat-key.lv1{background:color-mix(in srgb,var(--acc) 22%,var(--panel2));color:var(--txt);border-color:color-mix(in srgb,var(--acc) 30%,var(--line))}
+.heat-key.lv2{background:color-mix(in srgb,var(--acc) 45%,var(--panel2));color:#04211c;border-color:transparent}
+.heat-key.lv3{background:color-mix(in srgb,var(--warn) 62%,var(--panel2));color:#2a1a00;border-color:transparent}
+.heat-key.lv4{background:color-mix(in srgb,var(--bad) 68%,var(--panel2));color:#fff;border-color:transparent}
+.heat-key.slow{box-shadow:inset 0 0 0 2px var(--bad)}
+.heat-legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim2);margin-top:10px;flex-wrap:wrap}
+.heat-legend i{width:16px;height:11px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+
+/* ============ 暂停 ============ */
+.pause-card{text-align:center;padding:34px 24px}
+.pause-card .ic{font-size:52px;margin-bottom:10px}
+.pause-card h2{margin:0 0 8px;font-size:26px;font-weight:900}
+.pause-card p{color:var(--dim);font-size:13.5px;margin:0 0 22px;line-height:1.7}
+
 /* ============ 响应式 ============ */
 @media (max-width:980px){
   .side{width:250px;flex-basis:250px;padding:12px}
@@ -377,9 +425,12 @@ canvas{width:100%;display:block;border-radius:8px}
           <span class="lb">语种</span>
           <div class="seg" id="segLang"></div>
         </div>
+        <div id="diffTier" style="font-size:12px;color:var(--dim2);margin:-8px 0 14px"></div>
         <div class="row" style="margin-top:20px">
           <button class="btn pri" id="btnStart" style="font-size:16px;padding:13px 34px">🚀 开始游戏</button>
           <button class="btn" id="btnDaily">🎯 每日挑战</button>
+          <button class="btn" id="btnCustom">📚 自定义词库</button>
+          <button class="btn" id="btnWrong">🩹 错词本 <span id="wwBadge"></span></button>
         </div>
         <div style="height:18px"></div>
         <div class="modes" id="modeCards"></div>
@@ -406,6 +457,7 @@ canvas{width:100%;display:block;border-radius:8px}
           <div class="sp"></div>
           <div class="hud-r">
             <div class="lives" id="mLives"></div>
+            <button class="icon-btn" id="btnPause" title="暂停">⏸️</button>
             <button class="icon-btn" id="btnQuit">✕</button>
           </div>
         </div>
@@ -417,7 +469,7 @@ canvas{width:100%;display:block;border-radius:8px}
           <div class="flow-wrap">
             <div class="flow" id="flow"></div>
           </div>
-          <div class="hint-line" id="hintLine"></div>
+          <div class="hint-line" id="hintLine"><span id="hintNext" style="display:none"></span></div>
           <div class="danger-edge" id="dangerEdge"></div>
         </div>
       </div>
@@ -455,9 +507,20 @@ canvas{width:100%;display:block;border-radius:8px}
         <div style="font-size:19px;font-weight:800;margin-bottom:3px">数据统计</div>
         <div style="font-size:12px;color:var(--dim2);margin-bottom:16px">看看你的打字轨迹与"拖沓键"</div>
         <div class="kpis" id="kpiWrap"></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;align-items:start">
           <div class="chart-box"><h3>最近 12 局速度趋势</h3><canvas id="chartWpm" height="180"></canvas></div>
           <div class="chart-box"><h3>最拖沓的按键（平均间隔）</h3><div class="weak-list" id="weakList"></div></div>
+        </div>
+        <div class="chart-box" style="margin-top:14px;min-width:0;overflow:hidden">
+          <h3>键盘热力图 <span style="color:var(--dim2);font-weight:600;text-transform:none;letter-spacing:0">（越亮=用得越多，红框=较慢）</span></h3>
+          <div class="heat-grid" id="heatGrid"></div>
+          <div class="heat-legend">
+            <i style="background:color-mix(in srgb,var(--acc) 22%,var(--panel2))"></i>少
+            <i style="background:color-mix(in srgb,var(--acc) 45%,var(--panel2))"></i>
+            <i style="background:color-mix(in srgb,var(--warn) 62%,var(--panel2))"></i>
+            <i style="background:color-mix(in srgb,var(--bad) 68%,var(--panel2))"></i>多
+            <span style="margin-left:6px">🔴 红框 = 拖沓键</span>
+          </div>
         </div>
       </div>
     </section>
@@ -502,7 +565,9 @@ const MODES = [
   { id:"survival", ico:"💀", name:"无限生存", ds:"血量有限，难度持续攀升，看你能撑多久", need:1 },
   { id:"precision",ico:"🎯", name:"精准挑战", ds:"一个错字整词重来，考验你的稳定性", need:2 },
   { id:"climb",    ico:"🏔️", name:"登峰造极", ds:"十级阶梯关卡，每关更快更长", need:3 },
-  { id:"combo",    ico:"🔥", name:"连击狂潮", ds:"只追求最高连击，失误即清零", need:4 }
+  { id:"combo",    ico:"🔥", name:"连击狂潮", ds:"只追求最高连击，失误即清零", need:4 },
+  { id:"custom",   ico:"📚", name:"自定义词库", ds:"导入你的文章或单词表，专项练习", need:2 },
+  { id:"review",   ico:"🩹", name:"错词复习", ds:"专攻你的错词本，针对性突破", need:2 }
 ];
 const SKINS = [
   { id:"storm",  name:"极光",   c1:"#38e1c4", c2:"#7aa2ff", price:0 },
@@ -534,31 +599,41 @@ const BRANCHES = [
     { id:"zen",     ic:"🕊️", nm:"心境", ds:"失误时连击仅减半而非清零", max:1, cost:2 }
   ]}
 ];
+/* 成就判定统一通过此函数取标记位，容忍旧存档缺失 flags 字段 */
+const flagOf = (s,k)=> !!(s && s.flags && s.flags[k]);
+/* 成就判定时统一取统计值，避免旧存档缺字段导致崩溃 */
+const statOf = (s,k)=> (s && s.stats && typeof s.stats[k]==="number") ? s.stats[k] : 0;
 const ACHIEVEMENTS = [
-  { id:"first",    ic:"🎉", nm:"初次登场", ds:"完成第一局",        chk:s=>s.stats.games>=1 },
-  { id:"c100",     ic:"💯", nm:"百字小将", ds:"累计输入 100 字",    chk:s=>s.stats.chars>=100 },
-  { id:"c1000",    ic:"📜", nm:"千字达人", ds:"累计输入 1000 字",   chk:s=>s.stats.chars>=1000 },
-  { id:"c10000",   ic:"🏛️", nm:"万字宗匠", ds:"累计输入 10000 字",  chk:s=>s.stats.chars>=10000 },
-  { id:"w30",      ic:"🚴", nm:"手速初成", ds:"单局速度达 30",      chk:s=>s.stats.bestWpm>=30 },
-  { id:"w50",      ic:"🚗", nm:"疾风之刃", ds:"单局速度达 50",      chk:s=>s.stats.bestWpm>=50 },
-  { id:"w70",      ic:"✈️", nm:"光速之翼", ds:"单局速度达 70",      chk:s=>s.stats.bestWpm>=70 },
-  { id:"w90",      ic:"🚀", nm:"极速传说", ds:"单局速度达 90",      chk:s=>s.stats.bestWpm>=90 },
-  { id:"k20",      ic:"🔥", nm:"连击初成", ds:"单局连击达 20",      chk:s=>s.stats.bestCombo>=20 },
-  { id:"k50",      ic:"⚡", nm:"连击狂潮", ds:"单局连击达 50",      chk:s=>s.stats.bestCombo>=50 },
-  { id:"k100",     ic:"💥", nm:"无可阻挡", ds:"单局连击达 100",     chk:s=>s.stats.bestCombo>=100 },
-  { id:"k200",     ic:"🌟", nm:"神之一手", ds:"单局连击达 200",     chk:s=>s.stats.bestCombo>=200 },
-  { id:"perfect",  ic:"💎", nm:"百发百中", ds:"精准模式零失误通关",  chk:s=>!!s.flags.perfect },
-  { id:"peak",     ic:"🏔️", nm:"登顶者",   ds:"登峰模式抵达第 10 关",chk:s=>!!s.flags.peak },
-  { id:"survive",  ic:"🛡️", nm:"生存专家", ds:"生存模式撑过 120 秒",chk:s=>!!s.flags.survive120 },
-  { id:"g10",      ic:"📅", nm:"勤学不辍", ds:"累计游玩 10 局",     chk:s=>s.stats.games>=10 },
-  { id:"g50",      ic:"🎓", nm:"持之以恒", ds:"累计游玩 50 局",     chk:s=>s.stats.games>=50 },
-  { id:"g200",     ic:"👑", nm:"十年磨剑", ds:"累计游玩 200 局",    chk:s=>s.stats.games>=200 },
-  { id:"skin5",    ic:"🎨", nm:"皮肤收藏家",ds:"拥有 5 款皮肤",      chk:s=>(s.skins||[]).length>=5 },
-  { id:"skillmax", ic:"🌳", nm:"全知全能", ds:"技能全部点满",      chk:s=>BRANCHES.every(b=>b.skills.every(k=>(s.skills[k.id]||0)>=k.max)) },
-  { id:"rankKing", ic:"👑", nm:"段位王者", ds:"达成王者段位",        chk:s=>rankOf(s.stats.bestWpm).id==="king" },
-  { id:"daily",    ic:"🎯", nm:"每日打卡", ds:"完成一次每日挑战",   chk:s=>!!s.flags.dailyDone },
-  { id:"mixlang",  ic:"🌏", nm:"中英通吃", ds:"中英各累计 1000 字", chk:s=>(s.stats.byLang.cn||0)>=1000&&(s.stats.byLang.en||0)>=1000 },
-  { id:"allmode",  ic:"🎪", nm:"全能选手", ds:"5 种模式各玩过一局", chk:s=>Object.keys(s.stats.byMode||{}).length>=5 }
+  { id:"first",    ic:"🎉", nm:"初次登场", ds:"完成第一局",        chk:s=>statOf(s,"games")>=1 },
+  { id:"c100",     ic:"💯", nm:"百字小将", ds:"累计输入 100 字",    chk:s=>statOf(s,"chars")>=100 },
+  { id:"c1000",    ic:"📜", nm:"千字达人", ds:"累计输入 1000 字",   chk:s=>statOf(s,"chars")>=1000 },
+  { id:"c10000",   ic:"🏛️", nm:"万字宗匠", ds:"累计输入 10000 字",  chk:s=>statOf(s,"chars")>=10000 },
+  { id:"w30",      ic:"🚴", nm:"手速初成", ds:"单局速度达 30",      chk:s=>statOf(s,"bestWpm")>=30 },
+  { id:"w50",      ic:"🚗", nm:"疾风之刃", ds:"单局速度达 50",      chk:s=>statOf(s,"bestWpm")>=50 },
+  { id:"w70",      ic:"✈️", nm:"光速之翼", ds:"单局速度达 70",      chk:s=>statOf(s,"bestWpm")>=70 },
+  { id:"w90",      ic:"🚀", nm:"极速传说", ds:"单局速度达 90",      chk:s=>statOf(s,"bestWpm")>=90 },
+  { id:"k20",      ic:"🔥", nm:"连击初成", ds:"单局连击达 20",      chk:s=>statOf(s,"bestCombo")>=20 },
+  { id:"k50",      ic:"⚡", nm:"连击狂潮", ds:"单局连击达 50",      chk:s=>statOf(s,"bestCombo")>=50 },
+  { id:"k100",     ic:"💥", nm:"无可阻挡", ds:"单局连击达 100",     chk:s=>statOf(s,"bestCombo")>=100 },
+  { id:"k200",     ic:"🌟", nm:"神之一手", ds:"单局连击达 200",     chk:s=>statOf(s,"bestCombo")>=200 },
+  { id:"perfect",  ic:"💎", nm:"百发百中", ds:"精准模式零失误通关",  chk:s=>flagOf(s,"perfect") },
+  { id:"peak",     ic:"🏔️", nm:"登顶者",   ds:"登峰模式抵达第 10 关",chk:s=>flagOf(s,"peak") },
+  { id:"survive",  ic:"🛡️", nm:"生存专家", ds:"生存模式撑过 120 秒",chk:s=>flagOf(s,"survive120") },
+  { id:"g10",      ic:"📅", nm:"勤学不辍", ds:"累计游玩 10 局",     chk:s=>statOf(s,"games")>=10 },
+  { id:"g50",      ic:"🎓", nm:"持之以恒", ds:"累计游玩 50 局",     chk:s=>statOf(s,"games")>=50 },
+  { id:"g200",     ic:"👑", nm:"十年磨剑", ds:"累计游玩 200 局",    chk:s=>statOf(s,"games")>=200 },
+  { id:"skin5",    ic:"🎨", nm:"皮肤收藏家",ds:"拥有 5 款皮肤",      chk:s=>(s&&Array.isArray(s.skins)?s.skins:[]).length>=5 },
+  { id:"skillmax", ic:"🌳", nm:"全知全能", ds:"技能全部点满",      chk:s=>BRANCHES.every(b=>b.skills.every(k=>((s&&s.skills&&s.skills[k.id])||0)>=k.max)) },
+  { id:"rankKing", ic:"👑", nm:"段位王者", ds:"达成王者段位",        chk:s=>rankOf(statOf(s,"bestWpm")).id==="king" },
+  { id:"daily",    ic:"🎯", nm:"每日打卡", ds:"完成一次每日挑战",   chk:s=>flagOf(s,"dailyDone") },
+  { id:"mixlang",  ic:"🌏", nm:"中英通吃", ds:"中英各累计 1000 字", chk:s=>(s&&s.stats&&s.stats.byLang&&s.stats.byLang.cn||0)>=1000&&(s&&s.stats&&s.stats.byLang&&s.stats.byLang.en||0)>=1000 },
+  { id:"allmode",  ic:"🎪", nm:"全能选手", ds:"全部模式各玩过一局", chk:s=>Object.keys((s&&s.stats&&s.stats.byMode)||{}).length>=MODES.length },
+  { id:"sprint10", ic:"🏃", nm:"十场风暴", ds:"极速风暴模式累计 10 局", chk:s=>(((s&&s.stats&&s.stats.byMode)||{}).sprint||0)>=10 },
+  { id:"surv5",   ic:"🛡️", nm:"五次生还", ds:"无限生存模式累计 5 局", chk:s=>(((s&&s.stats&&s.stats.byMode)||{}).survival||0)>=5 },
+  { id:"import",   ic:"📚", nm:"博闻强记", ds:"导入你的第一份自定义词库", chk:s=>((s&&Array.isArray(s.customWords)?s.customWords.length:0))>0 },
+  { id:"fixword",  ic:"🩹", nm:"知错能改", ds:"错词本收集到 10 个错词", chk:s=>Object.keys((s&&s.wrongWords)||{}).length>=10 },
+  { id:"review",   ic:"🎓", nm:"查漏补缺", ds:"完成一次错词复习", chk:s=>flagOf(s,"reviewDone") },
+  { id:"heat",     ic:"⌨️", nm:"键不离手", ds:"累计按键次数达 5000", chk:s=>Object.values((s&&s.stats&&s.stats.keys)||{}).reduce((a,v)=>a+(v.n||0),0)>=5000 }
 ];
 const RANKS = [
   { id:"bronze", nm:"青铜", min:0 },{ id:"silver", nm:"白银", min:20 },
@@ -580,6 +655,7 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 function todayKey(d){d=d||new Date();return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
 
 /* ------------------------------------------------------------ 词库解析 */
+const POOLS = {};
 function parsePairs(str){
   const out=[];
   for(const raw of str.split(";")){
@@ -590,7 +666,440 @@ function parsePairs(str){
   }
   return out;
 }
-const POOLS = {};
+/* 中文汉字 → 拼音音节表（用于自定义词库导入）
+   覆盖常用字；未收录的字回退为单字占位，玩家仍可练习（提示会显示原字） */
+const HANZI_PY = (()=>{
+  const map={};
+  /* 每行格式：音节|汉字串 —— 由生成脚本统一产出，避免手写引号出错 */
+  const raw = [
+"a|阿啊",
+"ai|哀挨唉埃皑癌矮蔼艾爱",
+"an|安暗岸按案鞍俺氨",
+"ao|奥傲熬凹袄拗",
+"ba|八巴吧爸拔把坝霸罢爬趴扒",
+"bai|百白败拜柏摆",
+"ban|班般搬板半办伴扮拌",
+"bang|帮邦绑棒",
+"bao|包宝抱报暴爆保堡",
+"bei|杯北被倍备背悲碑贝",
+"ben|本奔笨",
+"bi|笔比币必毕闭避碧壁",
+"bian|边变便遍辨鞭编",
+"biao|标表",
+"bie|别",
+"bin|宾滨",
+"bing|冰兵病并丙秉",
+"bo|波播伯薄博泊勃",
+"bu|不布步部补捕",
+"cai|才材财采彩菜猜",
+"can|参残餐灿惨",
+"cang|仓藏苍舱",
+"cao|草操曹",
+"ce|册侧测策",
+"ceng|层曾",
+"cha|查察差叉茶插",
+"chai|柴拆",
+"chan|产禅缠颤",
+"chang|长常场厂唱畅昌尝肠",
+"chao|朝超潮巢炒吵",
+"che|车彻撤扯",
+"chen|陈晨沉臣尘辰衬",
+"cheng|成城程诚称乘呈承惩橙",
+"chi|吃迟持池尺赤翅斥驰",
+"chong|冲重充崇虫",
+"chou|抽愁筹丑",
+"chu|出初除处楚础厨储橱",
+"chuan|川穿传船串喘",
+"chuang|窗床创闯",
+"chui|吹垂锤",
+"chun|春纯唇蠢",
+"ci|此次词慈磁瓷辞",
+"cong|从丛葱聪",
+"cu|粗醋促",
+"cun|村存寸",
+"cuo|错措挫",
+"da|大打达答搭",
+"dai|代带待戴袋呆贷",
+"dan|单担胆淡蛋弹诞",
+"dang|当党挡荡",
+"dao|刀到道倒岛盗导悼",
+"de|得地的",
+"deng|灯登等瞪邓",
+"di|低敌底弟滴迪笛",
+"dian|点电店典殿垫",
+"diao|掉调雕吊钓",
+"die|蝶跌爹",
+"ding|顶定订丁钉盯",
+"dong|东冬动洞冻懂",
+"dou|斗豆抖",
+"du|读度独毒渡肚堵",
+"duan|段断短端锻",
+"dui|对队堆",
+"dun|吨顿盾",
+"duo|多朵躲夺",
+"e|鹅饿恶额俄",
+"en|恩",
+"er|而二耳儿",
+"fa|发法罚伐阀",
+"fan|反饭范凡翻烦犯帆繁返",
+"fang|方房防放访纺",
+"fei|飞非肥费废妃肺",
+"fen|分粉份奋纷愤",
+"feng|风封丰峰锋蜂缝讽",
+"fo|佛",
+"fou|否",
+"fu|父付负富夫服福府复附扶浮腐妇符幅肤",
+"gai|该改概盖",
+"gan|干感赶敢甘肝杆",
+"gang|刚钢港岗纲",
+"gao|告高搞稿糕膏",
+"ge|个各歌哥革格阁割",
+"gei|给",
+"gen|根跟",
+"geng|更耕",
+"gong|工公功共供宫弓攻巩",
+"gou|狗构购够沟",
+"gu|古故谷股骨顾鼓固孤估",
+"gua|挂瓜刮",
+"guai|怪拐乖",
+"guan|关管观官馆惯冠罐",
+"guang|光广逛",
+"gui|贵归规鬼柜跪",
+"gun|滚棍",
+"guo|国过果锅裹",
+"hai|海害还孩",
+"han|含寒喊汉汗旱涵韩",
+"hang|行航杭",
+"hao|好号毫豪浩耗",
+"he|和何河合喝贺黑盒赫",
+"hei|黑嘿",
+"hen|很恨狠痕",
+"heng|横衡恒",
+"hong|红宏洪鸿虹",
+"hou|后厚候侯猴喉",
+"hu|户胡湖虎护呼忽壶蝴",
+"hua|花话画化华划滑",
+"huai|坏怀淮槐",
+"huan|换还欢环缓幻患",
+"huang|黄皇荒慌煌晃",
+"hui|回会灰挥辉毁悔惠慧汇",
+"hun|婚昏混魂",
+"huo|或火活货获伙惑霍",
+"ji|级几即机基集积极济记计际技寄纪继鸡吉击",
+"jia|加家价甲假架佳嫁夹嘉",
+"jian|见间件建健剑简检减剪监尖渐艰",
+"jiang|将讲江降奖姜疆",
+"jiao|叫交角教觉较焦骄郊",
+"jie|接结节街姐解介戒届杰",
+"jin|金今近进紧尽禁津巾",
+"jing|经京静净精镜竟境警惊敬鲸",
+"jiu|九久酒就旧救究纠",
+"ju|句局举具剧据距聚巨居惧菊",
+"juan|卷捐",
+"jue|觉决绝爵掘",
+"jun|军均君",
+"ka|卡咖",
+"kai|开凯慨",
+"kan|看刊砍",
+"kang|康抗炕",
+"kao|考靠烤",
+"ke|可科客课刻颗渴咳",
+"ken|肯恳",
+"kong|空控孔恐",
+"kou|口扣",
+"ku|苦库哭",
+"kua|夸跨",
+"kuai|快块筷",
+"kuan|宽款",
+"kuang|狂况框矿旷",
+"kun|困昆",
+"kuo|扩阔",
+"la|拉啦腊辣",
+"lai|来赖",
+"lan|兰蓝烂拦栏懒览",
+"lang|狼浪郎廊",
+"lao|老劳牢捞",
+"le|乐了勒",
+"lei|类累泪雷",
+"leng|冷愣",
+"li|里理力立丽历利礼李例励厉粒梨璃",
+"lian|连脸练莲联恋怜链",
+"liang|两量亮梁粮凉良",
+"liao|了料聊辽",
+"lie|列烈裂猎",
+"lin|林临邻淋磷",
+"ling|零灵领令另铃",
+"liu|六流留刘柳溜",
+"long|龙笼隆聋",
+"lou|楼漏露搂",
+"lu|路陆录鹿露卢炉鲁",
+"lv|绿律旅虑滤",
+"lun|论轮伦",
+"luo|落罗洛骆络",
+"ma|马妈麻码骂",
+"mai|买卖麦埋",
+"man|满慢漫曼蛮",
+"mang|忙盲茫",
+"mao|毛猫帽贸",
+"me|么",
+"mei|没美每妹梅媒煤眉",
+"men|门们",
+"meng|梦猛蒙盟",
+"mi|米密迷秘蜜谜",
+"mian|面免棉眠绵",
+"miao|秒苗妙庙",
+"mie|灭",
+"min|民敏",
+"ming|名明命鸣铭",
+"mo|末莫摸模磨魔默",
+"mou|某",
+"mu|母木目幕慕暮牧",
+"na|那拿哪纳",
+"nai|奶耐乃",
+"nan|难南男",
+"nao|脑恼闹",
+"ne|呢",
+"nei|内",
+"neng|能",
+"ni|你尼泥逆",
+"nian|年念粘",
+"niao|鸟尿",
+"ning|宁凝拧",
+"niu|牛扭纽",
+"nong|农浓弄",
+"nu|努怒",
+"nv|女",
+"nuan|暖",
+"o|哦噢",
+"ou|偶欧藕",
+"pa|怕爬帕趴",
+"pai|派拍牌排",
+"pan|盘判盼攀",
+"pang|胖庞旁",
+"pao|跑抛炮泡",
+"pei|陪配培赔",
+"pen|盆喷",
+"peng|碰朋棚捧彭",
+"pi|批皮疲匹披",
+"pian|片篇偏骗",
+"piao|票飘漂",
+"pin|品贫拼",
+"ping|平评瓶凭苹屏",
+"po|破坡婆迫颇",
+"pou|剖",
+"pu|普铺扑浦葡",
+"qi|七起其气汽期奇齐骑棋旗器企弃妻漆祈",
+"qia|恰",
+"qian|千前钱浅签迁牵潜谦",
+"qiang|强枪墙抢腔",
+"qiao|桥巧敲侨瞧蕉",
+"qie|切且窃怯",
+"qin|亲琴秦勤侵禽",
+"qing|青轻情清请晴庆倾氢",
+"qiong|穷琼",
+"qiu|秋求球丘囚",
+"qu|去区曲取趣渠娶",
+"quan|全权劝泉圈拳",
+"que|却确缺雀",
+"qun|群裙",
+"ran|然染燃",
+"rang|让嚷",
+"rao|绕饶",
+"re|热",
+"ren|人认任忍仁刃",
+"reng|仍扔",
+"ri|日",
+"rong|容融绒荣",
+"rou|柔肉",
+"ru|如入乳儒辱",
+"ruan|软",
+"rui|锐瑞",
+"run|润",
+"ruo|若弱",
+"sa|洒撒萨",
+"sai|赛塞腮",
+"san|三散伞",
+"sang|桑丧",
+"sao|扫骚嫂",
+"se|色涩",
+"sen|森",
+"sha|沙杀纱傻",
+"shai|晒",
+"shan|山善闪扇衫",
+"shang|上商伤赏尚裳",
+"shao|少绍烧稍勺",
+"she|社设射摄涉舍",
+"shen|身深神什审申伸沈慎",
+"sheng|生声省胜剩升绳圣盛牲",
+"shi|十时事是使市实式识石史视试师诗失食施室适狮释氏",
+"shou|手收受首守授瘦兽",
+"shu|书数术树输属熟述舒鼠叔",
+"shua|刷耍",
+"shuai|帅摔衰",
+"shuan|拴",
+"shuang|双霜爽",
+"shui|水谁税睡",
+"shun|顺",
+"shuo|说",
+"si|四死思司丝私似寺撕",
+"song|送松宋",
+"sou|搜",
+"su|诉素速宿苏俗塑",
+"suan|算酸",
+"sui|岁虽随碎",
+"sun|孙损",
+"suo|所锁索缩",
+"ta|他它她塔踏",
+"tai|太台态抬泰",
+"tan|谈探叹坛摊贪",
+"tang|汤堂糖唐躺趟",
+"tao|讨桃逃套陶涛掏",
+"te|特",
+"ti|体提题替梯踢",
+"tian|天田甜添填",
+"tiao|条跳挑",
+"tie|铁贴帖",
+"ting|听厅停庭挺艇",
+"tong|同通痛童铜桶筒",
+"tou|头投透偷",
+"tu|土图吐兔突途徒",
+"tuan|团",
+"tui|推退腿",
+"tuo|脱托拖妥",
+"wa|挖娃瓦",
+"wai|外歪",
+"wan|完万晚碗湾玩弯腕",
+"wang|王往网忘望亡",
+"wei|为位未维围伟危味威违唯尾",
+"wen|文问闻温稳吻纹",
+"weng|翁",
+"wo|我握卧沃",
+"wu|五无物午舞务武误屋污雾悟",
+"xi|西息希喜系细习洗席吸析稀溪夕熄犀戏",
+"xia|下夏吓侠峡霞虾",
+"xian|先现线县显险鲜闲限贤咸弦",
+"xiang|向相想象香乡响箱详享",
+"xiao|小笑消校晓孝销效",
+"xie|些写谢鞋斜血歇协携泄械",
+"xin|心新信辛欣薪",
+"xing|行性形星型醒兴幸姓",
+"xiong|兄胸雄熊凶",
+"xiu|休修秀袖",
+"xu|许需序续虚须蓄",
+"xuan|选宣悬旋轩",
+"xue|学血雪穴削",
+"xun|寻训迅巡询循",
+"ya|呀压鸭牙芽亚雅",
+"yan|言眼演严烟研盐颜岩沿延宴",
+"yang|样阳养洋羊杨扬",
+"yao|要药摇腰咬遥",
+"ye|也业叶夜野液页",
+"yi|一已意以衣易依医仪疑亿忆艺益亦移翼异姨",
+"yin|因音引银印阴饮隐",
+"ying|应英影迎营硬赢映鹰婴",
+"yo|哟",
+"yong|用永勇涌拥庸",
+"you|有又右油由游友优幽忧犹邮",
+"yu|于与语鱼雨玉育遇预域愈欲羽虞",
+"yuan|元原远园愿怨源缘员圆",
+"yue|月越乐约阅跃岳",
+"yun|云运允匀",
+"za|杂",
+"zai|再在载栽",
+"zan|暂咱",
+"zang|脏藏",
+"zao|早造遭糟",
+"ze|则责泽择",
+"zei|贼",
+"zen|怎",
+"zeng|增",
+"zhai|摘宅",
+"zhan|战占站展粘",
+"zhang|张章掌涨帐",
+"zhao|找照招朝赵罩",
+"zhe|这着者折哲",
+"zhen|真镇针震阵诊枕",
+"zheng|正政证整争征症挣",
+"zhi|只知直指制止之至质智治值织执职纸",
+"zhong|中重种终钟众肿",
+"zhou|周州洲舟粥皱轴",
+"zhu|住主注助竹猪祝著筑珠",
+"zhua|抓",
+"zhuan|转专砖赚",
+"zhuang|装状庄壮撞",
+"zhui|追坠",
+"zhun|准",
+"zhuo|着桌捉卓",
+"zi|字自子资紫姿",
+"zong|总宗综纵踪",
+"zou|走奏",
+"zu|足组族阻租",
+"zuan|钻",
+"zui|最嘴醉",
+"zun|尊",
+"zuo|做作坐座左"
+  ];
+  for(const line of raw){
+    const i=line.indexOf("|");
+    if(i<0) continue;
+    const syl=line.slice(0,i), chars=line.slice(i+1);
+    for(const c of chars) map[c]=syl;
+  }
+  return map;
+})();
+/* 汉字 → 拼音音节
+   优先查手写音节表；未收录的字从内置词库反查（覆盖更多生僻字）
+   反查表在 buildPools() 之后惰性构建，避免 POOLS 尚未填充 */
+let _hanziBackfill=null;
+function getBackfill(){
+  if(_hanziBackfill) return _hanziBackfill;
+  const map={};
+  for(const pool of Object.values(POOLS)){
+    if(!Array.isArray(pool)) continue;
+    for(const item of pool){
+      const chars=item.text.split("");
+      for(let i=0;i<chars.length && i<item.syl.length;i++){
+        const c=chars[i];
+        if(!map[c] && item.syl[i] && /^[a-z]+$/.test(item.syl[i])) map[c]=item.syl[i];
+      }
+    }
+  }
+  _hanziBackfill=map;
+  return map;
+}
+/* 把玩家导入的自定义文本切分为练习单元
+   - 中文：按标点/空格切词，每个汉字一个音节（未收录字用原字本身作为输入）
+   - 英文：按空白切词 */
+function buildCustomUnits(text, preferLang){
+  const units=[];
+  const clean=String(text||"").slice(0,4000);
+  // 英文词
+  const enWords=clean.match(/[A-Za-z][A-Za-z'-]*/g)||[];
+  for(const w of enWords){
+    if(w.length<2||w.length>24) continue;
+    units.push({ lang:"en", text:w, syl:[w], input:w });
+  }
+  // 中文：提取汉字串
+  const cnRuns=clean.match(/[一-龥]+/g)||[];
+  for(const run of cnRuns){
+    // 每 2-4 个汉字切一个词（便于阅读）
+    for(let i=0;i<run.length;){
+      const len=Math.min(2+Math.floor(Math.random()*3), run.length-i);
+      const chunk=run.slice(i,i+len); i+=len;
+      const syl=[], texts=[];
+      for(const c of chunk){
+        const p=hanziToSyl(c);
+        syl.push(p || c);        // 未收录的字：直接用汉字本身当输入（练熟即可）
+        texts.push(c);
+      }
+      units.push({ lang:"cn", text:texts.join(""), syl, input:syl.join("") });
+    }
+  }
+  if(!units.length) return [];
+  if(preferLang==="cn") return units.filter(u=>u.lang==="cn").concat(units.filter(u=>u.lang==="en"));
+  if(preferLang==="en") return units.filter(u=>u.lang==="en").concat(units.filter(u=>u.lang==="cn"));
+  return units;
+}
 function buildPools(){
   POOLS.cn = {};
   POOLS.en = {};
@@ -603,6 +1112,9 @@ function buildPools(){
   POOLS["en-code"]=EN_CODE.split(";").map(s=>s.trim()).filter(Boolean).map(w=>({text:w,syl:[w]}));
 }
 buildPools();
+function hanziToSyl(c){
+  return HANZI_PY[c] || getBackfill()[c] || null;
+}
 
 /* -------------------------------------------------------------- 存档层 */
 const SAVE_KEY = "typing_storm_v1";
@@ -610,8 +1122,12 @@ function newSlotData(name){
   return {
     name, lvl:1, xp:0, sp:0, coins:0, skins:["storm"], skin:"storm",
     skills:{}, ach:{}, flags:{}, history:[],
+    // 错词本：word -> {n:出错次数, last:最后出错时间戳}
+    wrongWords:{},
+    // 自定义词库：玩家导入的文本片段（数组，每项 {text, lang}）
+    customWords:[],
     stats:{ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0, bestScore:0,
-            accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{} }
+            accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, heat:{} }
   };
 }
 function defaultStore(){
@@ -628,7 +1144,21 @@ function loadStore(){
     if(!d||!Array.isArray(d.slots)) return defaultStore();
     const def=defaultStore();
     // 逐槽补齐缺失字段，保证旧存档平滑升级
-    d.slots=d.slots.map((s,i)=>Object.assign(newSlotData(def.slots[i].name),s||{}));
+    d.slots=d.slots.map((s,i)=>{
+      const base=newSlotData(def.slots[i].name);
+      const merged=Object.assign(base,s||{});
+      // 二级字段单独兜底（Object.assign 遇到 undefined 会覆盖默认值）
+      merged.stats=Object.assign({ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0,
+        bestScore:0, accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{} }, s&&s.stats);
+      merged.skills=Object.assign({}, s&&s.skills);
+      merged.ach=Object.assign({}, s&&s.ach);
+      merged.flags=Object.assign({}, s&&s.flags);
+      merged.history=Array.isArray(s&&s.history)?s.history:[];
+      merged.skins=Array.isArray(s&&s.skins)&&s.skins.length?s.skins:["storm"];
+      if(!merged.skins.includes("storm")) merged.skins.unshift("storm");
+      merged.skin=merged.skins.includes(merged.skin)?merged.skin:"storm";
+      return merged;
+    });
     d.settings=Object.assign(def.settings,d.settings||{});
     d.daily=Object.assign(def.daily,d.daily||{});
     d.active=d.active||0; d.v=1;
@@ -709,6 +1239,9 @@ const G = {
   startTs:0, elapsed:0, limit:60, endTs:0,
   threat:0, threatRate:0, stage:0, stageNeed:8, stageDone:0,
   timer:null, rng:null, pool:"", pendingPool:"",
+  custom:null,                                   // 自定义词库单元数组（非空时启用）
+  customName:"", customTotal:0, customDone:0,   // 自定义词库进度
+  paused:false, pauseAt:0, pauseShift:0,         // 暂停状态
   wordScore:0, perfect:true, lastKeyTs:0, keyDelay:{}
 };
 const CONFIG = { mode:"sprint", diff:"normal", lang:"cn" };
@@ -719,7 +1252,9 @@ function poolKey(){
   let cnKey="cn-easy", enKey="en-easy";
   const hasErudite = (sk.erudite||0)>=1;
   const hasSavant  = (sk.savant||0)>=1;
-  switch(CONFIG.diff){
+  // 使用运行时难度 G.diff（生存/登峰模式会动态升档），而非玩家设置 CONFIG.diff
+  const diff = (typeof G!=="undefined" && G.diff) ? G.diff : CONFIG.diff;
+  switch(diff){
     case "easy":   cnKey="cn-easy"; enKey="en-easy"; break;
     case "normal": cnKey=hasErudite?"cn-mid":"cn-easy";
                    enKey=hasErudite?"en-mid":"en-easy"; break;
@@ -730,10 +1265,41 @@ function poolKey(){
   }
   return {cn:cnKey,en:enKey};
 }
+/* 该难度实际能取到的词池层级，用于向玩家说明"未解锁时词库会降级" */
+function poolTierLabel(diff){
+  const pk=poolKeyFor(diff);
+  const cnName={"cn-easy":"基础词","cn-mid":"进阶词","cn-hard":"高阶词"}[pk.cn]||"基础词";
+  const enName={"en-easy":"短词","en-mid":"中长词","en-hard":"长词","en-code":"代码符号"}[pk.en]||"短词";
+  return cnName+" / "+enName;
+}
+function poolKeyFor(diff){
+  const sk=S().skills||{};
+  const hasErudite=(sk.erudite||0)>=1, hasSavant=(sk.savant||0)>=1;
+  switch(diff){
+    case "easy":   return {cn:"cn-easy",en:"en-easy"};
+    case "normal": return {cn:hasErudite?"cn-mid":"cn-easy", en:hasErudite?"en-mid":"en-easy"};
+    case "hard":   return {cn:hasSavant?"cn-hard":(hasErudite?"cn-mid":"cn-easy"), en:hasSavant?"en-hard":(hasErudite?"en-mid":"en-easy")};
+    case "night":  return {cn:hasSavant?"cn-hard":"cn-mid", en:hasSavant?"en-code":"en-hard"};
+    default:       return {cn:"cn-easy",en:"en-easy"};
+  }
+}
 function makeUnit(rng){
+  // 自定义词库模式：按导入顺序推进（不打乱），符合"练我的文章"的预期
+  if(G.custom && G.custom.length){
+    const idx=G.customDone % G.custom.length;
+    const item=G.custom[idx];
+    if(item){
+      const syl = Array.isArray(item.syl) ? item.syl.filter(x=>typeof x==="string"&&x.length) : [];
+      const useSyl = syl.length ? syl : [String(item.input||item.text||"-")];
+      const input = String(item.input||useSyl.join("")||"-");
+      const text = String(item.text||useSyl.join(""));
+      return { lang:item.lang==="en"?"en":"cn", text, syl:useSyl, input, typed:"" };
+    }
+  }
   const pk=poolKey();
-  const mix = CONFIG.lang==="mix";
-  let useCn = CONFIG.lang==="cn" ? true : CONFIG.lang==="en" ? false : (rng()<0.5);
+  const lang = (typeof G!=="undefined" && G.lang) ? G.lang : CONFIG.lang;
+  const mix = lang==="mix";
+  let useCn = lang==="cn" ? true : lang==="en" ? false : (rng()<0.5);
   if(mix && !(S().skills||{}).polyglot) useCn=true;
   const list = useCn ? POOLS[pk.cn] : POOLS[pk.en];
   const item = list[Math.floor(rng()*list.length)];
@@ -759,25 +1325,58 @@ function nextUnit(){
     G.idx-=d;
   }
 }
+/* 自定义词库：打完全部导入内容后结束，不再补充新单元 */
+function customFinished(){
+  return (G.mode==="custom"||G.mode==="review") && G.customDone>=G.customTotal;
+}
 
 /* -------------------------------------------------------------- 开始游戏 */
 function startGame(dailyCfg){
   Audio2.init();
   const s=S();
-  if(dailyCfg){ CONFIG.mode=dailyCfg.mode; CONFIG.diff=dailyCfg.diff; CONFIG.lang=dailyCfg.lang; }
+  // 每日挑战使用独立的临时配置，不污染玩家的全局设置
+  if(dailyCfg){
+    G.mode=dailyCfg.mode; G.diff=dailyCfg.diff; G.lang=dailyCfg.lang;
+  } else {
+    G.mode=CONFIG.mode; G.diff=CONFIG.diff; G.lang=CONFIG.lang;
+  }
   G.daily=!!dailyCfg;
-  G.mode=CONFIG.mode; G.diff=CONFIG.diff; G.lang=CONFIG.lang;
-  const d=DIFFS.find(x=>x.id===CONFIG.diff)||DIFFS[1];
+  const d=DIFFS.find(x=>x.id===G.diff)||DIFFS[1];
 
   // 词池解锁校验
   const sk=s.skills||{};
-  if(CONFIG.diff==="hard"||CONFIG.diff==="night"){ if(!(sk.erudite>=1)&&CONFIG.diff==="hard"){} }
-  if(CONFIG.lang==="mix"&&!(sk.polyglot>=1)) CONFIG.lang="cn";
+  if(G.lang==="mix"&&!(sk.polyglot>=1)) G.lang="cn";
+  // 难度可能被词池解锁条件降级（如"地狱"需要通识），此时回退到普通
+  if((G.diff==="hard"||G.diff==="night") && !(sk.savant>=1) && !(sk.erudite>=1)) G.diff="normal";
 
   G.rng = dailyCfg ? mulberry32(dailyCfg.seed) : mulberry32((Date.now()^hashStr(String(Math.random())))|0);
   G.units=[]; G.idx=0; G.ci=0; G.gi=0; G.input="";
   G.combo=0; G.maxCombo=0; G.correct=0; G.wrong=0; G.score=0; G.words=0;
   G.perfect=true; G.wordScore=0; G.keyDelay={};
+  // 自定义词库：优先使用玩家导入的内容；未导入则回退到内置词库
+  G.custom = null; G.customName="";
+  if(G.mode==="custom"){
+    // s.customWords 是词库数组，每项形如 {name, raw, units:[...]}
+    const lib=(s.customWords||[]).filter(w=>w&&Array.isArray(w.units)&&w.units.length);
+    if(lib.length){
+      const units=[];
+      for(const w of lib) for(const u of w.units) units.push(u);
+      G.custom=units; G.customName=lib.map(w=>w.name).join("+");
+    } else {
+      G.mode="sprint";   // 没有导入内容则退回极速风暴
+      toast("📚 还没有导入词库，已切换为极速风暴");
+    }
+  }
+  // 错词复习：从错词本抽取单元
+  if(G.mode==="review"){
+    const wu=wrongWordUnits();
+    if(wu.length){
+      G.custom=wu; G.customName="错词本";
+    } else {
+      G.mode="sprint";
+      toast("🩹 错词本还是空的，先去练几局吧");
+    }
+  }
 
   const tough=+(s.skills&&s.skills.tough||0);
   G.maxLives = d.life + tough;
@@ -788,22 +1387,30 @@ function startGame(dailyCfg){
   G.limit = G.mode==="sprint"?60 : G.mode==="combo"?90 : G.mode==="climb"?0 : 0;
   G.threat=0; G.threatRate=0; G.stage=0; G.stageDone=0; G.stageNeed=8;
   if(G.mode==="climb") G.stageNeed=6;
-  if(G.mode==="survival") G.threatRate = 3.2 - (s.skills&&s.skills.meteor||0)*0.29;
+  if(G.mode==="survival") G.threatRate = Math.max(0.8, 3.2 - (s.skills&&s.skills.meteor||0)*0.29);
+  // 自定义词库 / 错词复习：不限时，打完全部内容即结束
+  if(G.mode==="custom"||G.mode==="review"){
+    G.limit=0; G.customTotal=G.custom?G.custom.length:0;
+  }
 
-  fillUnits(12);
+  fillUnits((G.mode==="custom"||G.mode==="review")?1:12);
   G.on=true;
   showView("Play");
   renderFlow();
   updateHud();
-  $("#hintLine").innerHTML = G.lang==="en"
+  const hl=$("#hintLine");
+  const guide = G.lang==="en"
     ? `<span>直接敲击屏幕上的字母</span><span><kbd>Esc</kbd> 退出</span>`
     : `<span>敲击拼音字母（如 <kbd>ni</kbd> <kbd>hao</kbd>）</span><span><kbd>Esc</kbd> 退出</span>`;
+  if(hl) hl.innerHTML=guide+'<span id="hintNext" style="display:none"></span>';
+  updateHints();
   G.timer=setInterval(tick,100);
 }
 
 /* -------------------------------------------------------------- 游戏循环 */
 function tick(){
   if(!G.on) return;
+  if(G.paused) return;                  // 暂停时不推进计时
   G.elapsed=(Date.now()-G.startTs)/1000;
   if(G.mode==="sprint"||G.mode==="combo"){
     const left=Math.max(0,Math.ceil(G.limit-G.elapsed));
@@ -815,12 +1422,12 @@ function tick(){
     $("#mTime").textContent=Math.round(G.elapsed)+"s";
     $("#kTime").textContent="存活";
     if(G.threat>=100){ endGame(); return; }
-    // 难度随时间攀升：每 25 秒提高一档词库
+    // 难度随时间攀升：每 25 秒提高一档词库（使用运行时难度，不污染玩家设置）
     const up=Math.floor(G.elapsed/25);
-    if(up>0 && CONFIG.diff!=="night"){
+    if(up>0){
       const order=["easy","normal","hard","night"];
-      const idx=Math.min(order.indexOf(CONFIG.diff)+up,3);
-      if(order[idx]!==CONFIG.diff){ CONFIG.diff=order[idx]; G.diff=CONFIG.diff; }
+      const idx=Math.min(order.indexOf(G.diff)+up,3);
+      if(order[idx]!==G.diff){ G.diff=order[idx]; }
     }
   } else if(G.mode==="climb"){
     $("#mTime").textContent="第 "+(G.stage+1)+" 关";
@@ -835,7 +1442,9 @@ function tick(){
 /* -------------------------------------------------------------- 输入处理 */
 window.addEventListener("keydown",e=>{
   if(G.on){
-    if(e.key==="Escape"){ e.preventDefault(); quitGame(); return; }
+    if(e.key==="Escape"){ e.preventDefault(); if(G.paused) togglePause(); else quitGame(); return; }
+    if(e.key===" "&&G.paused){ e.preventDefault(); togglePause(); return; }
+    if(G.paused) return;                       // 暂停中不处理游戏输入
     if(e.ctrlKey||e.metaKey||e.altKey) return;
     if(e.key.length!==1) return;
     e.preventDefault();
@@ -851,6 +1460,7 @@ window.addEventListener("keydown",e=>{
 });
 function handleKey(ch){
   if(!G.on) return;
+  if(G.paused) return;               // 暂停中不响应任何游戏输入
   const now=Date.now();
   if(G.lastKeyTs){ G.keyDelay[ch]=(G.keyDelay[ch]||0)*0.88+((now-G.lastKeyTs))*0.12; }
   G.lastKeyTs=now;
@@ -861,8 +1471,12 @@ function handleKey(ch){
 
   const u=G.units[G.idx];
   if(!u) return;
+  // 空格：中文拼音无空格需求，英文词间已自动分隔 —— 忽略而非计为失误
+  if(ch===" "){ return; }
   const expected=u.input[G.ci];
-  if(ch===expected){
+  // 英文不区分大小写（中文拼音本身全小写，不受影响）
+  const hit = u.lang==="en" ? ch.toLowerCase()===expected.toLowerCase() : ch===expected;
+  if(hit){
     G.correct++; G.combo++;
     if(u.lang==="cn") G.cnChars++; else G.enChars++;
     if(G.combo>G.maxCombo) G.maxCombo=G.combo;
@@ -885,6 +1499,9 @@ function onMistake(ch){
   // 护盾：免除失误
   if(G.shields>0){ G.shields--; toast("🛡️ 护盾挡下一次失误"); Audio2.err(); return; }
   G.wrong++; G.perfect=false;
+  // 错词本：任何模式的失误都记录（精准模式整词重来，也应计入）
+  const curUnit=G.units[G.idx];
+  if(curUnit) recordWrongWord(curUnit);
   // 连击结算：心境(zen) → 连击减半；稳键(steady) → 按等级保留一部分历史最高连击
   const zen=sk.zen||0, steady=sk.steady||0;
   if(zen>=1) G.combo=Math.floor(G.combo/2);
@@ -933,6 +1550,10 @@ function completeWord(){
     floatTxt("+"+G.wordScore,u); G.wordScore=0;
   }
   G.idx++; G.ci=0; G.input=""; G.gi=0;
+  if(G.mode==="custom"||G.mode==="review"){
+    G.customDone++;
+    if(G.customDone>=G.customTotal){ endGame(); return; }
+  }
   if(G.mode==="climb"){
     G.stageDone++;
     if(G.stageDone>=G.stageNeed){
@@ -940,7 +1561,7 @@ function completeWord(){
       if(G.stage>=10){ S().flags.peak=true; endGame(); return; }
       G.stageNeed=6+G.stage*2;
       const order=["easy","normal","hard","night"];
-      CONFIG.diff=order[Math.min(Math.floor(G.stage/3),3)]; G.diff=CONFIG.diff;
+      G.diff=order[Math.min(Math.floor(G.stage/3),3)];
       toast("🏔️ 抵达第 "+(G.stage+1)+" 关！");
     }
   }
@@ -953,6 +1574,13 @@ function completeWord(){
 function renderFlow(){
   const flow=$("#flow");
   flow.innerHTML="";
+  // 防御：确保每个单元的 syl 与 input 结构完整（自定义/错词单元可能不规范）
+  for(const u of G.units){
+    if(!Array.isArray(u.syl) || !u.syl.length) u.syl=[u.input||u.text||"-"];
+    if(typeof u.input!=="string" || !u.input.length) u.input=u.syl.join("");
+    if(typeof u.text!=="string") u.text=u.syl.join("");
+    if(u.lang!=="cn") u.lang="en";
+  }
   const start=Math.max(0,G.idx-1);
   const end=Math.min(G.units.length,G.idx+4);
   for(let i=start;i<end;i++){
@@ -1030,9 +1658,18 @@ function updateHints(){
   const sk=S().skills||{};
   const nxt=G.units[G.idx+1];
   const hl=$("#hintNext");
-  if(hl && nxt){
-    if(sk.eye>=1 && nxt.lang==="cn") hl.textContent="下一个："+nxt.syl[0].slice(0,1)+"*";
-    else hl.textContent="";
+  if(!hl) return;
+  if(sk.eye>=1 && nxt){
+    if(nxt.lang==="cn"){
+      const syl=nxt.syl[0]||"";
+      hl.innerHTML=`下一个词首字：<b style="color:var(--acc)">${esc(nxt.text[0]||"")}</b>（${esc(syl.slice(0,1))}*）`;
+      hl.style.display="";
+    } else {
+      hl.innerHTML=`下一个词首字母：<b style="color:var(--acc)">${esc(nxt.input[0]||"")}</b>*`;
+      hl.style.display="";
+    }
+  } else {
+    hl.innerHTML=""; hl.style.display="none";
   }
 }
 function updateHud(){
@@ -1063,14 +1700,40 @@ function updateHud(){
     let bar=$("#threatBar");
     if(!bar){ bar=document.createElement("div"); bar.id="threatBar";
       bar.style.cssText="position:absolute;left:0;top:0;height:3px;width:100%;background:transparent;z-index:7";
-      bar.innerHTML='<i style="display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb454,#ff6b81);transition:width .2s"></i>';
+      const fill=document.createElement("i");
+      fill.style.cssText="display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb454,#ff6b81);transition:width .2s";
+      bar.appendChild(fill);
       $("#playArea").appendChild(bar);
     }
-    bar.firstChild.style.width=clamp(G.threat,0,100)+"%";
+    const fill=bar.firstChild;
+    if(fill) fill.style.width=clamp(G.threat,0,100)+"%";
+  } else {
+    const bar=$("#threatBar");
+    if(bar) bar.remove();
   }
 }
 
-/* ------------------------------------------------------------ 特效层 */
+/* ------------------------------------------------------------ 错词本 */
+/* 记录打错的词：word -> {n:错误次数, last:最后时间戳, lang} */
+function recordWrongWord(u){
+  if(!u||!u.text) return;
+  const s=S();
+  if(!s.wrongWords) s.wrongWords={};
+  const key=u.lang+"|"+u.text;
+  const prev=s.wrongWords[key];
+  if(prev){ prev.n++; prev.last=Date.now(); }
+  else s.wrongWords[key]={ n:1, last:Date.now(), lang:u.lang, text:u.text, input:u.input, syl:(u.syl||[]).slice() };
+}
+/* 错词本 → 可练习单元数组 */
+function wrongWordUnits(){
+  const s=S();
+  const list=Object.values(s.wrongWords||{});
+  // 错误次数多的排前面
+  list.sort((a,b)=>b.n-a.n);
+  return list.map(it=>({ lang:it.lang||"cn", text:it.text, syl:it.syl||[it.input], input:it.input }));
+}
+
+/* -------------------------------------------------------------- 特效层 */
 function floatTxt(txt,anchor){
   if(!STORE.settings.particles) return;
   const el=document.createElement("div");
@@ -1125,7 +1788,7 @@ function spawnParticle(anchor){
 
 /* -------------------------------------------------------------- 结算 */
 function endGame(){
-  if(!G.on) return;
+  if(!G.on) return;   // 防止重复结算导致统计翻倍
   G.on=false;
   clearInterval(G.timer);
   Audio2.finish();
@@ -1133,6 +1796,7 @@ function endGame(){
   const wpm=Math.round((G.correct/5)/mins);
   const acc=G.correct+G.wrong>0?Math.round(G.correct/(G.correct+G.wrong)*100):100;
   const s=S();
+  if(!s.flags) s.flags={};
   const isCN=G.lang==="cn";
   const finalScore=Math.round(G.score*(0.6+acc/100*0.6)*(G.mode==="precision"?(G.perfect?1.5:1):1));
   const xp=Math.round(finalScore/10+G.correct/4);
@@ -1144,13 +1808,14 @@ function endGame(){
   s.stats.games++; s.stats.chars+=G.correct; s.stats.words+=G.words; s.stats.time+=G.elapsed;
   s.stats.accSum+=acc; s.stats.accN++;
   s.stats.byMode[G.mode]=(s.stats.byMode[G.mode]||0)+1;
-  s.stats.byLang[G.lang]=(s.stats.byLang[G.lang]||0)+G.correct;
+  // 语种统计：按实际打出的字符归属，避免 mix 与 cn/en 重复累加
   s.stats.byLang.cn=(s.stats.byLang.cn||0)+G.cnChars;
   s.stats.byLang.en=(s.stats.byLang.en||0)+G.enChars;
   for(const k in G.keyDelay){ s.stats.keys[k]=s.stats.keys[k]||{n:0,s:0}; s.stats.keys[k].n++; s.stats.keys[k].s+=G.keyDelay[k]; }
   if(G.mode==="precision"&&G.perfect) s.flags.perfect=true;
   if(G.mode==="climb"&&G.stage>=10) s.flags.peak=true;
   if(G.mode==="survival"&&G.elapsed>=120) s.flags.survive120=true;
+  if(G.mode==="review") s.flags.reviewDone=true;
   if(G.daily){ s.flags.dailyDone=true; STORE.daily.done=true; STORE.daily.best=Math.max(STORE.daily.best,finalScore); }
   s.history.push({ wpm, acc, combo:G.maxCombo, score:finalScore, mode:G.mode, ts:Date.now() });
   if(s.history.length>60) s.history=s.history.slice(-60);
@@ -1174,8 +1839,8 @@ function renderResult(r){
   const isCN=G.lang==="cn";
   const w=$("#resultWrap");
   let html="";
-  html+=`<div class="res-title">${G.mode==="survival"?"生存结束":G.mode==="climb"?"登顶完成！":G.mode==="precision"?(r.acc>=100?"完美通关！":"挑战结束"):"风暴结束"}</div>`;
-  html+=`<div class="res-sub">${modeName} · ${DIFFS.find(d=>d.id===G.diff).name} · ${G.lang==="en"?"英文":G.lang==="mix"?"中英混合":"中文拼音"}</div>`;
+  html+=`<div class="res-title">${G.mode==="survival"?"生存结束":G.mode==="climb"?"登顶完成！":G.mode==="custom"?"词库练完！":G.mode==="review"?"复习完成！":G.mode==="precision"?(r.acc>=100?"完美通关！":"挑战结束"):"风暴结束"}</div>`;
+  html+=`<div class="res-sub">${modeName} · ${DIFFS.find(d=>d.id===G.diff).name} · ${G.lang==="en"?"英文":G.lang==="mix"?"中英混合":"中文拼音"}${G.customName?" · <b style='color:var(--acc)'>"+esc(G.customName)+"</b>":""}</div>`;
   if(r.newRec.length) html+=`<div class="newrec">🏅 新纪录：${r.newRec.join(" / ")}</div>`;
   html+=`<div class="res-grid">`;
   html+=`<div class="res-cell hero"><div class="v">${r.wpm}</div><div class="k">${isCN?"字/分":"WPM"}</div></div>`;
@@ -1229,8 +1894,18 @@ function renderHome(){
     const b=document.createElement("button");
     b.textContent=d.name;
     b.className=CONFIG.diff===d.id?"on":"";
+    b.title="词库："+poolTierLabel(d.id)+" · 初始生命 "+d.life;
     b.onclick=()=>{ CONFIG.diff=d.id; renderHome(); };
     sd.appendChild(b);
+  }
+  const tier=$("#diffTier");
+  if(tier){
+    const sk=s.skills||{};
+    let warn="";
+    if(CONFIG.diff==="normal"&&!(sk.erudite>=1)) warn="（未解锁「博闻」，实际为基础词库）";
+    else if(CONFIG.diff==="hard"&&!(sk.savant>=1)) warn="（未解锁「通识」，词库已降级）";
+    else if(CONFIG.diff==="night"&&!(sk.savant>=1)) warn="（未解锁「通识」，无代码符号）";
+    tier.innerHTML=`当前词库：<b style="color:var(--txt)">${poolTierLabel(CONFIG.diff)}</b> ${warn?`<span style="color:var(--warn)">${warn}</span>`:""}`;
   }
   const sl=$("#segLang"); sl.innerHTML="";
   const langs=[["cn","中文"],["en","英文"],["mix","混合"]];
@@ -1270,6 +1945,14 @@ function renderHome(){
   $("#dailyDesc").innerHTML=`今日题目：<b style="color:var(--txt)">${dm.ico} ${dm.name}</b> · ${dd.name} · ${dc.cfg.lang==="cn"?"中文":"英文"} ${dc.done?`｜今日已得 <b style="color:var(--gold)">${fmt(dc.best)}</b> 分`:""}`;
   $("#btnDaily").textContent=dc.done?"🎯 每日挑战（已完成）":"🎯 每日挑战";
   $("#btnDaily2").textContent=dc.done?"再挑战":"进入";
+  // 错词本徽章
+  const wn=Object.keys(s.wrongWords||{}).length;
+  const badge=$("#wwBadge");
+  if(badge) badge.innerHTML = wn?`<span style="color:var(--bad)">${wn}</span>`:"";
+  // 自定义词库状态
+  const cw=(s.customWords||[]).length;
+  const cb=$("#btnCustom");
+  if(cb) cb.innerHTML = cw?`📚 我的词库 <span style="color:var(--acc)">${cw}</span>`:"📚 自定义词库";
 }
 
 /* ------------------------------------------------------------ 技能树 */
@@ -1382,6 +2065,9 @@ function renderStats(){
       <span class="bar"><i style="width:${Math.round(k.avg/mx*100)}%"></i></span>
       <span class="ms">${k.avg.toFixed(0)}ms</span></div>`).join("");
   }
+  // 键盘热力图
+  const hg=$("#heatGrid");
+  if(hg) renderHeat(hg, st.keys);
 }
 
 /* ------------------------------------------------------------ 主题 */
@@ -1489,6 +2175,189 @@ function openSettings(){
 }
 function openSettingsClose(body){ if(body&&body.parentNode) body.remove(); }
 
+/* ------------------------------------------------------------ 自定义词库 */
+function openCustomImport(){
+  const s=S();
+  const body=document.createElement("div");
+  body.className="mask";
+  body.innerHTML=`<div class="modal" style="max-width:600px">
+    <h3>📚 自定义词库</h3>
+    <div style="font-size:12.5px;color:var(--dim);line-height:1.7;margin-bottom:14px">
+      粘贴任意文本 —— <b style="color:var(--txt)">中文</b>会自动转换成拼音，<b style="color:var(--txt)">英文</b>直接练习。
+      适合练习课文、专有名词、考试重点。
+    </div>
+    <textarea class="import-box" id="impText" placeholder="例如：
+我爱编程，Python 是一门很有趣的语言。
+今天天气不错，适合出去走走。"></textarea>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center">
+      <button class="btn sm" id="impPreview">👁️ 预览解析结果</button>
+      <span style="font-size:11.5px;color:var(--dim2)" id="impCount">最多 4000 字</span>
+    </div>
+    <div class="import-preview" id="impPrev" style="display:none"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+      <button class="btn pri" id="impSave" style="flex:1">💾 保存并开始练习</button>
+      <button class="btn" id="impClear">🗑️ 清空</button>
+    </div>
+    <div style="margin-top:16px;text-align:right"><button class="btn" id="impClose">取消</button></div>
+  </div>`;
+  $("#modalRoot").appendChild(body);
+  const ta=body.querySelector("#impText");
+  ta.value=(s.customWords&&s.customWords.length)?(s.customWords[0].raw||""):"";
+  body.querySelector("#impClose").onclick=()=>body.remove();
+  body.querySelector("#impClear").onclick=()=>{ ta.value=""; body.querySelector("#impPrev").style.display="none"; };
+  body.querySelector("#impPreview").onclick=()=>{
+    const units=buildCustomUnits(ta.value);
+    const prev=body.querySelector("#impPrev");
+    if(!units.length){ prev.style.display="block"; prev.innerHTML='<span style="color:var(--bad)">没有解析到可练习的内容（至少需要一个汉字或英文单词）</span>'; return; }
+    const cn=units.filter(u=>u.lang==="cn"), en=units.filter(u=>u.lang==="en");
+    prev.style.display="block";
+    let html=`<b>共 ${units.length} 个练习单元</b>（中文 ${cn.length} · 英文 ${en.length}）<br>`;
+    if(cn.length) html+=`中文示例：${cn.slice(0,6).map(u=>`<b>${esc(u.text)}</b> <span style="font-family:var(--mono);font-size:11px">${esc(u.syl.join(" "))}</span>`).join("　")}<br>`;
+    if(en.length) html+=`英文示例：${en.slice(0,8).map(u=>`<b>${esc(u.text)}</b>`).join("　")}`;
+    const unknown=cn.filter(u=>u.syl.some(s=>!/^[a-z]+$/.test(s))).length;
+    if(unknown) html+=`<br><span style="color:var(--warn)">⚠ 有 ${unknown} 个词含生僻字，将按原字练习（需用输入法输入）</span>`;
+    prev.innerHTML=html;
+  };
+  body.querySelector("#impSave").onclick=()=>{
+    const units=buildCustomUnits(ta.value);
+    if(!units.length){ toast("没有解析到可练习的内容"); return; }
+    s.customWords=[{ name:"我的词库", raw:ta.value.slice(0,4000), units }];
+    saveStore(); renderHome();
+    body.remove();
+    toast("✅ 已保存 "+units.length+" 个练习单元");
+    CONFIG.mode="custom";
+    startGame();
+  };
+  body.onclick=e=>{ if(e.target===body) body.remove(); };
+}
+
+/* ------------------------------------------------------------ 错词本面板 */
+function openWrongWords(){
+  const s=S();
+  const body=document.createElement("div");
+  body.className="mask";
+  const list=Object.values(s.wrongWords||{}).sort((a,b)=>b.n-a.n);
+  body.innerHTML=`<div class="modal" style="max-width:560px">
+    <h3>🩹 错词本 <span style="font-size:12px;color:var(--dim2);font-weight:600">共 ${list.length} 个错词</span></h3>
+    <div id="wwList"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn pri" id="wwPractice" style="flex:1" ${list.length?"":"disabled"}>🎯 开始复习</button>
+      <button class="btn" id="wwClear" ${list.length?"":"disabled"}>🗑️ 清空错词本</button>
+    </div>
+    <div style="margin-top:12px;text-align:right"><button class="btn" id="wwClose">关闭</button></div>
+  </div>`;
+  $("#modalRoot").appendChild(body);
+  const wl=body.querySelector("#wwList");
+  if(!list.length){
+    wl.innerHTML=`<div class="empty-tip">还没有错词<br>打错的词会自动收进这里，方便针对性复习</div>`;
+  } else {
+    const box=document.createElement("div");
+    box.className="ww-list";
+    for(const it of list.slice(0,120)){
+      const d=document.createElement("div");
+      d.className="ww-item";
+      const py=(it.syl&&it.syl.length)?it.syl.join(" "):it.input||"";
+      d.innerHTML=`<span class="wd">${esc(it.text)}</span>
+        <span class="py">${esc(py)}</span>
+        <span class="ct">错 ${it.n} 次</span>`;
+      box.appendChild(d);
+    }
+    wl.appendChild(box);
+  }
+  body.querySelector("#wwClose").onclick=()=>body.remove();
+  body.querySelector("#wwClear").onclick=()=>{
+    if(!confirm("确定清空错词本？")) return;
+    s.wrongWords={}; saveStore(); body.remove(); toast("错词本已清空");
+  };
+  body.querySelector("#wwPractice").onclick=()=>{
+    body.remove();
+    CONFIG.mode="review";
+    startGame();
+  };
+  body.onclick=e=>{ if(e.target===body) body.remove(); };
+}
+
+/* -------------------------------------------------------------- 暂停 */
+function togglePause(){
+  if(!G.on) return;
+  if(G.paused){
+    // 恢复
+    G.paused=false;
+    G.pauseShift=(Date.now()-G.pauseAt);
+    G.startTs+=G.pauseShift;      // 暂停时长不计入用时
+    const m=document.querySelector("#pauseMask");
+    if(m) m.remove();
+    return;
+  }
+  G.paused=true; G.pauseAt=Date.now();
+  const m=document.createElement("div");
+  m.className="mask"; m.id="pauseMask";
+  m.innerHTML=`<div class="modal" style="max-width:400px">
+    <div class="pause-card">
+      <div class="ic">⏸️</div>
+      <h2>已暂停</h2>
+      <p>休息一下，准备好了再继续<br><span style="font-size:12px">按 <kbd>空格</kbd> 或点击按钮恢复</span></p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn pri" id="pResume">▶️ 继续游戏</button>
+        <button class="btn" id="pQuit">✕ 结束本局</button>
+      </div>
+    </div>
+  </div>`;
+  $("#modalRoot").appendChild(m);
+  m.querySelector("#pResume").onclick=()=>togglePause();
+  m.querySelector("#pQuit").onclick=()=>{ m.remove(); G.paused=false; quitGame(); };
+}
+
+/* ------------------------------------------------------------ 键盘热力图 */
+const KEY_ROWS = [
+  ["`","1","2","3","4","5","6","7","8","9","0","-","=","⌫"],
+  ["Tab","q","w","e","r","t","y","u","i","o","p","[","]","\\"],
+  ["Caps","a","s","d","f","g","h","j","k","l",";","'","Enter"],
+  ["Shift","z","x","c","v","b","n","m",",",".","/","Shift"],
+  ["Space"]
+];
+const KEY_LABEL = {"⌫":"退格","Tab":"Tab","Caps":"Caps","Enter":"回车","Shift":"Shift","Space":"空格"};
+/* 绘制键盘热力图：底色=使用频次，红框=拖沓键 */
+function renderHeat(container, keys){
+  const counts={}, delays={};
+  for(const [k,v] of Object.entries(keys||{})){
+    const key=String(k).toLowerCase();
+    counts[key]=(counts[key]||0)+v.n;
+    if(v.n>=3) delays[key]=(delays[key]||0)+v.s/v.n;
+  }
+  const vals=Object.values(counts);
+  const mx=vals.length?Math.max(...vals):1;
+  const dvals=Object.values(delays);
+  const dmax=dvals.length?Math.max(...dvals):1;
+  container.innerHTML="";
+  for(const row of KEY_ROWS){
+    const rd=document.createElement("div");
+    rd.className="heat-row";
+    for(const k of row){
+      const el=document.createElement("div");
+      el.className="heat-key";
+      const lk=k.toLowerCase();
+      const n=counts[lk]||0;
+      const ratio=n/mx;
+      let lv="";
+      if(ratio>0.75) lv="lv4"; else if(ratio>0.5) lv="lv3"; else if(ratio>0.25) lv="lv2"; else if(n>0) lv="lv1";
+      if(lv) el.classList.add(lv);
+      // 拖沓判定：平均间隔明显高于全局中位数的 1.6 倍
+      if(delays[lk]!==undefined && dmax>0 && delays[lk]>Math.max(260,dmax*0.62)){
+        el.classList.add("slow");
+        el.title=`${KEY_LABEL[k]||k.toUpperCase()} · ${delays[lk].toFixed(0)}ms（较慢）`;
+      } else {
+        el.title=`${KEY_LABEL[k]||k.toUpperCase()}${n?` · 按 ${n} 次`:" · 未使用"}`;
+      }
+      if(k==="空格") el.style.width="168px";
+      else if(/^[a-z`]$/i.test(k)===false) el.style.width=(k.length*10+14)+"px";
+      el.textContent=KEY_LABEL[k]||k.toUpperCase();
+      rd.appendChild(el);
+    }
+    container.appendChild(rd);
+  }
+}
+
 /* ------------------------------------------------------------ 存档菜单 */
 function openSaveMenu(){
   const body=document.createElement("div");
@@ -1537,7 +2406,10 @@ function bind(){
   $("#btnStart").onclick=()=>startGame();
   $("#btnDaily").onclick=()=>startGame(STORE.daily.cfg);
   $("#btnDaily2").onclick=()=>startGame(STORE.daily.cfg);
+  $("#btnCustom").onclick=()=>openCustomImport();
+  $("#btnWrong").onclick=()=>openWrongWords();
   $("#btnQuit").onclick=()=>quitGame();
+  $("#btnPause").onclick=()=>togglePause();
   $("#btnSet").onclick=()=>openSettings();
   $("#btnSave").onclick=()=>openSaveMenu();
   $$("#tabbar button[data-v]").forEach(b=>b.onclick=()=>showView(b.dataset.v));
