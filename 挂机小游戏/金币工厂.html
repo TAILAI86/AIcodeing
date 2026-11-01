@@ -539,10 +539,38 @@
   .slot-empty { color: var(--muted); font-style: italic; }
   html[data-theme="dark"] .goal-bar { background: linear-gradient(90deg, #3a2f17, #2a2a2a); }
   html[data-theme="dark"] .slot-card.cur { background: #1e2a3a; }
+
+  /* ============ 移动端布局优化 ============ */
+  @media (max-width: 640px) {
+    body { padding: 10px; }
+    h1 { font-size: 22px; }
+    .subtitle { font-size: 12px; margin-bottom: 12px; }
+    .layout { flex-direction: column; gap: 12px; align-items: stretch; }
+    .left, .right { min-width: 0; width: 100%; }
+    .panel { padding: 14px; }
+    #coinBtn { width: 150px; height: 150px; font-size: 18px; }
+    .money { font-size: 28px; }
+    /* 标签栏改为横向滑动，避免 8 个标签挤换行 */
+    .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 6px; padding-bottom: 4px; }
+    .tabs::-webkit-scrollbar { height: 0; }
+    .tab { flex: 0 0 auto; white-space: nowrap; padding: 6px 12px; }
+    .stats-row { flex-wrap: wrap; }
+    .stat { min-width: 0; }
+    .toolbar { flex-wrap: wrap; }
+    .ghost-btn { flex: 1 1 auto; text-align: center; }
+    .dialog .box, #offlineModal .box { width: 92%; max-width: 380px; }
+    .metric-grid { grid-template-columns: 1fr; }
+    .shop-item .btns { justify-content: flex-end; }
+  }
+  @media (max-width: 380px) {
+    .money { font-size: 24px; }
+    #coinBtn { width: 130px; height: 130px; font-size: 16px; }
+    .ver { font-size: 11px; padding: 2px 8px; }
+  }
 </style>
 </head>
 <body>
-  <h1>💰 金币工厂<span class="ver">v1.2.0</span></h1>
+  <h1>💰 金币工厂<span class="ver">v1.3.0</span></h1>
   <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 天赋成长 · 每日任务 · 离线也能赚</div>
 
   <div class="layout">
@@ -1688,7 +1716,7 @@ function renderSettings() {
   const note = document.createElement('div');
   note.className = 'note-box';
   note.innerHTML = `
-    <b>金币工厂 v1.2.0</b> ｜ 单文件网页游戏，双击即玩<br>
+    <b>金币工厂 v1.3.0</b> ｜ 单文件网页游戏，双击即玩<br>
     <span class="v">🔮 贤者水晶</span><b>【新增】</b>重生结晶出的二级货币，提供 √(数量) 永久全局加成，永不封顶——后期最强的长期目标<br>
     <span class="v">🏔️ 无限里程碑</span><b>【新增】</b>里程碑延伸到万亿级，且超档后每 10× 再 +2%，永无止境<br>
     <span class="v">🌟 天赋树</span>10 个永久天赋，三条线，随重生与任务累积天赋点<br>
@@ -1704,6 +1732,8 @@ function renderSettings() {
     <span class="v">🎵 音效</span>实时合成，无需任何外部文件<br>
     <span class="v">💾 存档</span>自动保存，可导出 / 读取换设备继续玩<br>
     <span class="v">📂 多存档</span>3 个存档位，可切换 / 复制 / 清空 / 重命名，放心试不同流派<br>
+    <span class="v">🔮 重生模拟器</span>重生页内置模拟器，预览重生后全局加成与「最优采购顺序」，重生不迷茫<br>
+    <span class="v">📱 移动端</span>手机自适应布局，标签页横向滑动、面板单列堆叠，随时随地搬砖<br>
     <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);line-height:1.85;">
       💡 <b>玩到后期怎么不无聊？</b>三个永远追不完的目标：① 刷 <b>贤者水晶 🔮</b>（重生越攒越强，永不封顶）② 冲 <b>无限里程碑 🏔️</b>（财富每翻 10 倍 +2%）③ 把 <b>成就 🏆</b> 与 <b>天赋 🌟</b> 刷满。当全局加成涨不动时，就重生一次——往往能翻几倍。
     </div>
@@ -2132,7 +2162,8 @@ function renderPrestige() {
       </ul>
       当全局加成涨不动时，重生一次往往能翻几倍——这就是后期"质变"的唯一手段。里程碑也延伸到万亿级以上并<span class="hl">无限延伸</span>，永远有下一档可追。
     </div>
-    ${prestigePlanHTML()}`;
+    ${prestigePlanHTML()}
+    ${prestigeSimulatorHTML()}`;
   const btn = $('prestigeBtn');
   btn.textContent = can ? `立即重生（+${avail} 声望 / +${avail} 水晶 🔮）`
                         : (state.total >= 1e6 ? '暂无可获声望' : '累计不足 100 万');
@@ -2164,6 +2195,90 @@ function prestigePlanHTML() {
   return `<div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);line-height:1.7;color:var(--muted);">
     📐 <b style="color:var(--text)">重生规划</b><br>${hint}</div>`;
 }
+
+// 重生模拟器：基于「重生后倍率」模拟最优采购路线，帮助玩家决定何时重生、重生后怎么买
+function prestigeSimulatorHTML() {
+  const gain = prestigeAvailable();
+  const P = state.prestige || 0;
+  const C = state.crystals || 0;
+  const newPrestige = P + gain;
+  const newCrystals = C + gain;
+  const newMult = (1 + 0.08 * newPrestige) * (1 + 0.012 * achCount()) * (1 + milestoneBonus()) * perkMult() * (1 + 0.5 * Math.sqrt(newCrystals));
+  const curMult = globalMult();
+  const curPct = Math.round((curMult - 1) * 100);
+  const newPct = Math.round((newMult - 1) * 100);
+
+  // 重生后全新存档（owned 全 0）下的成本 / 收益 / 回本（倍率用重生后的倍率）
+  function simCost(u) {
+    const g = Math.max(1.0001, u.growth * perkGrowth());
+    return Math.floor(u.baseCost * perkDiscount());
+  }
+  function simGain(u) {
+    let gain = (u.val || 0) * newMult;
+    if (u.type === 'click') gain *= perkClickMult();
+    return gain;
+  }
+  function simPb(u) {
+    const g = simGain(u);
+    return g ? simCost(u) / g : Infinity;
+  }
+  // 重生后优先购买顺序（按回本时间升序，取前 5）
+  const order = UPGRADES.filter(u => u.type === 'auto' || u.type === 'click')
+    .map(u => ({ u, pb: simPb(u) }))
+    .sort((a, b) => a.pb - b.pb)
+    .slice(0, 5);
+  const orderHtml = order.map((r, i) => {
+    const txt = r.u.type === 'click' ? `${Math.ceil(r.pb)} 次点击` : fmtPayback(r.pb);
+    return `<div class="roi-row${i === 0 ? ' best' : ''}">
+      <span class="rn">${i + 1}. ${r.u.name}</span>
+      <span class="rb">¥${fmt(simCost(r.u))}</span>
+      <span class="rt">回本 ${txt}</span></div>`;
+  }).join('');
+
+  // 用「启动资金」按最优顺序贪心采购，模拟立刻能堆到的每秒收益
+  const keepRatio = perkKeepRatio();
+  const startMoney = keepRatio > 0 ? Math.floor(state.total * keepRatio) : 0;
+  let money = startMoney;
+  const owned = {};
+  for (let iter = 0; iter < 3000; iter++) {
+    let best = null, bestPb = Infinity;
+    for (const u of UPGRADES) {
+      if (u.type !== 'auto' && u.type !== 'click') continue;
+      const c = simCost(u);
+      if (money < c) continue;
+      const pb = simPb(u);
+      if (pb < bestPb) { bestPb = pb; best = u; }
+    }
+    if (!best) break;
+    money -= simCost(best);
+    owned[best.id] = (owned[best.id] || 0) + 1;
+  }
+  let simIps = 0;
+  for (const u of UPGRADES) if (u.type === 'auto') simIps += (owned[u.id] || 0) * u.val;
+  simIps *= newMult;
+
+  const curIps = incomePerSec();
+  const ratioTxt = curIps > 0 ? Math.round(simIps / curIps * 100) + '%' : '—';
+
+  const head = gain >= 1
+    ? `立即重生可得 <b style="color:var(--gold-dark)">+${gain}</b> 声望 / <b style="color:var(--gold-dark)">+${gain}</b> 水晶 🔮`
+    : `（累计达 100 万后可重生；以下是重生后采购思路预览）`;
+
+  const startLine = startMoney > 0
+    ? `重生后启动资金：<b style="color:var(--gold-dark)">¥${fmt(startMoney)}</b>（天赋·细水长流 Lv.${perkLv('pk_keep')}）。用这笔钱按下方顺序立即采购，重生瞬间即可达 <b style="color:var(--gold-dark)">¥${fmt(simIps)}/秒</b>（当前 ¥${fmt(curIps)}/秒 的 <b style="color:var(--gold-dark)">${ratioTxt}</b>）。`
+    : `重生后启动资金为 0，建议先点几下攒钱，再按下方顺序买起。`;
+
+  return `<div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);line-height:1.7;">
+    🔮 <b style="color:var(--text)">重生模拟器</b><br>
+    ${head}<br>
+    重生后全局加成：<b style="color:var(--gold-dark)">+${newPct}%</b>（当前 +${curPct}%，净增 +${newPct - curPct}%）${gain >= 1 ? `，相当于当前收益立刻 ×${(newMult / curMult).toFixed(2)}` : ''}<br>
+    ${startLine}
+    <div style="margin-top:8px;font-size:12px;color:var(--muted);font-weight:700;">🛒 重生后优先购买顺序（回本越短越靠前）：</div>
+    ${orderHtml}
+    <div style="margin-top:6px;font-size:11px;color:var(--muted);line-height:1.6;">提示：重生后从最便宜、回本最快的升级买起，能最快恢复被动收入；之后随点击 / 离线积累，再沿顺序依次升级。点「立即重生」后，按此顺序一键买满即可。</div>
+  </div>`;
+}
+
 function doPrestige() {
   if (!canPrestige()) return;
   const g = prestigeAvailable();
