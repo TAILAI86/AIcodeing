@@ -31,7 +31,7 @@
 }
 html[data-theme="light"]{
   --bg:#eef2fb; --bg2:#e2e9f8; --panel:#ffffff; --panel2:#f4f7ff;
-  --line:#cfd9f0; --txt:#182036; --dim:#5b6b90; --dim2:#8494b8;
+  --line:#cfd9f0; --txt:#182036; --dim:#5b6b90; --dim2:#68789f;
   --shadow:0 8px 28px rgba(30,50,100,.13);
   --glass:rgba(255,255,255,.96);
   --glass-side:rgba(255,255,255,.92);
@@ -405,6 +405,15 @@ canvas{width:100%;display:block;border-radius:8px}
 .fb-bar{flex:1;height:16px;border-radius:8px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
 .fb-bar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
 .fb-p{width:42px;flex:0 0 auto;text-align:right;color:var(--dim2);font-variant-numeric:tabular-nums;font-size:11.5px}
+.mode-best-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
+.mb-item{padding:12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);transition:.18s}
+.mb-item.cur{border-color:var(--acc);background:rgba(56,225,196,.10)}
+.mb-h{font-size:12px;font-weight:700;color:var(--dim);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mb-n{font-size:10.5px;color:var(--dim2);font-weight:600}
+.mb-v{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;margin:5px 0 2px;letter-spacing:-.5px}
+.mb-v small{font-size:10.5px;color:var(--dim2);font-weight:700;margin-left:5px;letter-spacing:0}
+.mb-s{font-size:10.5px;color:var(--dim2);line-height:1.5}
+.mb-s b{color:var(--dim);font-variant-numeric:tabular-nums}
 
 /* ============ 暂停 ============ */
 .pause-card{text-align:center;padding:34px 24px}
@@ -488,6 +497,17 @@ body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{
 .guide-steps i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block}
 .guide-steps i.on{background:var(--acc)}
 .guide .tip-line{font-size:12px;color:var(--dim2);line-height:1.7;margin-top:14px}
+
+/* ============ IME 提示条 ============ */
+.ime-tip{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:52px;z-index:9;
+  display:flex;align-items:center;gap:10px;max-width:92%;flex-wrap:wrap;
+  padding:9px 14px;border-radius:999px;font-size:12.5px;line-height:1.5;
+  background:rgba(255,180,84,.14);border:1px solid rgba(255,180,84,.5);color:var(--txt);
+  box-shadow:var(--shadow);animation:tin .3s cubic-bezier(.2,.9,.3,1);
+}
+.ime-tip .ii{font-size:15px}
+.ime-tip .btn.sm{padding:4px 10px;font-size:11.5px;flex:0 0 auto}
 
 /* ============ 响应式 ============ */
 @media (max-width:980px){
@@ -591,6 +611,11 @@ body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{
           </div>
           <div class="sr-only" id="srLive" role="status" aria-live="polite"></div>
           <div class="hint-line" id="hintLine"><span id="hintNext" style="display:none"></span></div>
+          <div class="ime-tip" id="imeTip" style="display:none">
+            <span class="ii">⌨️</span>
+            <span id="imeTipTxt">检测到系统输入法正在使用 —— 可以直接用输入法打出汉字，也可以切到英文输入状态敲拼音</span>
+            <button class="btn sm" id="imeDismiss">知道了</button>
+          </div>
           <div class="ghost-badge" id="ghostBadge" style="display:none">
             <span class="gi">👻</span>
             <span class="gt">幽灵 <b id="ghostWpm">0</b></span>
@@ -637,6 +662,10 @@ body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:14px;align-items:start">
           <div class="chart-box" style="min-width:0"><h3>最近 12 局速度趋势</h3><canvas id="chartWpm" height="180"></canvas></div>
           <div class="chart-box" style="min-width:0"><h3>最拖沓的按键（平均间隔）</h3><div class="weak-list" id="weakList"></div></div>
+        </div>
+        <div class="chart-box" style="margin-top:14px;min-width:0;overflow:hidden">
+          <h3>各模式独立最佳 <span style="color:var(--dim2);font-weight:600;text-transform:none;letter-spacing:0">（各模式时长不同，速度不可横向比较）</span></h3>
+          <div id="modeBestWrap"></div>
         </div>
         <div class="chart-box" style="margin-top:14px;min-width:0;overflow:hidden">
           <h3>手指分工分析 <span style="color:var(--dim2);font-weight:600;text-transform:none;letter-spacing:0">（打字讲究八指分工，越均衡越快）</span></h3>
@@ -1276,13 +1305,13 @@ function newSlotData(name){
     customWords:[],
     stats:{ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0, bestScore:0,
             accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, heat:{},
-            ghost:null }
+            ghost:null, modeBest:{} }   // modeBest: 各模式独立最佳（不同时长不可横向比较）
   };
 }
 function defaultStore(){
   return { v:1, active:0, slots:[newSlotData("存档 1"),newSlotData("存档 2"),newSlotData("存档 3")],
            settings:{ sound:true, theme:"dark", particles:true, showPinyin:true, tone:"sine", pyMode:"full", vkb:"auto",
-                      cvd:false, reduceMotion:false, seenGuide:false },
+                      cvd:false, reduceMotion:false, seenGuide:false, imeMode:"auto" },
            daily:{ date:"", best:0, done:false, cfg:null } };
 }
 let STORE = loadStore();
@@ -1299,10 +1328,27 @@ function loadStore(){
       const merged=Object.assign(base,s||{});
       // 二级字段单独兜底（Object.assign 遇到 undefined 会覆盖默认值）
       merged.stats=Object.assign({ games:0, chars:0, words:0, time:0, bestWpm:0, bestCombo:0,
-        bestScore:0, accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, ghost:null }, s&&s.stats);
+        bestScore:0, accSum:0, accN:0, byMode:{}, byLang:{cn:0,en:0}, keys:{}, ghost:null, modeBest:{} }, s&&s.stats);
       // 幽灵数据校验：结构不合法则丢弃，避免污染回放
-      if(merged.stats.ghost && (!Array.isArray(merged.stats.ghost.timeline) || typeof merged.stats.ghost.wpm!=="number")){
-        merged.stats.ghost=null;
+      if(merged.stats.ghost){
+        const g=merged.stats.ghost;
+        if(!Array.isArray(g.timeline)||typeof g.wpm!=="number"){
+          merged.stats.ghost=null;
+        } else {
+          // byMode 结构校验 + 旧存档迁移（v1.4 之前幽灵只有顶层字段）
+          // 注意：byMode 是普通对象，不能用 Array.isArray 判断
+          if(!g.byMode || typeof g.byMode!=="object" || Array.isArray(g.byMode)){
+            g.byMode={};
+            // 把旧的顶层幽灵归入常见模式，避免玩家历史记录丢失
+            for(const m of ["sprint","combo","precision","survival"]){
+              g.byMode[m]={ wpm:g.wpm, timeline:g.timeline.slice(0,400), at:g.at||0 };
+            }
+          }
+          for(const k in g.byMode){
+            const m=g.byMode[k];
+            if(!m||!Array.isArray(m.timeline)||typeof m.wpm!=="number") delete g.byMode[k];
+          }
+        }
       }
       merged.skills=Object.assign({}, s&&s.skills);
       merged.ach=Object.assign({}, s&&s.ach);
@@ -1538,9 +1584,11 @@ function startGame(dailyCfg){
   G.units=[]; G.idx=0; G.ci=0; G.gi=0; G.input="";
   G.combo=0; G.maxCombo=0; G.correct=0; G.wrong=0; G.score=0; G.words=0;
   G.perfect=true; G.wordScore=0; G.keyDelay={};
-  G.timeline=[]; G.ghost=null;
-  // 幽灵对手：仅在有历史最佳时启用
-  if(G.mode==="sprint"||G.mode==="combo"){
+  G.timeline=[]; G.ghost=null; G.imeTipShown=false;
+  imeReset();
+  const it=$("#imeTip"); if(it) it.style.display="none";
+  // 幽灵对手：限时类模式都可回放最佳表现作对手
+  if(G.mode==="sprint"||G.mode==="combo"||G.mode==="precision"||G.mode==="survival"){
     G.ghost=buildGhost();
   }
   // 自定义词库：优先使用玩家导入的内容；未导入则回退到内置词库
@@ -1654,6 +1702,8 @@ window.addEventListener("keydown",e=>{
     if(e.key==="Escape"){ e.preventDefault(); if(G.paused) togglePause(); else quitGame(); return; }
     if(e.key===" "&&G.paused){ e.preventDefault(); togglePause(); return; }
     if(G.paused) return;                       // 暂停中不处理游戏输入
+    // IME 组合期间（候选词未确定）的按键不应计入判定
+    if(imeBlocksKey(e)) return;
     // F 键收藏当前词
     if(e.key==="f"||e.key==="F"){
       e.preventDefault();
@@ -1995,21 +2045,28 @@ function updateHud(){
 
 /* ------------------------------------------------------------ 幽灵竞速 */
 /* 记录每局的"打字时间线"（每个词完成时的毫秒数），下次作为幽灵对手
-   幽灵推进到第几个词，就由 timeLine[idx] 决定它在第几秒到达 */
+   幽灵推进到第几个词，就由 timeLine[idx] 决定它在第几秒到达
+   按模式分别保存 —— 不同模式的节奏不同，混用会导致进度错乱 */
 function buildGhost(){
   const s=S();
-  const best=(s.stats.ghost&&s.stats.ghost.wpm)||0;
-  const line=(s.stats.ghost&&s.stats.ghost.timeline)||[];
-  if(!best||!line.length||line.length<3) return null;
-  return { wpm:best, timeline:line.slice(0,400) };
+  const g=(s.stats.ghost&&s.stats.ghost.byMode&&s.stats.ghost.byMode[G.mode])||null;
+  if(!g||!g.wpm||!Array.isArray(g.timeline)||g.timeline.length<3) return null;
+  return { wpm:g.wpm, timeline:g.timeline.slice(0,400) };
 }
 function saveGhost(){
   const s=S();
-  // 只在速度创新高时更新幽灵
+  if(!s.stats.ghost) s.stats.ghost={ wpm:0, timeline:[], at:0, byMode:{} };
+  if(!s.stats.ghost.byMode) s.stats.ghost.byMode={};
   const wpm=Math.round((G.correct/5)/Math.max(G.elapsed/60,1/600));
-  if(!s.stats.ghost || wpm>(s.stats.ghost.wpm||0)){
-    s.stats.ghost={ wpm, timeline:(G.timeline||[]).slice(0,400), at:Date.now() };
+  const cur=s.stats.ghost.byMode[G.mode]||{ wpm:0, timeline:[] };
+  if(wpm>(cur.wpm||0)){
+    cur.wpm=wpm;
+    cur.timeline=(G.timeline||[]).slice(0,400);
+    cur.at=Date.now();
+    s.stats.ghost.byMode[G.mode]=cur;
   }
+  // 汇总最高速（用于展示"历史最佳"）
+  if(wpm>(s.stats.ghost.wpm||0)){ s.stats.ghost.wpm=wpm; s.stats.ghost.timeline=cur.timeline; s.stats.ghost.at=Date.now(); }
 }
 /* 幽灵当前处于第几个词（用于 UI 显示） */
 function ghostProgress(){
@@ -2122,6 +2179,51 @@ function setPyMode(mode){
   }
   saveStore();
 }
+/* -------------------------------------------------------------- IME 输入法 */
+/* 中国用户的系统输入法通常常驻中文模式 —— 敲拼音会被 IME 拦截进入候选状态。
+   本游戏同时支持两种中文输入方式：
+     ① 拼音直打：IME 关闭（或切到英文输入状态）时敲字母，keydown 正常处理
+     ② 汉字直输：IME 开启时用输入法打出汉字提交，compositionend 识别该汉字
+   另有"仅拼音"设置项，强制忽略 IME 提交的汉字 */
+let IME = { composing:false, lastCommit:"", commitAt:0 };
+function imeReset(){ IME.composing=false; IME.lastCommit=""; IME.commitAt=0; }
+/* IME 提交了文本：尝试匹配当前目标汉字 */
+function onImeCommit(text){
+  if(!G.on||G.paused) return;
+  if(!text) return;
+  if((STORE.settings.imeMode||"auto")==="pinyin") return;   // 用户选择"仅拼音"，忽略 IME 汉字
+  const u=G.units[G.idx];
+  if(!u||u.lang!=="cn") return;                            // 英文目标不需要 IME
+  const t=String(text).trim();
+  if(!t) return;
+  // IME 一次可能提交多个汉字（如"你好"），逐字推进
+  for(const ch of t){
+    const cur=G.units[G.idx];
+    if(!cur||cur.lang!=="cn") break;
+    const target=(cur.text||"");
+    const pos=cur.typed?(cur.typed.length):0;
+    const want=target[pos];
+    if(!want) break;
+    if(ch===want){
+      cur.typed=(cur.typed||"")+ch;
+      G.ci++; G.correct++; G.combo++; G.cnChars++;
+      if(G.combo>G.maxCombo) G.maxCombo=G.combo;
+      Audio2.key(G.combo);
+      if(cur.typed.length>=target.length){ completeWord(); }
+      else updateFlow();
+    } else {
+      onMistake(ch);
+      break;
+    }
+  }
+}
+/* IME 组合期间的按键尚未确定，不应计入打字判定 */
+function imeBlocksKey(e){
+  if(!e) return false;
+  if(e.isComposing) return true;
+  return IME.composing;
+}
+
 /* -------------------------------------------------------------- 特效层 */
 /* 屏幕阅读器播报：写入 aria-live 区域（节流避免刷屏） */
 let _lastAnnounce=0;
@@ -2213,6 +2315,14 @@ function endGame(){
   s.stats.games++; s.stats.chars+=G.correct; s.stats.words+=G.words; s.stats.time+=G.elapsed;
   s.stats.accSum+=acc; s.stats.accN++;
   s.stats.byMode[G.mode]=(s.stats.byMode[G.mode]||0)+1;
+  // 各模式独立最佳（不同模式时长不同，WPM 不可横向比较）
+  if(!s.stats.modeBest) s.stats.modeBest={};
+  const mb=s.stats.modeBest[G.mode]||{wpm:0,combo:0,score:0,games:0};
+  mb.games=(mb.games||0)+1;
+  if(wpm>(mb.wpm||0)) mb.wpm=wpm;
+  if(G.maxCombo>(mb.combo||0)) mb.combo=G.maxCombo;
+  if(finalScore>(mb.score||0)) mb.score=finalScore;
+  s.stats.modeBest[G.mode]=mb;
   // 幽灵对手：仅在速度创新高时更新
   saveGhost();
   // 语种统计：按实际打出的字符归属，避免 mix 与 cn/en 重复累加
@@ -2500,6 +2610,25 @@ function renderStats(){
   // 键盘热力图
   const hg=$("#heatGrid");
   if(hg) renderHeat(hg, st.keys);
+  // 各模式独立最佳
+  const mbw=$("#modeBestWrap");
+  if(mbw){
+    const mb=st.modeBest||{};
+    const played=MODES.filter(m=>(st.byMode||{})[m.id]);
+    if(!played.length){
+      mbw.innerHTML='<div style="font-size:12px;color:var(--dim2)">还没有成绩记录，玩一局就会出现在这里</div>';
+    } else {
+      mbw.innerHTML=`<div class="mode-best-grid">`+played.map(m=>{
+        const b=mb[m.id]||{};
+        const cur=(m.id===G.mode)?" cur":"";
+        return `<div class="mb-item${cur}">
+          <div class="mb-h">${m.ico} ${m.name}<span class="mb-n">${b.games||0} 局</span></div>
+          <div class="mb-v">${b.wpm||0}<small>速度</small></div>
+          <div class="mb-s">最高连击 <b>${b.combo||0}</b> · 最佳得分 <b>${fmt(b.score||0)}</b></div>
+        </div>`;
+      }).join("")+`</div>`;
+    }
+  }
   // 手指分工分析
   const fw=$("#fingerWrap");
   if(fw){
@@ -2579,6 +2708,11 @@ function openSettings(){
       </div></div>
     <div class="set-row"><div><div class="t">色盲友好模式</div><div class="d">用 ✓ ✗ 符号与下划线辅助区分，不再只靠红绿颜色</div></div>
       <button class="switch ${s.cvd?"on":""}" data-k="cvd"><i></i></button></div>
+    <div class="set-row"><div><div class="t">系统输入法（IME）</div><div class="d">自动 = 拼音直打与「输入法打汉字」都支持；仅拼音 = 忽略输入法提交的汉字</div></div>
+      <div class="seg" id="segIme">
+        <button data-v="auto" class="${(s.imeMode||"auto")==="auto"?"on":""}">自动</button>
+        <button data-v="pinyin" class="${s.imeMode==="pinyin"?"on":""}">仅拼音</button>
+      </div></div>
     <div class="set-row"><div><div class="t">减少动画</div><div class="d">关闭粒子、震动等动效（也会遵循系统「减弱动态效果」设置）</div></div>
       <button class="switch ${s.reduceMotion?"on":""}" data-k="reduceMotion"><i></i></button></div>
     <div class="set-row" style="display:block">
@@ -2620,6 +2754,14 @@ function openSettings(){
       body.querySelectorAll("#segVkb button").forEach(x=>x.classList.toggle("on",x===b));
       saveStore(); updateVkbVisibility();
       toast(b.dataset.v==="always"?"已开启虚拟键盘":b.dataset.v==="never"?"已关闭虚拟键盘":"虚拟键盘将自动判断");
+    };
+  });
+  body.querySelectorAll("#segIme button").forEach(b=>{
+    b.onclick=()=>{
+      s.imeMode=b.dataset.v;
+      body.querySelectorAll("#segIme button").forEach(x=>x.classList.toggle("on",x===b));
+      saveStore();
+      toast(b.dataset.v==="pinyin"?"已切换为仅拼音输入（忽略输入法汉字）":"已切换为自动识别输入法");
     };
   });
   const sw=body.querySelector("#skinWrap");
@@ -3276,6 +3418,48 @@ function openSaveMenu(){
 
 /* ------------------------------------------------------------ 事件绑定 */
 function bind(){
+  // IME（系统输入法）组合事件 —— 支持"用输入法直接打汉字"
+  window.addEventListener("compositionstart",()=>{
+    IME.composing=true;
+    if(G.on && !G.imeTipShown && G.lang!=="en"){
+      G.imeTipShown=true;
+      const tip=$("#imeTip");
+      if(tip) tip.style.display="flex";
+    }
+  });
+  window.addEventListener("compositionupdate",()=>{ IME.composing=true; });
+  window.addEventListener("compositionend",e=>{
+    IME.composing=false;
+    const txt=(e&&e.data)||"";
+    IME.lastCommit=txt; IME.commitAt=Date.now();
+    onImeCommit(txt);
+    // 输入法提交后若仍未成功匹配，提示玩家可切英文输入
+    if(txt && G.on && G.units[G.idx] && G.units[G.idx].lang==="cn"){
+      const u=G.units[G.idx];
+      const want=(u.text||"")[u.typed?u.typed.length:0];
+      if(want && txt.indexOf(want)<0){
+        const tip=$("#imeTip");
+        if(tip){ tip.style.display="flex"; }
+      }
+    }
+  });
+  // 多标签页并发：其他标签页改了存档时提示，避免静默覆盖
+  window.addEventListener("storage",e=>{
+    if(!e||e.key!==STORE_KEY) return;
+    const cur=localStorage.getItem(STORE_KEY);
+    if(!cur) return;
+    try{
+      const other=JSON.parse(cur);
+      // 其他标签页的活跃槽数据与我们不同 → 提示可能冲突
+      const oa=other.slots&&other.slots[other.active];
+      const mine=S();
+      if(oa && mine && JSON.stringify(oa.stats)!==JSON.stringify(mine.stats)){
+        toast("⚠️ 检测到另一个标签页也在使用存档，已同步为最新数据");
+        STORE=loadStore();
+        applyTheme(); renderHome();
+      }
+    }catch(e){}
+  });
   $("#btnStart").onclick=()=>startGame();
   $("#btnDaily").onclick=()=>startGame(STORE.daily.cfg);
   $("#btnDaily2").onclick=()=>startGame(STORE.daily.cfg);
@@ -3283,6 +3467,8 @@ function bind(){
   $("#btnLibrary").onclick=()=>openLibraryManager();
   $("#btnFav").onclick=()=>openFavorites();
   $("#btnHow").onclick=()=>openGuide(0);
+  const imeDismiss=$("#imeDismiss");
+  if(imeDismiss) imeDismiss.onclick=()=>{ const t=$("#imeTip"); if(t) t.style.display="none"; };
   $("#btnWrong").onclick=()=>openWrongWords();
   $("#btnPyMode").onclick=()=>{
     setPyMode((STORE.settings.pyMode||"full")==="full" ? "initial" : "full");
@@ -3317,8 +3503,13 @@ function boot(){
   // 每日挑战状态刷新
   if(STORE.daily.date!==todayKey()){ STORE.daily.date=todayKey(); STORE.daily.done=false; STORE.daily.best=0; }
   saveStore();
-  // 首次访问自动弹出新手引导
-  if(!guideSeen()) setTimeout(()=>openGuide(0), 420);
+  // 首次访问自动弹出新手引导（延迟一点，等首页渲染完再弹）
+  if(!guideSeen()){
+    setTimeout(()=>{
+      // 若用户在这期间已开始游戏，则不再打扰
+      if(!guideSeen() && !G.on) openGuide(0);
+    }, 520);
+  }
 }
 boot();
 </script>
