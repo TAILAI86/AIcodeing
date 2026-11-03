@@ -574,6 +574,15 @@
     .ch-card .ch-btn { width: 100%; }
     .path-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
     .path-btn { flex: 0 0 auto; white-space: nowrap; }
+    .market-tools { gap: 8px; }
+    .market-tools .tool-btn { flex: 1 1 auto; padding: 11px 12px; }
+    .sort-bar { width: 100%; justify-content: center; }
+    .sort-bar .sort-btn { flex: 1 1 auto; text-align: center; padding: 7px 6px; }
+    .sub-grid { grid-template-columns: 1fr; }
+    .sub-card .mbtns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .sub-card .mbtns .sb { min-width: 0; padding: 11px 8px; }
+    .cmp-row .ct, .cmp-row .cy { width: 62px; }
+    .cmp-row .cc { width: 48px; }
   }
   @media (max-width: 380px) {
     .money { font-size: 24px; }
@@ -652,6 +661,34 @@
   .sub-card .mbtns { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
   .sub-card .mbtns .sb { flex: 1 1 auto; min-width: 56px; }
   .market-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
+  .market-tools .tool-btn-blue { background: var(--blue); }
+  .sort-bar { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 3px 6px; }
+  .sort-bar .sort-label { font-size: 12px; color: var(--muted); padding: 0 4px; }
+  .sort-bar .sort-btn { border: none; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; cursor: pointer; font-family: inherit; }
+  .sort-bar .sort-btn:hover { color: var(--text); background: #f0f2f7; }
+  .sort-bar .sort-btn.active { background: var(--gold); color: #fff; }
+  html[data-theme="dark"] .sort-bar .sort-btn:hover { background: #262c3c; }
+  .sub-card .s-badge { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--gold-dark); background: #fff3d6; border-radius: 999px; padding: 2px 8px; }
+  html[data-theme="dark"] .sub-card .s-badge { background: #3a3320; }
+  .sub-card .s-price { font-size: 20px; font-weight: 700; color: var(--gold-dark); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .sub-card .sp-c { font-size: 12px; font-weight: 700; }
+  .sub-card .mbtns .sb-max { background: var(--blue); }
+  .sub-card .mbtns .sb-sell { background: #8b93a3; }
+  .cmp-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+  .cmp-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; font-size: 12px; border-bottom: 1px solid var(--border); }
+  .cmp-row:last-child { border-bottom: none; }
+  .cmp-row .cn { flex: 1 1 auto; min-width: 0; }
+  .cmp-row .ct { width: 78px; text-align: right; font-weight: 700; color: var(--gold-dark); }
+  .cmp-row .cy { width: 78px; text-align: right; color: var(--muted); }
+  .cmp-row .cc { width: 62px; text-align: right; font-weight: 700; }
+  .trend-wrap { border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+  .trend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .trend-row:last-child { margin-bottom: 0; }
+  .trend-row .tr-lab { width: 42px; flex: none; font-size: 11px; color: var(--muted); }
+  .trend-row .tr-bar { flex: 1 1 auto; height: 14px; background: #eef0f4; border-radius: 7px; overflow: hidden; }
+  html[data-theme="dark"] .trend-row .tr-bar { background: #3a4156; }
+  .trend-row .tr-bar i { display: block; height: 100%; min-width: 3px; background: linear-gradient(90deg, var(--gold), var(--gold-dark)); border-radius: 7px; transition: width .4s; }
+  .trend-row .tr-val { width: 74px; flex: none; text-align: right; font-size: 11px; font-weight: 700; color: var(--gold-dark); }
   .market-tools .tool-btn { border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer; background: var(--red); color: #fff; }
   .market-tools .tool-btn:disabled { background: #c9cdd6; cursor: not-allowed; }
   html[data-theme="dark"] .market-tools .tool-btn:disabled { background: #3a4156; }
@@ -674,7 +711,7 @@
 </style>
 </head>
 <body>
-  <h1>💰 金币工厂<span class="ver">v1.5.0</span></h1>
+  <h1>💰 金币工厂<span class="ver">v1.7.0</span></h1>
   <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 天赋成长 · 每日任务 · 离线也能赚 · 股票投资</div>
 
   <div class="layout">
@@ -884,6 +921,10 @@ const QUESTS = [
   { id: 'q_earn',  name: '营业额', ico: '💵', desc: '累计赚取 ¥5,000', target: 5000, stat: 'earnQuest' },
   { id: 'q_staff', name: '招兵买马', ico: '👥', desc: '拥有 30 名员工', target: 30, stat: 'staffQuest' },
   { id: 'q_milestone', name: '里程碑', ico: '🎖️', desc: '达成 1 个里程碑', target: 1, stat: 'msQuest' },
+  { id: 'q_trade',  name: '试水牛', ico: '💹', desc: '完成 3 笔股票交易', target: 3, stat: 'tradeQuest' },
+  { id: 'q_profit', name: '投资客', ico: '💰', desc: '投资累计盈利 ¥2,000', target: 2000, stat: 'profitQuest' },
+  { id: 'q_hold',   name: '持股王', ico: '📦', desc: '同时持有 20 股股票', target: 20, stat: 'holdQuest' },
+  { id: 'q_div',    name: '分红佬', ico: '🧧', desc: '累计获得分红 ¥1,000', target: 1000, stat: 'divQuest' },
 ];
 
 
@@ -933,6 +974,11 @@ const ACHIEVEMENTS = [
   { id: 'a27',name: '投资达人', cond: s => (s.market && s.market.profit || 0) >= 1e6, prog: s => (s.market && s.market.profit || 0) / 1e6 },
   { id: 'a28',name: '股神在世', cond: s => (s.market && s.market.wins || 0) >= 20, prog: s => (s.market && s.market.wins || 0) / 20 },
   { id: 'a29',name: '财源广进', cond: s => incomeSourcesCount() >= 4, prog: () => incomeSourcesCount() / 4 },
+  { id: 'a30',name: '常客股民', cond: s => (s.market && s.market.trades || 0) >= 10, prog: s => (s.market && s.market.trades || 0) / 10 },
+  { id: 'a31',name: '股海舵手', cond: s => (s.market && s.market.held || 0) >= 50, prog: s => (s.market && s.market.held || 0) / 50 },
+  { id: 'a32',name: '分红大户', cond: s => (s.market && s.market.dividends || 0) >= 1e5, prog: s => (s.market && s.market.dividends || 0) / 1e5 },
+  { id: 'a33',name: '投资神话', cond: s => (s.market && s.market.profit || 0) >= 1e9, prog: s => (s.market && s.market.profit || 0) / 1e9 },
+  { id: 'a34',name: '八线全开', cond: s => incomeSourcesCount() >= INCOME_SOURCES.length, prog: () => incomeSourcesCount() / INCOME_SOURCES.length },
 ];
 
 
@@ -988,10 +1034,19 @@ function incomeSourcesCount() {
   for (const k of INCOME_SOURCES) if ((src[k.id] || 0) > 0) n++;
   return n;
 }
+const SRC_DAYS_KEEP = 7;
 function addSource(id, amt) {
   if (!(amt > 0)) return;
   if (!state.src || typeof state.src !== 'object') state.src = {};
   state.src[id] = (state.src[id] || 0) + amt;
+
+  // 按日归档：用于「今日 vs 昨日」收入对比
+  if (!state.srcDays || typeof state.srcDays !== 'object' || Array.isArray(state.srcDays)) state.srcDays = {};
+  const dk = todayStr();
+  if (!state.srcDays[dk] || typeof state.srcDays[dk] !== 'object') state.srcDays[dk] = {};
+  state.srcDays[dk][id] = (state.srcDays[dk][id] || 0) + amt;
+  const keys = Object.keys(state.srcDays).sort();
+  while (keys.length > SRC_DAYS_KEEP) { delete state.srcDays[keys.shift()]; }
 }
 
 
@@ -1037,6 +1092,11 @@ const ACH_META = {
   a28: { cat: 'market',   ico: '🐋', desc: '完成 20 次盈利卖出' },
   a29: { cat: 'wealth',   ico: '🌊', desc: '四种以上收入来源同时有进账' },
   a24: { cat: 'event',    ico: '🎖️', desc: '通关全部挑战' },
+  a30: { cat: 'market',   ico: '🧾', desc: '完成 10 笔股票交易' },
+  a31: { cat: 'market',   ico: '🏦', desc: '同时持有 50 股以上股票' },
+  a32: { cat: 'market',   ico: '🧧', desc: '累计获得分红 ¥10 万' },
+  a33: { cat: 'market',   ico: '🐫', desc: '投资累计盈利 ¥10 亿' },
+  a34: { cat: 'wealth',   ico: '🌐', desc: '同时激活全部 7 条收入线' },
 };
 
 
@@ -1091,6 +1151,11 @@ let state = {
   _chBackup: null,
   market: null,
   src: {},
+  srcDays: {},
+  tradeQuest: 0,
+  profitQuest: 0,
+  holdQuest: 0,
+  divQuest: 0,
   rev: 0,
   savedAt: 0,
 };
@@ -1159,6 +1224,68 @@ function mergeState(disk) {
     for (const p of dChart) if (p && p.t !== undefined && !seen.has(p.t)) state.chart.push(p);
     state.chart.sort((a, b) => a.t - b.t);
     if (state.chart.length > 120) state.chart.splice(0, state.chart.length - 120);
+  }
+
+  // —— 天赋等级：取较高者，避免多标签页互相抹掉已点的天赋 ——
+  if (!state.perks || typeof state.perks !== 'object') state.perks = {};
+  const dPerks = disk.perks && typeof disk.perks === 'object' ? disk.perks : {};
+  for (const id in dPerks) {
+    const dv = Number(dPerks[id]);
+    if (!isFinite(dv) || dv < 0) continue;
+    state.perks[id] = Math.max(Number(state.perks[id]) || 0, Math.floor(dv));
+  }
+
+  // —— 收入来源累计：取较大者（同一份存档的两种写法，取多的那份为准）——
+  if (!state.src || typeof state.src !== 'object') state.src = {};
+  const dSrc = disk.src && typeof disk.src === 'object' ? disk.src : {};
+  for (const id in dSrc) {
+    const dv = Number(dSrc[id]);
+    if (!isFinite(dv) || dv < 0) continue;
+    state.src[id] = Math.max(Number(state.src[id]) || 0, dv);
+  }
+
+  // —— 收入来源按日归档：按天取较大值 ——
+  if (!state.srcDays || typeof state.srcDays !== 'object') state.srcDays = {};
+  const dSrcDays = disk.srcDays && typeof disk.srcDays === 'object' ? disk.srcDays : {};
+  for (const dk in dSrcDays) {
+    const dd = dSrcDays[dk];
+    if (!dd || typeof dd !== 'object') continue;
+    if (!state.srcDays[dk] || typeof state.srcDays[dk] !== 'object') state.srcDays[dk] = {};
+    for (const id in dd) {
+      const dv = Number(dd[id]);
+      if (!isFinite(dv) || dv < 0) continue;
+      state.srcDays[dk][id] = Math.max(Number(state.srcDays[dk][id]) || 0, dv);
+    }
+  }
+
+  // —— 每日任务计数：取较大者（任务进度不该被另一个标签页清零）——
+  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest','tradeQuest','profitQuest','holdQuest','divQuest']) {
+    const dv = Number(disk[k]);
+    if (isFinite(dv) && dv >= 0) state[k] = Math.max(Number(state[k]) || 0, dv);
+  }
+  // 任务领取记录取并集
+  if (!state.quest || typeof state.quest !== 'object') state.quest = { date: '', ids: [], progress: {}, claimed: {}, bonusClaimed: false };
+  if (!state.quest.claimed || typeof state.quest.claimed !== 'object') state.quest.claimed = {};
+  const dClaim = disk.quest && disk.quest.claimed && typeof disk.quest.claimed === 'object' ? disk.quest.claimed : {};
+  for (const id in dClaim) if (dClaim[id]) state.quest.claimed[id] = true;
+
+  // —— 自动购买勾选：取并集 ——
+  if (!state.autoSel || typeof state.autoSel !== 'object') state.autoSel = {};
+  const dAuto = disk.autoSel && typeof disk.autoSel === 'object' ? disk.autoSel : {};
+  for (const id in dAuto) if (dAuto[id]) state.autoSel[id] = true;
+
+  // —— 股票持仓：以持仓股数更多的一侧为准，累计盈亏/交易次数取较大者 ——
+  const dMarket = disk.market && typeof disk.market === 'object' && !Array.isArray(disk.market) ? disk.market : null;
+  if (dMarket) {
+    const mem = ensureMarket(state.market);
+    const dsk = ensureMarket(dMarket);
+    const takeDisk = (dsk.held || 0) > (mem.held || 0);
+    const merged = takeDisk ? dsk : mem;
+    merged.trades  = Math.max(mem.trades || 0, dsk.trades || 0);
+    merged.wins    = Math.max(mem.wins || 0, dsk.wins || 0);
+    merged.profit  = Math.max(mem.profit || 0, dsk.profit || 0);
+    merged.dividends = Math.max(mem.dividends || 0, dsk.dividends || 0);
+    state.market = merged;
   }
 }
 
@@ -1277,11 +1404,19 @@ function marketValue() {
   return v;
 }
 
+// —— 价格上下限：股价在基准价 25% ~ 600% 之间随机游走 ——
+function marketPriceFloor(a) { return a.base * 0.25; }
+function marketPriceCap(a)   { return a.base * 6; }
+// —— 成交价：买入向上取整、卖出向下取整，形成买卖价差 ——
+function marketBuyPrice(a)  { return Math.ceil(marketPrice(a)); }
+function marketSellPrice(a) { return Math.floor(marketPrice(a)); }
+// —— 分红：按当前股价的百分比每秒派息（收益率恒定；股价上涨则分红同步变多）
+function marketDivPerShare(a) { return marketPrice(a) * a.div * globalMult(); }
 function marketDividend() {
   const m = state.market;
   if (!m) return 0;
   let d = 0;
-  for (const a of MARKET_ASSETS) d += (m.holds[a.id] || 0) * a.div * 100;
+  for (const a of MARKET_ASSETS) d += (m.holds[a.id] || 0) * marketPrice(a) * a.div;
   return d * globalMult();
 }
 
@@ -1295,14 +1430,16 @@ function marketBuy(a) {
   if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
   const m = ensureMarket(state.market);
   const price = marketPrice(a);
-  const cost = Math.ceil(price);
+  const cost = marketBuyPrice(a);
   if (state.money < cost) { addLog('💸 余额不足，买不起 ' + a.name); return; }
   state.money -= cost;
   m.holds[a.id] = (m.holds[a.id] || 0) + 1;
   m.cost[a.id] = (m.cost[a.id] || 0) + cost;
   m.trades = (m.trades || 0) + 1;
   state.market = m;
-  addLog(`📈 买入 ${a.name} 1 股 @ ¥${fmt(price)}`);
+  state.tradeQuest = (state.tradeQuest || 0) + 1;
+  updateHoldQuest();
+  addLog(`📈 买入 ${a.name} 1 股 @ ¥${fmt(price)}（成交价 ¥${fmt(cost)}）`);
   SFX.buy();
   refresh();
   renderMarket();
@@ -1315,17 +1452,25 @@ function marketSell(a) {
   const held = m.holds[a.id] || 0;
   if (held <= 0) { addLog('📉 你没有持有 ' + a.name); return; }
   const price = marketPrice(a);
-  const proceeds = Math.floor(price);
+  const unit = marketSellPrice(a);
+  const proceeds = unit * held;
   const basis = marketCostBasis(a);
-  const gain = proceeds * held - basis;
-  state.money += proceeds * held;
+  const gain = proceeds - basis;
+  state.money += proceeds;
   state.total += Math.max(0, gain);
   m.profit = (m.profit || 0) + gain;
-  if (gain > 0) { m.wins = (m.wins || 0) + 1; addSource('market', gain); }
+  if (gain > 0) {
+    m.wins = (m.wins || 0) + 1;
+    state.profitQuest = (state.profitQuest || 0) + gain;
+    state.earnQuest = (state.earnQuest || 0) + gain;
+    addSource('market', gain);
+  }
   m.holds[a.id] = 0;
   m.cost[a.id] = 0;
   m.trades = (m.trades || 0) + 1;
   state.market = m;
+  state.tradeQuest = (state.tradeQuest || 0) + 1;
+  updateHoldQuest();
   addLog(gain >= 0
     ? `📉 卖出 ${a.name} ×${held}，盈利 ¥${fmt(gain)}`
     : `📉 卖出 ${a.name} ×${held}，亏损 ¥${fmt(-gain)}`);
@@ -1335,26 +1480,39 @@ function marketSell(a) {
   save();
 }
 
-function marketTick() {
+// 价格波动（每个行情 tick 一次）
+function marketPriceTick() {
   const m = ensureMarket(state.market);
   for (const a of MARKET_ASSETS) {
     const prev = marketPrice(a);
     const drift = (Math.random() * 2 - 1) * a.vol;
     let p = prev * (1 + drift);
-    p = Math.max(a.base * 0.25, Math.min(a.base * 6, p));
+    p = Math.max(marketPriceFloor(a), Math.min(marketPriceCap(a), p));
     m.prices[a.id] = p;
     const h = m.hist[a.id];
     h.push(p);
     if (h.length > 60) h.shift();
   }
   state.market = m;
-  const div = marketDividend();
-  if (div > 0) {
-    state.money += div;
-    state.total += div;
-    state.earnQuest = (state.earnQuest || 0) + div;
-    addSource('market', div);
-  }
+}
+
+// 分红结算：按真实经过时间发放，界面上「每秒分红」就是实际每秒到账
+// 挑战期间不发分红——否则囤着持仓就能白嫖挑战进度
+function marketPayDividend(dtSec) {
+  if (!(dtSec > 0)) return 0;
+  if (state.challenge) return 0;
+  const m = ensureMarket(state.market);
+  const rate = marketDividend();
+  if (!(rate > 0)) return 0;
+  const gain = rate * dtSec;
+  state.money += gain;
+  state.total += gain;
+  state.earnQuest = (state.earnQuest || 0) + gain;
+  state.divQuest = (state.divQuest || 0) + gain;
+  m.dividends = (m.dividends || 0) + gain;
+  state.market = m;
+  addSource('market', gain);
+  return gain;
 }
 
 function drawSpark(canvas, data) {
@@ -1393,131 +1551,306 @@ function drawSpark(canvas, data) {
   ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
 }
 
-function marketBuyBulk(a) {
+function marketBuyBulk(a, maxN) {
   if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  const cap = Math.max(1, maxN || 10);
   const m = ensureMarket(state.market);
   const price = marketPrice(a);
-  const cost = Math.ceil(price);
+  const cost = marketBuyPrice(a);
   let n = 0;
-  while (n < 10 && state.money >= cost) { state.money -= cost; n++; }
+  while (n < cap && state.money >= cost) { state.money -= cost; n++; }
   if (n <= 0) { addLog('💸 余额不足，买不起 ' + a.name); return; }
   m.holds[a.id] = (m.holds[a.id] || 0) + n;
   m.cost[a.id] = (m.cost[a.id] || 0) + cost * n;
   m.trades = (m.trades || 0) + 1;
   state.market = m;
+  state.tradeQuest = (state.tradeQuest || 0) + 1;
+  updateHoldQuest();
   addLog('📈 买入 ' + a.name + ' ' + n + ' 股 @ ¥' + fmt(price));
   SFX.buy();
   refresh(); renderMarket(); save();
+}
+
+// 买满：用全部现金尽可能多地买入该股（与商店「买满」同一套语义）
+function marketBuyMax(a) {
+  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  const m = ensureMarket(state.market);
+  const cost = marketBuyPrice(a);
+  if (!(cost > 0) || state.money < cost) { addLog('💸 余额不足，买不起 ' + a.name); return; }
+  const n = Math.floor(state.money / cost);
+  if (n <= 0) { addLog('💸 余额不足，买不起 ' + a.name); return; }
+  state.money -= cost * n;
+  m.holds[a.id] = (m.holds[a.id] || 0) + n;
+  m.cost[a.id] = (m.cost[a.id] || 0) + cost * n;
+  m.trades = (m.trades || 0) + 1;
+  state.market = m;
+  state.tradeQuest = (state.tradeQuest || 0) + 1;
+  updateHoldQuest();
+  addLog('💰 买满 ' + a.name + '：' + n + ' 股 @ ¥' + fmt(cost));
+  SFX.buy();
+  refresh(); renderMarket(); save();
+}
+
+// 智能投资：在买得起的股票里挑收益率最高的一只，买入 10 股
+function marketSmartPick() {
+  const arr = MARKET_ASSETS.filter(a => state.money >= marketBuyPrice(a));
+  if (!arr.length) return null;
+  arr.sort((x, y) => y.div - x.div);
+  return arr[0];
+}
+function marketSmartBuy() {
+  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  const a = marketSmartPick();
+  if (!a) { addLog('💸 余额不足，暂时买不起任何股票。'); return; }
+  marketBuyBulk(a, 10);
+}
+
+// 持仓股数任务：记录「同时持有」的历史峰值
+// 注意：m.held 只在 ensureMarket() 里重算，而交易函数先改 holds、后调本函数，
+// 直接读 m.held 会拿到交易前的旧值（导致持股任务永不推进）——所以这里自己重算。
+function updateHoldQuest() {
+  const m = state.market;
+  if (!m) return;
+  let held = 0;
+  for (const a of MARKET_ASSETS) held += (m.holds[a.id] || 0);
+  m.held = held;
+  if (held > (state.holdQuest || 0)) state.holdQuest = held;
 }
 
 function marketSellAll() {
   if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
   const m = ensureMarket(state.market);
   let total = 0;
+  let any = false;
   for (const a of MARKET_ASSETS) {
     const held = m.holds[a.id] || 0;
     if (held <= 0) continue;
+    any = true;
     const price = marketPrice(a);
-    const proceeds = Math.floor(price) * held;
+    const proceeds = marketSellPrice(a) * held;
     const basis = marketCostBasis(a);
     const gain = proceeds - basis;
     state.money += proceeds;
     state.total += Math.max(0, gain);
     m.profit = (m.profit || 0) + gain;
-    if (gain > 0) { m.wins = (m.wins || 0) + 1; addSource('market', gain); }
+    if (gain > 0) {
+      m.wins = (m.wins || 0) + 1;
+      state.profitQuest = (state.profitQuest || 0) + gain;
+      state.earnQuest = (state.earnQuest || 0) + gain;
+      addSource('market', gain);
+    }
     m.holds[a.id] = 0; m.cost[a.id] = 0;
     m.trades = (m.trades || 0) + 1;
+    state.tradeQuest = (state.tradeQuest || 0) + 1;
     total += gain;
   }
   state.market = m;
+  if (!any) { addLog('📭 你手上没有股票，无仓可清。'); return; }
+  updateHoldQuest();
   addLog(total >= 0 ? ('💸 一键清仓完成，总盈亏 +¥' + fmt(total)) : ('💸 一键清仓完成，总盈亏 -¥' + fmt(-total)));
   SFX.event();
   refresh(); renderMarket(); save();
 }
 
-function renderMarket() {
+const mktUI = { built: false, sort: 'yield', cards: {} };
+const MKT_SORTS = [
+  { id: 'yield', name: '收益率' },
+  { id: 'vol',   name: '波动率' },
+  { id: 'price', name: '股价' },
+  { id: 'pnl',   name: '我的盈亏' },
+];
+
+function marketSortList() {
+  const m = ensureMarket(state.market);
+  const arr = MARKET_ASSETS.slice();
+  arr.sort((a, b) => {
+    const pa = marketPrice(a), pb = marketPrice(b);
+    const ha = m.holds[a.id] || 0, hb = m.holds[b.id] || 0;
+    const ba = m.cost[a.id] || 0, bb = m.cost[b.id] || 0;
+    const pna = (ha > 0 && ba > 0) ? (pa * ha - ba) / ba * 100 : -Infinity;
+    const pnb = (hb > 0 && bb > 0) ? (pb * hb - bb) / bb * 100 : -Infinity;
+    switch (mktUI.sort) {
+      case 'vol':   return b.vol - a.vol;
+      case 'price': return pa - pb;
+      case 'pnl':   return (pnb === -Infinity ? -1e15 : pnb) - (pna === -Infinity ? -1e15 : pna);
+      default:      return b.div - a.div;
+    }
+  });
+  return arr;
+}
+
+function marketCardShell(a) {
+  return `<div class="sub-card" data-card="${a.id}">
+      <div class="sh"><span class="si">${a.ico}</span><span class="sn">${a.name}</span><span class="s-badge"></span></div>
+      <div class="sd">${a.desc}</div>
+      <canvas class="spark" data-spark="${a.id}"></canvas>
+      <div class="s-price"><span class="sp-v">¥0</span><span class="sp-c"></span></div>
+      <div class="se s-hold">持仓 0 股 ｜ 成本 ¥0 ｜ 盈亏 ¥0（0.0%）</div>
+      <div class="se s-div">分红 ¥0/秒 ｜ 收益率 0%/秒</div>
+      <div class="se s-rate">买入 ¥0 / 卖出 ¥0 ｜ 波动 0% ｜ 回本价 ¥0</div>
+      <div class="mbtns">
+        <button class="sb" data-buy="${a.id}">买入1</button>
+        <button class="sb" data-buy10="${a.id}">买入10</button>
+        <button class="sb sb-max" data-buymax="${a.id}" title="用全部现金尽可能多地买入">买满</button>
+        <button class="sb sb-sell" data-sell="${a.id}">全部卖出</button>
+      </div>
+    </div>`;
+}
+
+function marketSortBarHTML() {
+  return `<span class="sort-label">排序</span>` + MKT_SORTS.map(s =>
+    `<button class="sort-btn${s.id === mktUI.sort ? ' active' : ''}" data-sort="${s.id}">${s.name}</button>`).join('');
+}
+
+function bindMarketEvents(box) {
+  box.querySelectorAll('button[data-buy]').forEach(b => {
+    b.onclick = () => { const a = MKT_BY_ID[b.dataset.buy]; if (a) marketBuy(a); };
+  });
+  box.querySelectorAll('button[data-buy10]').forEach(b => {
+    b.onclick = () => { const a = MKT_BY_ID[b.dataset.buy10]; if (a) marketBuyBulk(a, 10); };
+  });
+  box.querySelectorAll('button[data-buymax]').forEach(b => {
+    b.onclick = () => { const a = MKT_BY_ID[b.dataset.buymax]; if (a) marketBuyMax(a); };
+  });
+  box.querySelectorAll('button[data-sell]').forEach(b => {
+    b.onclick = () => { const a = MKT_BY_ID[b.dataset.sell]; if (a) marketSell(a); };
+  });
+  box.querySelectorAll('.sort-btn').forEach(b => {
+    b.onclick = () => {
+      mktUI.sort = b.dataset.sort;
+      box.querySelectorAll('.sort-btn').forEach(x => x.classList.toggle('active', x.dataset.sort === mktUI.sort));
+      renderMarket();
+      addLog('🔀 行情排序：' + (MKT_SORTS.find(s => s.id === mktUI.sort) || {}).name);
+    };
+  });
+  const sellAllBtn = document.getElementById('sellAllBtn');
+  if (sellAllBtn) sellAllBtn.onclick = () => marketSellAll();
+  const smartBtn = document.getElementById('smartBuyBtn');
+  if (smartBtn) smartBtn.onclick = () => marketSmartBuy();
+}
+
+function renderMarket(force) {
   const box = $('marketBox');
   if (!box) return;
   const m = ensureMarket(state.market);
   state.market = m;
-  const val = marketValue();
-  const div = marketDividend();
+  const list = marketSortList();
 
-  let html = `<div class="info-box">
+  if (!mktUI.built || force) {
+    box.innerHTML = `<div class="info-box">
     <span class="ti">📈 行情大厅：这是干什么的？</span>
     把你赚到的钱投进<b>股票市场</b>：低价买入、高价卖出，<span class="hl">赚到的差价会算进「累计财富」</span>（所以能推里程碑、换声望）。<br>
-    持有的股票每秒都会<b>派发分红</b>，分红同样计入累计财富——这是<span class="hl">不靠点击的第四条收入线</span>。<br>
-    ⚠️ 股价会随机波动，<span class="hl">高买低卖会亏钱</span>；挑战期间不能交易。
-  </div>`;
+    持有的股票每秒都会<b>按当前股价派发分红</b>（收益率见每张卡片），分红同样计入累计财富——这是<span class="hl">不靠点击的第四条收入线</span>。<br>
+    ⚠️ 股价会随机波动，<span class="hl">高买低卖会亏钱</span>；买卖存在价差（买入价高于卖出价）；<span class="hl">挑战期间不能交易、也不发分红</span>。
+  </div>
 
-  html += `<div class="metric-grid">
-    <div class="metric"><div class="v">¥${fmt(val)}</div><div class="k">持仓总市值</div></div>
-    <div class="metric"><div class="v">¥${fmt(div)}</div><div class="k">每秒分红</div></div>
-    <div class="metric"><div class="v">${m.held}</div><div class="k">持有股数</div></div>
-    <div class="metric"><div class="v" style="color:${m.profit >= 0 ? 'var(--green)' : 'var(--red)'}">¥${fmt(m.profit)}</div><div class="k">投资累计盈亏</div></div>
-  </div>`;
+  <div class="metric-grid">
+    <div class="metric"><div class="v" id="mkVal">¥0</div><div class="k">持仓总市值</div></div>
+    <div class="metric"><div class="v" id="mkDiv">¥0</div><div class="k">每秒分红</div></div>
+    <div class="metric"><div class="v" id="mkHeld">0</div><div class="k">持有股数</div></div>
+    <div class="metric"><div class="v" id="mkPnl">¥0</div><div class="k">投资累计盈亏</div></div>
+  </div>
 
-  html += `<div class="market-tools">
-    <button class="tool-btn" id="sellAllBtn" ${m.held <= 0 || state.challenge ? 'disabled' : ''}>💸 一键清仓</button>
-    <span class="mt-hint">低买高卖 · 分红随全局倍率放大</span>
-  </div>`;
+  <div class="market-tools">
+    <button class="tool-btn" id="sellAllBtn">💸 一键清仓</button>
+    <button class="tool-btn tool-btn-blue" id="smartBuyBtn">🧠 智能投资</button>
+    <div class="sort-bar" id="mktSort">${marketSortBarHTML()}</div>
+  </div>
 
-  html += `<div class="sub-grid">`;
-  for (const a of MARKET_ASSETS) {
+  <div class="sub-grid" id="mktGrid">${list.map(marketCardShell).join('')}</div>
+
+  <div class="info-box" id="mktFoot" style="margin-top:14px;"></div>`;
+
+    mktUI.built = true;
+    mktUI.cards = {};
+    for (const a of MARKET_ASSETS) {
+      const el = box.querySelector('[data-card="' + a.id + '"]');
+      if (!el) continue;
+      mktUI.cards[a.id] = {
+        el: el,
+        price: el.querySelector('.sp-v'),
+        chg: el.querySelector('.sp-c'),
+        hold: el.querySelector('.s-hold'),
+        div: el.querySelector('.s-div'),
+        rate: el.querySelector('.s-rate'),
+        badge: el.querySelector('.s-badge'),
+        buy1: el.querySelector('[data-buy]'),
+        buy10: el.querySelector('[data-buy10]'),
+        buyMax: el.querySelector('[data-buymax]'),
+        sell: el.querySelector('[data-sell]'),
+        canvas: el.querySelector('[data-spark]'),
+      };
+    }
+    bindMarketEvents(box);
+  } else {
+    const grid = box.querySelector('#mktGrid');
+    if (grid) for (const a of list) { const c = mktUI.cards[a.id]; if (c && c.el) grid.appendChild(c.el); }
+  }
+
+  updateMarketValues(list);
+}
+
+function updateMarketValues(list) {
+  const m = ensureMarket(state.market);
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('mkVal', '¥' + fmt(marketValue()));
+  set('mkDiv', '¥' + fmt(marketDividend()));
+  set('mkHeld', String(m.held));
+  const pnlEl = document.getElementById('mkPnl');
+  if (pnlEl) {
+    pnlEl.textContent = '¥' + fmt(m.profit);
+    pnlEl.style.color = (m.profit >= 0 ? 'var(--green)' : 'var(--red)');
+  }
+
+  const sellAllBtn = document.getElementById('sellAllBtn');
+  if (sellAllBtn) sellAllBtn.disabled = (m.held <= 0 || !!state.challenge);
+  const smartBtn = document.getElementById('smartBuyBtn');
+  if (smartBtn) smartBtn.disabled = (!!state.challenge || !marketSmartPick());
+
+  for (const a of list) {
+    const c = mktUI.cards[a.id];
+    if (!c) continue;
     const price = marketPrice(a);
     const held = m.holds[a.id] || 0;
-    const basis = marketCostBasis(a);
-    const profit = held > 0 ? price * held - basis : 0;
-    const pnl = basis > 0 ? (profit / basis * 100) : 0;
-    const prev = m.hist[a.id].length > 1 ? m.hist[a.id][m.hist[a.id].length - 2] : price;
-    const chg = prev > 0 ? (price - prev) / prev * 100 : 0;
-    const chgCol = chg >= 0 ? 'var(--red)' : 'var(--green)';
-    const chgArrow = chg >= 0 ? '▲' : '▼';
-    html += `<div class="sub-card${held > 0 ? ' done' : ''}">
-      <div class="sh"><span class="si">${a.ico}</span><span class="sn">${a.name}</span></div>
-      <div class="sd">${a.desc}</div>
-      <canvas class="spark" data-spark="${a.id}"></canvas>
-      <div style="font-size:20px;font-weight:700;color:var(--gold-dark);">¥${fmt(price)}
-        <span style="font-size:12px;color:${chgCol};">${chgArrow} ${Math.abs(chg).toFixed(2)}%</span></div>
-      <div class="se">持仓 ${held} 股 ｜ 成本 ¥${fmt(basis)} ｜ 盈亏 ¥${fmt(profit)}（${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}%）</div>
-      <div class="se">回本价 ¥${fmt(held > 0 ? basis / held : 0)} ｜ 分红 ¥${(held * a.div * 100 * globalMult()).toFixed(1)}/秒 ｜ 波动 ${(a.vol * 100).toFixed(1)}%</div>
-      <div class="mbtns">
-        <button class="sb" data-buy="${a.id}" ${state.money < Math.ceil(price) || state.challenge ? 'disabled' : ''}>买入1</button>
-        <button class="sb" data-buy10="${a.id}" ${state.money < Math.ceil(price) * 10 || state.challenge ? 'disabled' : ''}>买入10</button>
-        <button class="sb" data-sell="${a.id}" ${held <= 0 || state.challenge ? 'disabled' : ''} style="background:#8b93a3;">全部卖出</button>
-      </div>
-    </div>`;
+    const basis = m.cost[a.id] || 0;
+    const buyP = marketBuyPrice(a);
+    const sellP = marketSellPrice(a);
+    const profit = held > 0 ? sellP * held - basis : 0;
+    const pnlPct = basis > 0 ? (profit / basis * 100) : 0;
+    const hist = m.hist[a.id] || [];
+    const prev = hist.length > 1 ? hist[hist.length - 2] : price;
+    const chg = prev > 0 ? ((price - prev) / prev * 100) : 0;
+
+    if (c.price) c.price.textContent = '¥' + fmt(price);
+    if (c.chg) {
+      c.chg.textContent = (chg >= 0 ? '▲ ' : '▼ ') + Math.abs(chg).toFixed(2) + '%';
+      c.chg.style.color = chg >= 0 ? 'var(--red)' : 'var(--green)';
+    }
+    if (c.hold) c.hold.textContent = `持仓 ${held} 股 ｜ 成本 ¥${fmt(basis)} ｜ 盈亏 ¥${fmt(profit)}（${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%）`;
+    if (c.div) c.div.textContent = `分红 ¥${fmt(held * marketDivPerShare(a))}/秒 ｜ 收益率 ${(a.div * 100).toFixed(2)}%/秒`;
+    if (c.rate) c.rate.textContent = `买入 ¥${fmt(buyP)} / 卖出 ¥${fmt(sellP)} ｜ 波动 ${(a.vol * 100).toFixed(1)}% ｜ 回本价 ¥${fmt(held > 0 ? basis / held : buyP)}`;
+
+    if (c.buy1)   c.buy1.disabled   = (!!state.challenge || state.money < buyP);
+    if (c.buy10)  c.buy10.disabled  = (!!state.challenge || state.money < buyP * 10);
+    if (c.buyMax) c.buyMax.disabled = (!!state.challenge || state.money < buyP);
+    if (c.sell)   c.sell.disabled   = (held <= 0 || !!state.challenge);
+    if (c.badge) {
+      c.badge.textContent = held > 0 ? '持仓中' : '';
+      c.badge.style.display = held > 0 ? '' : 'none';
+    }
+    c.el.classList.toggle('done', held > 0);
+    if (c.canvas) drawSpark(c.canvas, hist);
   }
-  html += `</div>`;
 
-  html += `<div class="info-box" style="margin-top:14px;">
-    <span class="ti">💡 投资心得</span>
+  const foot = document.getElementById('mktFoot');
+  if (foot) {
+    foot.innerHTML = `<span class="ti">💡 投资心得</span>
     ① 股价围绕基准价<b>随机波动</b>，不保证上涨——<b>低买高卖</b>才赚钱，追高会被套。<br>
-    ② 每一只股票都有<b>不同的波动率与分红率</b>：${MARKET_ASSETS.map(a => `${a.ico}${a.name}（波动 ${(a.vol * 100).toFixed(1)}% / 分红 ${(a.div * 100).toFixed(2)}%）`).join('、')}。<br>
+    ② 每张卡片上的<b>收益率</b>是「每秒按当前股价派息的百分比」：收益率越高、派息越多，但波动率也决定了你拿不拿得住。<br>
     ③ 分红随你的<b>全局倍率</b>一起放大——所以越到后期，股票越像一台印钞机。<br>
-    ④ 交易次数 ${m.trades} 次 ｜ 盈利卖出 ${m.wins} 次 ｜ 累计盈亏 ¥${fmt(m.profit)}。
-  </div>`;
-
-  box.innerHTML = html;
-  box.querySelectorAll('button[data-buy]').forEach(b => {
-    if (b.disabled) return;
-    b.onclick = () => { const a = MKT_BY_ID[b.dataset.buy]; if (a) marketBuy(a); };
-  });
-  box.querySelectorAll('button[data-sell]').forEach(b => {
-    if (b.disabled) return;
-    b.onclick = () => { const a = MKT_BY_ID[b.dataset.sell]; if (a) marketSell(a); };
-  });
-
-  box.querySelectorAll('button[data-buy10]').forEach(b => {
-    if (b.disabled) return;
-    b.onclick = () => { const a = MKT_BY_ID[b.dataset.buy10]; if (a) marketBuyBulk(a); };
-  });
-  const sellAllBtn = document.getElementById('sellAllBtn');
-  if (sellAllBtn && !sellAllBtn.disabled) sellAllBtn.onclick = () => marketSellAll();
-  box.querySelectorAll('canvas[data-spark]').forEach(cv => {
-    const a = MKT_BY_ID[cv.dataset.spark];
-    if (a) drawSpark(cv, ensureMarket(state.market).hist[a.id] || []);
-  });
+    ④ 买卖存在<b>价差</b>：买入价向上取整、卖出价向下取整，同价一买一卖必然小亏。<br>
+    ⑤ 交易次数 ${m.trades} 次 ｜ 盈利卖出 ${m.wins} 次 ｜ 累计盈亏 ¥${fmt(m.profit)} ｜ 累计分红 ¥${fmt(m.dividends || 0)}。`;
+  }
 }
 
 function perkLv(id) { return (state.perks && state.perks[id]) || 0; }
@@ -1910,6 +2243,10 @@ function todayQuests() {
   state.earnQuest = 0;
   state.staffQuest = 0;
   state.msQuest = 0;
+  state.tradeQuest = 0;
+  state.profitQuest = 0;
+  state.holdQuest = 0;
+  state.divQuest = 0;
   const seed = questSeed();
   const pool = QUESTS.slice();
   const picked = [];
@@ -1928,13 +2265,18 @@ function questProgress(q) {
     case 'earnQuest': return state.earnQuest || 0;
     case 'staffQuest': return state.staffQuest || 0;
     case 'msQuest': return state.msQuest || 0;
+    case 'tradeQuest': return state.tradeQuest || 0;
+    case 'profitQuest': return state.profitQuest || 0;
+    case 'holdQuest': return state.holdQuest || 0;
+    case 'divQuest': return state.divQuest || 0;
     default: return 0;
   }
 }
 
 function questReward(q) {
   const base = Math.max(incomePerSec() * 30, 1000);
-  const scale = { clickQuest: 0.6, buyQuest: 1.0, critQuest: 0.8, earnQuest: 1.2, staffQuest: 1.0, msQuest: 1.5 }[q.stat] || 1;
+  const scale = { clickQuest: 0.6, buyQuest: 1.0, critQuest: 0.8, earnQuest: 1.2, staffQuest: 1.0, msQuest: 1.5,
+                 tradeQuest: 1.1, profitQuest: 1.3, holdQuest: 1.0, divQuest: 1.2 }[q.stat] || 1;
   return Math.floor(base * scale * perkQuestMult());
 }
 function questDone(q) { return questProgress(q) >= q.target; }
@@ -2145,6 +2487,15 @@ function renderIncomeSources() {
   const rows = INCOME_SOURCES.map(k => ({ k, v: src[k.id] || 0 }));
   const total = rows.reduce((a, r) => a + r.v, 0);
   const max = Math.max(1, ...rows.map(r => r.v));
+
+  // —— 今日 / 昨日 / 近 7 日 ——
+  const days = state.srcDays || {};
+  const today = days[todayStr()] || {};
+  const yest = days[yesterdayStr()] || {};
+  const sumOf = (obj) => INCOME_SOURCES.reduce((a, k) => a + (obj[k.id] || 0), 0);
+  const tSum = sumOf(today), ySum = sumOf(yest);
+  const dayKeys = Object.keys(days).sort().slice(-7);
+
   let html = `<div class="sec-title" style="margin-top:16px;">🔀 收入来源拆解</div><div class="src-wrap">`;
   if (total <= 0) {
     html += `<div style="font-size:12px;color:var(--muted);line-height:1.7;">还没有任何收入记录——先去点几下金币或雇几个员工吧。</div>`;
@@ -2160,11 +2511,59 @@ function renderIncomeSources() {
     }
   }
   html += `</div>`;
+
+  // 今日 vs 昨日
+  const diff = tSum - ySum;
+  const diffTxt = ySum > 0
+    ? (diff === 0 ? '持平' : `${diff > 0 ? '▲' : '▼'} ${Math.abs(diff / ySum * 100).toFixed(1)}%`)
+    : (tSum > 0 ? '🆕 今日新增' : '—');
+  const diffCol = (ySum > 0 && diff !== 0) ? (diff > 0 ? 'var(--red)' : 'var(--green)') : 'var(--muted)';
+  html += `<div class="sec-title" style="margin-top:16px;">📅 今日 vs 昨日</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="v">¥${fmt(tSum)}</div><div class="k">今日收入</div></div>
+      <div class="metric"><div class="v">¥${fmt(ySum)}</div><div class="k">昨日收入</div></div>
+      <div class="metric"><div class="v" style="color:${diffCol}">${diffTxt}</div><div class="k">环比变化</div></div>
+    </div>`;
+
+  html += `<div class="cmp-wrap">`;
+  for (const k of INCOME_SOURCES) {
+    const t = today[k.id] || 0, y = yest[k.id] || 0;
+    const d = t - y;
+    const cell = y > 0 ? (d === 0 ? '—' : `${d > 0 ? '▲' : '▼'} ${Math.abs(d / y * 100).toFixed(0)}%`)
+                        : (t > 0 ? '🆕' : '—');
+    const cellCol = (y > 0 && d !== 0) ? (d > 0 ? 'var(--red)' : 'var(--green)') : 'var(--muted)';
+    html += `<div class="cmp-row">
+      <span class="cn">${k.name}</span>
+      <span class="ct">¥${fmt(t)}</span>
+      <span class="cy">¥${fmt(y)}</span>
+      <span class="cc" style="color:${cellCol}">${cell}</span>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // 近 7 日趋势
+  if (dayKeys.length) {
+    const dayTotals = dayKeys.map(k => sumOf(days[k]));
+    const dMax = Math.max(1, ...dayTotals);
+    html += `<div class="sec-title" style="margin-top:16px;">🗓️ 近 ${dayKeys.length} 日收入趋势</div><div class="trend-wrap">`;
+    for (let i = 0; i < dayKeys.length; i++) {
+      const k = dayKeys[i];
+      const hh = (dMax > 0) ? Math.max(3, dayTotals[i] / dMax * 100) : 3;
+      html += `<div class="trend-row">
+        <span class="tr-lab">${k.slice(5)}</span>
+        <span class="tr-bar"><i style="width:${hh.toFixed(1)}%"></i></span>
+        <span class="tr-val">¥${fmt(dayTotals[i])}</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
   html += `<div class="info-box">
     <span class="ti">🔀 钱是从哪来的？</span>
     这里把<b>累计财富</b>按来源拆开：点击、员工被动收入、离线结算、幸运事件、每日任务、签到、股票分红。
     <b>来源越多元</b>，说明你的商业帝国越健康——单靠一条腿走路（尤其只靠点击）会走得很慢。<br>
-    已激活 <b>${incomeSourcesCount()}</b> / ${INCOME_SOURCES.length} 条收入线（成就「财源广进」需要 ≥ 4 条）。
+    「今日 vs 昨日」按天对比，帮你发现哪条收入线正在萎缩；<b>近 7 日趋势</b>看整体节奏。<br>
+    已激活 <b>${incomeSourcesCount()}</b> / ${INCOME_SOURCES.length} 条收入线（成就「财源广进」需要 ≥ 4 条，「八线全开」需要全部 7 条）。
   </div>`;
   return html;
 }
@@ -2675,7 +3074,7 @@ function updateBadges() {
     shop: UPGRADES.some(u => state.money >= cost(u)),
     prestige: canPrestige(),
     perk: (state.perkPoints || 0) > 0,
-    market: !state.challenge && MARKET_ASSETS.some(a => state.money >= Math.ceil(marketPrice(a))) && (!state.market || state.market.held === 0)
+    market: !state.challenge && MARKET_ASSETS.some(a => state.money >= marketBuyPrice(a))
   };
   document.querySelectorAll('.tab').forEach(t => {
     const n = t.dataset.tab;
@@ -2697,7 +3096,8 @@ function updateBadges() {
       clickQuest: 0, buyQuest: 0, critQuest: 0, earnQuest: 0, staffQuest: 0, msQuest: 0,
       lifeClicks: 0, lifeBuys: 0, lifeStaff: 0,
       autoSel: {}, chart: [], crystals: 0,
-      market: null, src: {}, prestigePath: 'balance',
+      market: null, src: {}, srcDays: {}, prestigePath: 'balance',
+      tradeQuest: 0, profitQuest: 0, holdQuest: 0, divQuest: 0,
       challenge: null, chBaseTotal: 0, chDone: {}, challengeMult: 1, _chBackup: null
     });
     ensureFields(state);
@@ -2764,7 +3164,7 @@ function ensureFields(s) {
   if (!s.chDone || typeof s.chDone !== 'object' || Array.isArray(s.chDone)) s.chDone = {};
   if (typeof s.challengeMult !== 'number' || !isFinite(s.challengeMult) || s.challengeMult < 1) s.challengeMult = 1;
   if (s._chBackup !== null && (typeof s._chBackup !== 'object' || !s._chBackup || Array.isArray(s._chBackup))) s._chBackup = null;
-  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest','lifeClicks','lifeBuys','lifeStaff']) {
+  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest','tradeQuest','profitQuest','holdQuest','divQuest','lifeClicks','lifeBuys','lifeStaff']) {
     if (typeof s[k] !== 'number' || !isFinite(s[k]) || s[k] < 0) s[k] = 0;
   }
   for (const k of ['money','total','crits','offlineBest','prestige','events']) {
@@ -2784,6 +3184,15 @@ function ensureFields(s) {
   for (const k in s.src) {
     const v = Number(s.src[k]);
     if (!isFinite(v) || v < 0) s.src[k] = 0;
+  }
+  if (!s.srcDays || typeof s.srcDays !== 'object' || Array.isArray(s.srcDays)) s.srcDays = {};
+  for (const dk in s.srcDays) {
+    const dd = s.srcDays[dk];
+    if (!dd || typeof dd !== 'object' || Array.isArray(dd)) { delete s.srcDays[dk]; continue; }
+    for (const id in dd) {
+      const v = Number(dd[id]);
+      if (!isFinite(v) || v < 0) dd[id] = 0;
+    }
   }
   if (typeof s.rev !== 'number' || !isFinite(s.rev) || s.rev < 0) s.rev = 0;
   if (typeof s.savedAt !== 'number' || !isFinite(s.savedAt) || s.savedAt < 0) s.savedAt = 0;
@@ -2805,7 +3214,9 @@ function defaultState() {
     autoSel: {}, chart: [], crystals: 0,
     prestigePath: 'balance', challenge: null, chBaseTotal: 0,
     chDone: {}, challengeMult: 1, _chBackup: null,
-    market: null, src: {}, rev: 0, savedAt: 0
+    market: null, src: {}, srcDays: {},
+    tradeQuest: 0, profitQuest: 0, holdQuest: 0, divQuest: 0,
+    rev: 0, savedAt: 0
   };
 }
 $('importBtn').onclick = () => {
@@ -2874,7 +3285,7 @@ $('importGo').onclick = () => {
   if (!state.autoSel || typeof state.autoSel !== 'object') state.autoSel = {};
   if (!Array.isArray(state.chart)) state.chart = [];
   if (typeof state.crystals !== 'number' || state.crystals < 0) state.crystals = 0;
-  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest']) {
+  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest','tradeQuest','profitQuest','holdQuest','divQuest']) {
     if (typeof state[k] !== 'number' || state[k] < 0) state[k] = 0;
   }
   ensureFields(state);
@@ -3095,6 +3506,9 @@ function enterChallenge(id) {
     clickQuest: state.clickQuest, buyQuest: state.buyQuest,
     critQuest: state.critQuest, earnQuest: state.earnQuest,
     staffQuest: state.staffQuest, msQuest: state.msQuest,
+    tradeQuest: state.tradeQuest, profitQuest: state.profitQuest,
+    holdQuest: state.holdQuest, divQuest: state.divQuest,
+    srcDays: JSON.parse(JSON.stringify(state.srcDays || {})),
     claimed: JSON.parse(JSON.stringify((state.quest && state.quest.claimed) || {})),
     bonusClaimed: state.quest ? !!state.quest.bonusClaimed : false
   };
@@ -3105,6 +3519,7 @@ function enterChallenge(id) {
   save();
   switchTab('shop');
   renderChallenges();
+  renderMarket();          // 挑战期间禁交易，按钮禁用状态需立刻生效
   refresh();
 }
 
@@ -3126,6 +3541,9 @@ function exitChallenge(finished) {
     state.clickQuest = b.clickQuest; state.buyQuest = b.buyQuest;
     state.critQuest = b.critQuest; state.earnQuest = b.earnQuest;
     state.staffQuest = b.staffQuest; state.msQuest = b.msQuest;
+    state.tradeQuest = b.tradeQuest || 0; state.profitQuest = b.profitQuest || 0;
+    state.holdQuest = b.holdQuest || 0; state.divQuest = b.divQuest || 0;
+    if (b.srcDays) state.srcDays = b.srcDays;
     if (state.quest) {
       state.quest.claimed = b.claimed || {};
       state.quest.bonusClaimed = !!b.bonusClaimed;
@@ -3135,6 +3553,7 @@ function exitChallenge(finished) {
   addLog('↩️ 已退出挑战【' + c.name + '】，经济恢复如初。');
   save();
   renderChallenges();
+  renderMarket();          // 退出挑战后恢复可交易状态
   refresh();
 }
 
@@ -3344,24 +3763,37 @@ function applyOffline() {
   const elapsed = Math.min(rawElapsed, cap);
   if (elapsed < 5) return; 
   const rate = incomePerSec();
-  if (rate <= 0) return;
+  const divRate = marketDividend();
+  if (rate <= 0 && divRate <= 0) return;
   const mult = offlineMult();
   const gain = rate * elapsed * mult;
-  state.money += gain;
-  state.total += gain;
-  state.earnQuest = (state.earnQuest || 0) + gain;
+  const divGain = divRate * elapsed;
+  const all = gain + divGain;
+  state.money += all;
+  state.total += all;
+  state.earnQuest = (state.earnQuest || 0) + all;
+  if (divGain > 0) {
+    state.divQuest = (state.divQuest || 0) + divGain;
+    const mk = ensureMarket(state.market);
+    mk.dividends = (mk.dividends || 0) + divGain;
+    state.market = mk;
+  }
+  // 离线收入必须计入「收入来源拆解」——此前完全漏记，导致离线来源永远是 0
+  if (gain > 0) addSource('offline', gain);
+  if (divGain > 0) addSource('market', divGain);
   if (gain > state.offlineBest) state.offlineBest = gain;
 
   const h = Math.floor(elapsed / 3600);
   const m = Math.floor((elapsed % 3600) / 60);
-  $('offlineGain').textContent = '¥ ' + fmt(gain);
+  $('offlineGain').textContent = '¥ ' + fmt(all);
   const capped = rawElapsed > cap ? `（已结算至离线上限 ${Math.round(cap / 3600)} 小时）` : '';
   const boost = mult > 1 ? ` ｜ 离线加成 ×${mult.toFixed(2)}` : '';
-  $('offlineSub').textContent = `你离开了约 ${h} 小时 ${m} 分钟，员工帮你赚的${boost}${capped}`;
+  const divTxt = divGain > 0 ? ` ｜ 股票分红 ¥${fmt(divGain)}` : '';
+  $('offlineSub').textContent = `你离开了约 ${h} 小时 ${m} 分钟，员工帮你赚的${boost}${divTxt}${capped}`;
   $('offlineModal').style.display = 'flex';
   $('offlineOk').onclick = () => { $('offlineModal').style.display = 'none'; };
   SFX.offline();
-  addLog(`😴 离线期间躺赚 ¥${fmt(gain)}！`);
+  addLog(`😴 离线期间躺赚 ¥${fmt(all)}！`);
 }
 
 
@@ -3401,7 +3833,8 @@ setInterval(() => {
   checkAch();
   checkMilestones();
   checkChallenge();
-  if (tickCount % 2 === 0) marketTick();
+  if (tickCount % 2 === 0) marketPriceTick();
+  marketPayDividend(dt);
   autoBuy();
   
   const staffNow = staffTotal();
