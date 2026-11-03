@@ -647,6 +647,16 @@
   .sub-card .sb:disabled { background: #c9cdd6; cursor: not-allowed; }
   html[data-theme="dark"] .sub-card .sb:disabled { background: #3a4156; }
 
+  .sub-card .spark { width: 100%; height: 46px; display: block; margin: 2px 0 4px; background: #fafbfd; border: 1px solid var(--border); border-radius: 8px; }
+  html[data-theme="dark"] .sub-card .spark { background: #1b1f2a; }
+  .sub-card .mbtns { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+  .sub-card .mbtns .sb { flex: 1 1 auto; min-width: 56px; }
+  .market-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
+  .market-tools .tool-btn { border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer; background: var(--red); color: #fff; }
+  .market-tools .tool-btn:disabled { background: #c9cdd6; cursor: not-allowed; }
+  html[data-theme="dark"] .market-tools .tool-btn:disabled { background: #3a4156; }
+  .market-tools .mt-hint { font-size: 12px; color: var(--muted); }
+
   .src-wrap { border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; background: #f9fafc; margin-bottom: 14px; }
   html[data-theme="dark"] .src-wrap { background: #232838; }
   .src-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 12px; }
@@ -1347,6 +1357,84 @@ function marketTick() {
   }
 }
 
+function drawSpark(canvas, data) {
+  if (!canvas || !canvas.getContext) return;
+  const dpr = (window.devicePixelRatio || 1);
+  const w = canvas.clientWidth || 200, h = canvas.clientHeight || 46;
+  try { canvas.width = Math.max(1, Math.floor(w * dpr)); canvas.height = Math.max(1, Math.floor(h * dpr)); } catch (e) {}
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  if (!data || data.length < 2) {
+    ctx.fillStyle = '#aab0bd'; ctx.font = '11px sans-serif';
+    ctx.fillText('采样中…', 6, h / 2 + 4); return;
+  }
+  let min = Infinity, max = -Infinity;
+  for (const v of data) { if (v < min) min = v; if (v > max) max = v; }
+  if (max <= min) { max = min + 1; min = min - 1; }
+  const pad = 4;
+  const stepX = (w - pad * 2) / (data.length - 1);
+  const toY = v => h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+  const up = data[data.length - 1] >= data[0];
+  const col = up ? '#e5484d' : '#2fbf71';
+  ctx.strokeStyle = '#e6e9ef'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad, h / 2); ctx.lineTo(w - pad, h / 2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(pad, toY(data[0]));
+  for (let i = 1; i < data.length; i++) ctx.lineTo(pad + i * stepX, toY(data[i]));
+  ctx.lineTo(pad + (data.length - 1) * stepX, h - pad);
+  ctx.lineTo(pad, h - pad); ctx.closePath();
+  ctx.fillStyle = up ? 'rgba(229,72,77,0.12)' : 'rgba(47,191,113,0.12)';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(pad, toY(data[0]));
+  for (let i = 1; i < data.length; i++) ctx.lineTo(pad + i * stepX, toY(data[i]));
+  ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+}
+
+function marketBuyBulk(a) {
+  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  const m = ensureMarket(state.market);
+  const price = marketPrice(a);
+  const cost = Math.ceil(price);
+  let n = 0;
+  while (n < 10 && state.money >= cost) { state.money -= cost; n++; }
+  if (n <= 0) { addLog('💸 余额不足，买不起 ' + a.name); return; }
+  m.holds[a.id] = (m.holds[a.id] || 0) + n;
+  m.cost[a.id] = (m.cost[a.id] || 0) + cost * n;
+  m.trades = (m.trades || 0) + 1;
+  state.market = m;
+  addLog('📈 买入 ' + a.name + ' ' + n + ' 股 @ ¥' + fmt(price));
+  SFX.buy();
+  refresh(); renderMarket(); save();
+}
+
+function marketSellAll() {
+  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  const m = ensureMarket(state.market);
+  let total = 0;
+  for (const a of MARKET_ASSETS) {
+    const held = m.holds[a.id] || 0;
+    if (held <= 0) continue;
+    const price = marketPrice(a);
+    const proceeds = Math.floor(price) * held;
+    const basis = marketCostBasis(a);
+    const gain = proceeds - basis;
+    state.money += proceeds;
+    state.total += Math.max(0, gain);
+    m.profit = (m.profit || 0) + gain;
+    if (gain > 0) { m.wins = (m.wins || 0) + 1; addSource('market', gain); }
+    m.holds[a.id] = 0; m.cost[a.id] = 0;
+    m.trades = (m.trades || 0) + 1;
+    total += gain;
+  }
+  state.market = m;
+  addLog(total >= 0 ? ('💸 一键清仓完成，总盈亏 +¥' + fmt(total)) : ('💸 一键清仓完成，总盈亏 -¥' + fmt(-total)));
+  SFX.event();
+  refresh(); renderMarket(); save();
+}
+
 function renderMarket() {
   const box = $('marketBox');
   if (!box) return;
@@ -1369,6 +1457,11 @@ function renderMarket() {
     <div class="metric"><div class="v" style="color:${m.profit >= 0 ? 'var(--green)' : 'var(--red)'}">¥${fmt(m.profit)}</div><div class="k">投资累计盈亏</div></div>
   </div>`;
 
+  html += `<div class="market-tools">
+    <button class="tool-btn" id="sellAllBtn" ${m.held <= 0 || state.challenge ? 'disabled' : ''}>💸 一键清仓</button>
+    <span class="mt-hint">低买高卖 · 分红随全局倍率放大</span>
+  </div>`;
+
   html += `<div class="sub-grid">`;
   for (const a of MARKET_ASSETS) {
     const price = marketPrice(a);
@@ -1383,12 +1476,14 @@ function renderMarket() {
     html += `<div class="sub-card${held > 0 ? ' done' : ''}">
       <div class="sh"><span class="si">${a.ico}</span><span class="sn">${a.name}</span></div>
       <div class="sd">${a.desc}</div>
+      <canvas class="spark" data-spark="${a.id}"></canvas>
       <div style="font-size:20px;font-weight:700;color:var(--gold-dark);">¥${fmt(price)}
         <span style="font-size:12px;color:${chgCol};">${chgArrow} ${Math.abs(chg).toFixed(2)}%</span></div>
       <div class="se">持仓 ${held} 股 ｜ 成本 ¥${fmt(basis)} ｜ 盈亏 ¥${fmt(profit)}（${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}%）</div>
-      <div class="se">分红 ¥${(held * a.div * 100 * globalMult()).toFixed(1)}/秒 ｜ 波动率 ${(a.vol * 100).toFixed(1)}%</div>
-      <div style="display:flex;gap:6px;margin-top:4px;">
-        <button class="sb" data-buy="${a.id}" ${state.money < Math.ceil(price) || state.challenge ? 'disabled' : ''}>买入 1 股</button>
+      <div class="se">回本价 ¥${fmt(held > 0 ? basis / held : 0)} ｜ 分红 ¥${(held * a.div * 100 * globalMult()).toFixed(1)}/秒 ｜ 波动 ${(a.vol * 100).toFixed(1)}%</div>
+      <div class="mbtns">
+        <button class="sb" data-buy="${a.id}" ${state.money < Math.ceil(price) || state.challenge ? 'disabled' : ''}>买入1</button>
+        <button class="sb" data-buy10="${a.id}" ${state.money < Math.ceil(price) * 10 || state.challenge ? 'disabled' : ''}>买入10</button>
         <button class="sb" data-sell="${a.id}" ${held <= 0 || state.challenge ? 'disabled' : ''} style="background:#8b93a3;">全部卖出</button>
       </div>
     </div>`;
@@ -1411,6 +1506,17 @@ function renderMarket() {
   box.querySelectorAll('button[data-sell]').forEach(b => {
     if (b.disabled) return;
     b.onclick = () => { const a = MKT_BY_ID[b.dataset.sell]; if (a) marketSell(a); };
+  });
+
+  box.querySelectorAll('button[data-buy10]').forEach(b => {
+    if (b.disabled) return;
+    b.onclick = () => { const a = MKT_BY_ID[b.dataset.buy10]; if (a) marketBuyBulk(a); };
+  });
+  const sellAllBtn = document.getElementById('sellAllBtn');
+  if (sellAllBtn && !sellAllBtn.disabled) sellAllBtn.onclick = () => marketSellAll();
+  box.querySelectorAll('canvas[data-spark]').forEach(cv => {
+    const a = MKT_BY_ID[cv.dataset.spark];
+    if (a) drawSpark(cv, ensureMarket(state.market).hist[a.id] || []);
   });
 }
 
