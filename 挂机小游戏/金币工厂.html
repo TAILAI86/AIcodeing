@@ -740,7 +740,7 @@
 </style>
 </head>
 <body>
-  <h1>💰 金币工厂<span class="ver">v1.7.1</span></h1>
+  <h1>💰 金币工厂<span class="ver">v1.8.0</span></h1>
   <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 天赋成长 · 每日任务 · 离线也能赚 · 股票投资</div>
 
   <div class="layout">
@@ -1008,6 +1008,7 @@ const ACHIEVEMENTS = [
   { id: 'a32',name: '分红大户', cond: s => (s.market && s.market.dividends || 0) >= 1e5, prog: s => (s.market && s.market.dividends || 0) / 1e5 },
   { id: 'a33',name: '投资神话', cond: s => (s.market && s.market.profit || 0) >= 1e9, prog: s => (s.market && s.market.profit || 0) / 1e9 },
   { id: 'a34',name: '八线全开', cond: s => incomeSourcesCount() >= INCOME_SOURCES.length, prog: () => incomeSourcesCount() / INCOME_SOURCES.length },
+  { id: 'a35',name: '挑战股神', cond: s => (s.chTrades || 0) >= 10, prog: s => (s.chTrades || 0) / 10 },
 ];
 
 
@@ -1026,11 +1027,12 @@ const CHALLENGES = [
   { id: 'c3', name: '平凡之始', ico: '🌱', target: 1e18, limits: ['weakStart'],   reward: 0.08, desc: '全局倍率被压到 10%，从零重新证明自己，冲刺 ¥1e18' },
   { id: 'c4', name: '无暴击',   ico: '🎲', target: 1e14, limits: ['noCrit'],      reward: 0.05, desc: '暴击完全失效，稳扎稳打冲刺 ¥1e14' },
   { id: 'c5', name: '断网经营', ico: '📴', target: 1e16, limits: ['noOffline'],   reward: 0.06, desc: '离线收益归零，必须在线运营冲刺 ¥1e16' },
+  { id: 'c6', name: '无股之徒', ico: '🚫', target: 1e17, limits: ['noInvest'],     reward: 0.09, desc: '禁止投资股票——没有分红、没有股价波动，纯靠自己的帝国冲刺 ¥1e17' },
 ];
 const CH_BY_ID = {}; CHALLENGES.forEach(c => CH_BY_ID[c.id] = c);
-function chHas(lim) { return state.challenge && CH_BY_ID[state.challenge] && CH_BY_ID[state.challenge].limits.includes(lim); }
+function chHas(lim) { return !!(state.challenge && CH_BY_ID[state.challenge] && CH_BY_ID[state.challenge].limits.includes(lim)); }
 function chLimitNames() {
-  const map = { noMilestone: '里程碑失效', noAuto: '禁自动化', weakStart: '倍率×0.1', noCrit: '禁暴击', noOffline: '禁离线' };
+  const map = { noMilestone: '里程碑失效', noAuto: '禁自动化', weakStart: '倍率×0.1', noCrit: '禁暴击', noOffline: '禁离线', noInvest: '禁投资' };
   return (CH_BY_ID[state.challenge] ? CH_BY_ID[state.challenge].limits : []).map(l => map[l] || l);
 }
 
@@ -1126,6 +1128,7 @@ const ACH_META = {
   a32: { cat: 'market',   ico: '🧧', desc: '累计获得分红 ¥10 万' },
   a33: { cat: 'market',   ico: '🐫', desc: '投资累计盈利 ¥10 亿' },
   a34: { cat: 'wealth',   ico: '🌐', desc: '同时激活全部 7 条收入线' },
+  a35: { cat: 'market',   ico: '🎯', desc: '在挑战中累计完成 10 笔股票交易' },
 };
 
 
@@ -1185,6 +1188,7 @@ let state = {
   profitQuest: 0,
   holdQuest: 0,
   divQuest: 0,
+  chTrades: 0,
   rev: 0,
   savedAt: 0,
 };
@@ -1194,7 +1198,7 @@ let baseSnapshot = null;
 let saveFailed = false;
 
 const MERGE_ADDITIVE = ['total', 'clicks', 'crits', 'lifeClicks', 'lifeBuys', 'lifeStaff', 'events', 'offlineBest', 'prestige', 'crystals', 'perkPointsTotal'];
-const MERGE_MAX = ['perkPoints'];
+const MERGE_MAX = ['perkPoints', 'chTrades'];
 
 function showSaveWarn(msg) {
   saveFailed = true;
@@ -1456,7 +1460,7 @@ function marketCostBasis(a) {
 }
 
 function marketBuy(a) {
-  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  if (chHas('noInvest')) { addLog('⚠️ 本挑战【' + (CH_BY_ID[state.challenge] ? CH_BY_ID[state.challenge].name : '') + '】禁止投资，无法买卖股票。'); return; }
   const m = ensureMarket(state.market);
   const price = marketPrice(a);
   const cost = marketBuyPrice(a);
@@ -1467,6 +1471,7 @@ function marketBuy(a) {
   m.trades = (m.trades || 0) + 1;
   state.market = m;
   state.tradeQuest = (state.tradeQuest || 0) + 1;
+  if (state.challenge) state.chTrades = (state.chTrades || 0) + 1;   // 挑战期间交易计数（永久累计）
   updateHoldQuest();
   addLog(`📈 买入 ${a.name} 1 股 @ ¥${fmt(price)}（成交价 ¥${fmt(cost)}）`);
   SFX.buy();
@@ -1476,7 +1481,7 @@ function marketBuy(a) {
 }
 
 function marketSell(a) {
-  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  if (chHas('noInvest')) { addLog('⚠️ 本挑战【' + (CH_BY_ID[state.challenge] ? CH_BY_ID[state.challenge].name : '') + '】禁止投资，无法买卖股票。'); return; }
   const m = ensureMarket(state.market);
   const held = m.holds[a.id] || 0;
   if (held <= 0) { addLog('📉 你没有持有 ' + a.name); return; }
@@ -1499,6 +1504,7 @@ function marketSell(a) {
   m.trades = (m.trades || 0) + 1;
   state.market = m;
   state.tradeQuest = (state.tradeQuest || 0) + 1;
+  if (state.challenge) state.chTrades = (state.chTrades || 0) + 1;   // 挑战期间交易计数（永久累计）
   updateHoldQuest();
   addLog(gain >= 0
     ? `📉 卖出 ${a.name} ×${held}，盈利 ¥${fmt(gain)}`
@@ -1529,7 +1535,7 @@ function marketPriceTick() {
 // 挑战期间不发分红——否则囤着持仓就能白嫖挑战进度
 function marketPayDividend(dtSec) {
   if (!(dtSec > 0)) return 0;
-  if (state.challenge) return 0;
+  if (chHas('noInvest')) return 0;   // 仅「无股之徒」挑战停发分红，其余挑战分红照发
   const m = ensureMarket(state.market);
   const rate = marketDividend();
   if (!(rate > 0)) return 0;
@@ -1581,7 +1587,7 @@ function drawSpark(canvas, data) {
 }
 
 function marketBuyBulk(a, maxN) {
-  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  if (chHas('noInvest')) { addLog('⚠️ 本挑战【' + (CH_BY_ID[state.challenge] ? CH_BY_ID[state.challenge].name : '') + '】禁止投资，无法买卖股票。'); return; }
   const cap = Math.max(1, maxN || 10);
   const m = ensureMarket(state.market);
   const price = marketPrice(a);
@@ -1594,6 +1600,7 @@ function marketBuyBulk(a, maxN) {
   m.trades = (m.trades || 0) + 1;
   state.market = m;
   state.tradeQuest = (state.tradeQuest || 0) + 1;
+  if (state.challenge) state.chTrades = (state.chTrades || 0) + 1;   // 挑战期间交易计数（永久累计）
   updateHoldQuest();
   addLog('📈 买入 ' + a.name + ' ' + n + ' 股 @ ¥' + fmt(price));
   SFX.buy();
@@ -1602,7 +1609,7 @@ function marketBuyBulk(a, maxN) {
 
 // 买满：用全部现金尽可能多地买入该股（与商店「买满」同一套语义）
 function marketBuyMax(a) {
-  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  if (chHas('noInvest')) { addLog('⚠️ 本挑战【' + (CH_BY_ID[state.challenge] ? CH_BY_ID[state.challenge].name : '') + '】禁止投资，无法买卖股票。'); return; }
   const m = ensureMarket(state.market);
   const cost = marketBuyPrice(a);
   if (!(cost > 0) || state.money < cost) { addLog('💸 余额不足，买不起 ' + a.name); return; }
@@ -1614,6 +1621,7 @@ function marketBuyMax(a) {
   m.trades = (m.trades || 0) + 1;
   state.market = m;
   state.tradeQuest = (state.tradeQuest || 0) + 1;
+  if (state.challenge) state.chTrades = (state.chTrades || 0) + 1;   // 挑战期间交易计数（永久累计）
   updateHoldQuest();
   addLog('💰 买满 ' + a.name + '：' + n + ' 股 @ ¥' + fmt(cost));
   SFX.buy();
@@ -1628,7 +1636,7 @@ function marketSmartPick() {
   return arr[0];
 }
 function marketSmartBuy() {
-  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  if (chHas('noInvest')) { addLog('⚠️ 本挑战【' + (CH_BY_ID[state.challenge] ? CH_BY_ID[state.challenge].name : '') + '】禁止投资，无法买卖股票。'); return; }
   const a = marketSmartPick();
   if (!a) { addLog('💸 余额不足，暂时买不起任何股票。'); return; }
   marketBuyBulk(a, 10);
@@ -1647,7 +1655,7 @@ function updateHoldQuest() {
 }
 
 function marketSellAll() {
-  if (state.challenge) { addLog('⚠️ 挑战期间不能交易股票。'); return; }
+  if (chHas('noInvest')) { addLog('⚠️ 本挑战【' + (CH_BY_ID[state.challenge] ? CH_BY_ID[state.challenge].name : '') + '】禁止投资，无法买卖股票。'); return; }
   const m = ensureMarket(state.market);
   let total = 0;
   let any = false;
@@ -1671,6 +1679,7 @@ function marketSellAll() {
     m.holds[a.id] = 0; m.cost[a.id] = 0;
     m.trades = (m.trades || 0) + 1;
     state.tradeQuest = (state.tradeQuest || 0) + 1;
+  if (state.challenge) state.chTrades = (state.chTrades || 0) + 1;   // 挑战期间交易计数（永久累计）
     total += gain;
   }
   state.market = m;
@@ -1786,7 +1795,8 @@ function renderMarket(force) {
     <div class="mkt-body">
     把你赚到的钱投进<b>股票市场</b>：低价买入、高价卖出，<span class="hl">赚到的差价会算进「累计财富」</span>（所以能推里程碑、换声望）。<br>
     持有的股票每秒都会<b>按当前股价派发分红</b>（收益率见每张卡片），分红同样计入累计财富——这是<span class="hl">不靠点击的第四条收入线</span>。<br>
-    ⚠️ 股价会随机波动，<span class="hl">高买低卖会亏钱</span>；买卖存在价差（买入价高于卖出价）；<span class="hl">挑战期间不能交易、也不发分红</span>。
+    ⚠️ 股价会随机波动，<span class="hl">高买低卖会亏钱</span>；买卖存在价差（买入价高于卖出价）。<br>
+    📈 <span class="hl">挑战期间照常可以投资</span>，分红与卖出差价都计入挑战进度——只有「无股之徒」挑战例外。
     </div>
   </details>
 
@@ -1837,12 +1847,12 @@ function updateMarketValues(list) {
   }
 
   const sellAllBtn = document.getElementById('sellAllBtn');
-  if (sellAllBtn) sellAllBtn.disabled = (m.held <= 0 || !!state.challenge);
+  if (sellAllBtn) sellAllBtn.disabled = (m.held <= 0 || chHas('noInvest'));
   const smartBtn = document.getElementById('smartBuyBtn');
   if (smartBtn) {
-    smartBtn.disabled = (!!state.challenge || !marketSmartPick());
-    smartBtn.title = state.challenge
-      ? '挑战期间不能交易股票'
+    smartBtn.disabled = (chHas('noInvest') || !marketSmartPick());
+    smartBtn.title = chHas('noInvest')
+      ? '本挑战禁止投资'
       : (marketSmartPick() ? '买入收益率最高的可负担股（10 股）：' + marketSmartPick().name : '余额不足，买不起任何一支股票');
   }
 
@@ -1869,10 +1879,18 @@ function updateMarketValues(list) {
     if (c.div) c.div.textContent = `分红 ¥${fmt(held * marketDivPerShare(a))}/秒 ｜ 收益率 ${(a.div * 100).toFixed(2)}%/秒`;
     if (c.rate) c.rate.textContent = `买入 ¥${fmt(buyP)} / 卖出 ¥${fmt(sellP)} ｜ 波动 ${(a.vol * 100).toFixed(1)}% ｜ 回本价 ¥${fmt(held > 0 ? basis / held : buyP)}`;
 
-    if (c.buy1)   c.buy1.disabled   = (!!state.challenge || state.money < buyP);
-    if (c.buy10)  c.buy10.disabled  = (!!state.challenge || state.money < buyP * 10);
-    if (c.buyMax) c.buyMax.disabled = (!!state.challenge || state.money < buyP);
-    if (c.sell)   c.sell.disabled   = (held <= 0 || !!state.challenge);
+    const noInvest = chHas('noInvest');
+    const noMoney = state.money < buyP;
+    if (c.buy1)   c.buy1.disabled   = (noInvest || noMoney);
+    if (c.buy10)  c.buy10.disabled  = (noInvest || state.money < buyP * 10);
+    if (c.buyMax) c.buyMax.disabled = (noInvest || noMoney);
+    if (c.sell)   c.sell.disabled   = (held <= 0 || noInvest);
+    // 按钮禁用时说明原因，避免玩家误以为「投资功能坏了」
+    const tip = noInvest ? '本挑战禁止投资' : (noMoney ? '余额不足，先去赚点钱' : '点击购买');
+    if (c.buy1)   c.buy1.title   = tip;
+    if (c.buy10)  c.buy10.title  = noInvest ? tip : (state.money < buyP * 10 ? '余额不足' : '一次买 10 股');
+    if (c.buyMax) c.buyMax.title = noInvest ? tip : (noMoney ? '余额不足，先去赚点钱' : '用全部现金尽可能多地买入');
+    if (c.sell)   c.sell.title   = noInvest ? tip : (held <= 0 ? '当前没有持仓' : '卖出全部持仓');
     if (c.badge) {
       c.badge.textContent = held > 0 ? '持仓中' : '';
       c.badge.style.display = held > 0 ? '' : 'none';
@@ -3118,7 +3136,7 @@ function updateBadges() {
     shop: UPGRADES.some(u => state.money >= cost(u)),
     prestige: canPrestige(),
     perk: (state.perkPoints || 0) > 0,
-    market: !state.challenge && MARKET_ASSETS.some(a => state.money >= marketBuyPrice(a))
+    market: !chHas('noInvest') && MARKET_ASSETS.some(a => state.money >= marketBuyPrice(a))
   };
   document.querySelectorAll('.tab').forEach(t => {
     const n = t.dataset.tab;
@@ -3141,7 +3159,7 @@ function updateBadges() {
       lifeClicks: 0, lifeBuys: 0, lifeStaff: 0,
       autoSel: {}, chart: [], crystals: 0,
       market: null, src: {}, srcDays: {}, prestigePath: 'balance',
-      tradeQuest: 0, profitQuest: 0, holdQuest: 0, divQuest: 0,
+      tradeQuest: 0, profitQuest: 0, holdQuest: 0, divQuest: 0, chTrades: 0,
       challenge: null, chBaseTotal: 0, chDone: {}, challengeMult: 1, _chBackup: null
     });
     ensureFields(state);
@@ -3208,7 +3226,7 @@ function ensureFields(s) {
   if (!s.chDone || typeof s.chDone !== 'object' || Array.isArray(s.chDone)) s.chDone = {};
   if (typeof s.challengeMult !== 'number' || !isFinite(s.challengeMult) || s.challengeMult < 1) s.challengeMult = 1;
   if (s._chBackup !== null && (typeof s._chBackup !== 'object' || !s._chBackup || Array.isArray(s._chBackup))) s._chBackup = null;
-  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest','tradeQuest','profitQuest','holdQuest','divQuest','lifeClicks','lifeBuys','lifeStaff']) {
+  for (const k of ['clickQuest','buyQuest','critQuest','earnQuest','staffQuest','msQuest','tradeQuest','profitQuest','holdQuest','divQuest','chTrades','lifeClicks','lifeBuys','lifeStaff']) {
     if (typeof s[k] !== 'number' || !isFinite(s[k]) || s[k] < 0) s[k] = 0;
   }
   for (const k of ['money','total','crits','offlineBest','prestige','events']) {
@@ -3259,7 +3277,7 @@ function defaultState() {
     prestigePath: 'balance', challenge: null, chBaseTotal: 0,
     chDone: {}, challengeMult: 1, _chBackup: null,
     market: null, src: {}, srcDays: {},
-    tradeQuest: 0, profitQuest: 0, holdQuest: 0, divQuest: 0,
+    tradeQuest: 0, profitQuest: 0, holdQuest: 0, divQuest: 0, chTrades: 0,
     rev: 0, savedAt: 0
   };
 }
@@ -3553,12 +3571,14 @@ function enterChallenge(id) {
     tradeQuest: state.tradeQuest, profitQuest: state.profitQuest,
     holdQuest: state.holdQuest, divQuest: state.divQuest,
     srcDays: JSON.parse(JSON.stringify(state.srcDays || {})),
+    market: state.market ? JSON.parse(JSON.stringify(state.market)) : null,
     claimed: JSON.parse(JSON.stringify((state.quest && state.quest.claimed) || {})),
     bonusClaimed: state.quest ? !!state.quest.bonusClaimed : false
   };
   state.challenge = id;
   state.chBaseTotal = state.total;
   state.money = 0; state.owned = {}; state.clicks = 0; state.crits = 0; state.chart = [];
+  state.market = null;   // 股票持仓与升级同等对待：挑战从零开始，退出后原样恢复
   addLog('🏅 进入挑战【' + c.name + '】！限制：' + chLimitNames().join('、') + '，目标 ¥' + fmt(c.target));
   save();
   switchTab('shop');
@@ -3588,6 +3608,7 @@ function exitChallenge(finished) {
     state.tradeQuest = b.tradeQuest || 0; state.profitQuest = b.profitQuest || 0;
     state.holdQuest = b.holdQuest || 0; state.divQuest = b.divQuest || 0;
     if (b.srcDays) state.srcDays = b.srcDays;
+    state.market = b.market || null;   // 恢复挑战前的持仓（挑战中买卖的盈亏只影响挑战进度）
     if (state.quest) {
       state.quest.claimed = b.claimed || {};
       state.quest.bonusClaimed = !!b.bonusClaimed;
@@ -3627,6 +3648,8 @@ function renderChallenges() {
     <span class="ti">🏅 挑战模式怎么玩？</span>
     挑战是<b>独立的冲刺玩法</b>：进入后你的金币与升级会清零，但<span class="hl">声望、贤者水晶、天赋、已得成就、挑战奖励全部保留</span>。<br>
     在指定<b>限制条件</b>下把「挑战期间新赚的财富」冲到目标值，即可<b>永久提升全局倍率</b>。可随时退出（不奖励），已通关的挑战可重玩（不再发奖）。<br>
+    📈 <b>挑战期间可以正常投资</b>：买卖股票、分红派息照常，分红与卖出的差价都计入挑战进度——对「手动时代」这类禁自动化的挑战，投资往往是唯一的复利路径。<br>
+    ⚠️ 挑战开始时金币、升级<b>与股票持仓</b>都会清零重来，退出挑战后原样恢复。<br>
     这是后期在重生之外，又一条能一直刷的永久成长线。
   </div>`;
   if (active) {
@@ -3636,19 +3659,23 @@ function renderChallenges() {
       🔥 进行中：<b>${active.name}</b>（${chLimitNames().join('、')}）｜ 目标 ¥${fmt(active.target)}<br>
       <div class="ach-bar"><i style="width:${pct.toFixed(1)}%"></i></div>
       进度：¥${fmt(prog)} / ¥${fmt(active.target)}（${pct.toFixed(1)}%）
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.7;">
+        💡 <b>挑战从零开始</b>：金币与升级已清零，股票持仓也会暂时清空。先点几下金币<b>攒出本金</b>，之后${active.limits.includes('noInvest') ? '本挑战禁止投资，只能靠经营冲刺' : '就能<b>正常买卖股票</b>，分红照发并计入挑战进度'}。
+      </div>
       <button class="mini-btn" id="chExitBtn" style="margin-top:8px;">↩️ 退出挑战（放弃奖励）</button>
     </div>`;
   }
   for (const c of CHALLENGES) {
     const done = !!state.chDone[c.id];
     const isActive = state.challenge === c.id;
-    const limitTxt = (c.limits.map(l => ({ noMilestone: '里程碑失效', noAuto: '禁自动化', weakStart: '倍率×0.1', noCrit: '禁暴击', noOffline: '禁离线' }[l])).join('、'));
+    const limitTxt = (c.limits.map(l => ({ noMilestone: '里程碑失效', noAuto: '禁自动化', weakStart: '倍率×0.1', noCrit: '禁暴击', noOffline: '禁离线', noInvest: '禁投资' }[l])).join('、'));
+    const investTxt = c.limits.includes('noInvest') ? '🚫 禁投资' : '📈 可投资';
     html += `<div class="ch-card${done ? ' done' : ''}${isActive ? ' active' : ''}">
       <div class="ch-ico">${c.ico}</div>
       <div class="ch-main">
         <div class="ch-name">${c.name} ${done ? '<span class="ch-done-tag">已通关✓</span>' : ''}</div>
         <div class="ch-desc">${c.desc}</div>
-        <div class="ch-meta">🎯 目标 ¥${fmt(c.target)} ｜ ⛔ ${limitTxt} ｜ 🎁 通关 +${Math.round(c.reward * 100)}% 全局</div>
+        <div class="ch-meta">🎯 目标 ¥${fmt(c.target)} ｜ ⛔ ${limitTxt} ｜ ${investTxt} ｜ 🎁 通关 +${Math.round(c.reward * 100)}% 全局</div>
       </div>
       <button class="ch-btn" data-ch="${c.id}" ${isActive ? 'disabled' : ''}>${isActive ? '进行中' : (done ? '重玩' : '挑战')}</button>
     </div>`;
