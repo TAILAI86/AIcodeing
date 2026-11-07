@@ -578,7 +578,13 @@
     .market-tools .tool-btn { flex: 1 1 auto; padding: 11px 12px; }
     .sort-bar { width: 100%; justify-content: center; }
     .sort-bar .sort-btn { flex: 1 1 auto; text-align: center; padding: 7px 6px; }
+    .layout.market-mode { max-width: 100%; }
+    .layout.market-mode .left { flex: 1 1 auto; width: 100%; min-width: 0; }
+    .layout.market-mode .right { order: -1; }
+    .layout.market-mode .left { order: 1; }
+    .metric-grid.mkt-metrics { grid-template-columns: 1fr 1fr; }
     .sub-grid { grid-template-columns: 1fr; }
+    .metric-grid { grid-template-columns: 1fr 1fr; }
     .sub-card .mbtns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
     .sub-card .mbtns .sb { min-width: 0; padding: 11px 8px; }
     .cmp-row .ct, .cmp-row .cy { width: 62px; }
@@ -643,7 +649,28 @@
   .path-desc { font-size: 12px; color: var(--muted); }
   html[data-theme="dark"] .path-btn.on { background: #2a2417; }
 
-  .sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 10px; }
+  /* 行情宽屏模式：整页放宽、左栏收窄，让 4 张股票卡 2×2 排布，首屏就能看到操作按钮 */
+  .layout.market-mode { max-width: 1280px; }
+  .layout.market-mode .left { flex: 0 0 300px; min-width: 0; }
+  .layout.market-mode .right { flex: 1 1 auto; min-width: 0; }
+  .mkt-fold { border: 1px solid var(--border); border-left: 3px solid var(--gold); border-radius: 10px; background: var(--panel); margin-bottom: 10px; overflow: hidden; }
+  .mkt-fold > summary { cursor: pointer; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--text); list-style: none; user-select: none; }
+  .mkt-fold > summary::-webkit-details-marker { display: none; }
+  .mkt-fold > summary::before { content: '▸'; display: inline-block; width: 14px; color: var(--gold-dark); transition: transform .2s; }
+  .mkt-fold[open] > summary::before { content: '▾'; }
+  .mkt-fold > summary:hover { background: #fbfbfd; }
+  html[data-theme="dark"] .mkt-fold > summary:hover { background: #232838; }
+  .mkt-fold .mkt-body { padding: 0 12px 12px; font-size: 13px; line-height: 1.8; color: var(--text); }
+  .mkt-fold .mkt-body b { color: var(--gold-dark); }
+  .mkt-fold .mkt-body .hl { color: var(--red); font-weight: 700; }
+  /* 行情指标块：桌面 4 列 1 行；用双类提高特异性，压过 @container 的 .metric-grid{1fr} */
+  .metric-grid.mkt-metrics { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) and (min-width: 641px) {
+    .layout.market-mode { max-width: 1000px; }
+    .layout.market-mode .left { flex: 1.1 1 0; min-width: 300px; }
+    .layout.market-mode .right { flex: 1 1 0; min-width: 300px; }
+  }
   .sub-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--panel); display: flex; flex-direction: column; gap: 6px; }
   .sub-card.done { border-color: var(--gold); background: #fff9ec; }
   html[data-theme="dark"] .sub-card.done { background: #2a2417; }
@@ -691,6 +718,8 @@
   .trend-row .tr-val { width: 74px; flex: none; text-align: right; font-size: 11px; font-weight: 700; color: var(--gold-dark); }
   .market-tools .tool-btn { border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer; background: var(--red); color: #fff; }
   .market-tools .tool-btn:disabled { background: #c9cdd6; cursor: not-allowed; }
+  .market-tools .tool-btn-blue { background: var(--blue); }
+  .market-tools .tool-btn-blue:hover:not(:disabled) { background: #2f6fe0; }
   html[data-theme="dark"] .market-tools .tool-btn:disabled { background: #3a4156; }
   .market-tools .mt-hint { font-size: 12px; color: var(--muted); }
 
@@ -711,7 +740,7 @@
 </style>
 </head>
 <body>
-  <h1>💰 金币工厂<span class="ver">v1.7.0</span></h1>
+  <h1>💰 金币工厂<span class="ver">v1.7.1</span></h1>
   <div class="subtitle">点击赚钱 → 雇人打工 → 躺着数钱 · 天赋成长 · 每日任务 · 离线也能赚 · 股票投资</div>
 
   <div class="layout">
@@ -1737,14 +1766,7 @@ function renderMarket(force) {
   const list = marketSortList();
 
   if (!mktUI.built || force) {
-    box.innerHTML = `<div class="info-box">
-    <span class="ti">📈 行情大厅：这是干什么的？</span>
-    把你赚到的钱投进<b>股票市场</b>：低价买入、高价卖出，<span class="hl">赚到的差价会算进「累计财富」</span>（所以能推里程碑、换声望）。<br>
-    持有的股票每秒都会<b>按当前股价派发分红</b>（收益率见每张卡片），分红同样计入累计财富——这是<span class="hl">不靠点击的第四条收入线</span>。<br>
-    ⚠️ 股价会随机波动，<span class="hl">高买低卖会亏钱</span>；买卖存在价差（买入价高于卖出价）；<span class="hl">挑战期间不能交易、也不发分红</span>。
-  </div>
-
-  <div class="metric-grid">
+    box.innerHTML = `<div class="metric-grid mkt-metrics">
     <div class="metric"><div class="v" id="mkVal">¥0</div><div class="k">持仓总市值</div></div>
     <div class="metric"><div class="v" id="mkDiv">¥0</div><div class="k">每秒分红</div></div>
     <div class="metric"><div class="v" id="mkHeld">0</div><div class="k">持有股数</div></div>
@@ -1759,7 +1781,19 @@ function renderMarket(force) {
 
   <div class="sub-grid" id="mktGrid">${list.map(marketCardShell).join('')}</div>
 
-  <div class="info-box" id="mktFoot" style="margin-top:14px;"></div>`;
+  <details class="mkt-fold" id="mktIntro" style="margin-top:10px;">
+    <summary>📈 行情大厅：这是干什么的？</summary>
+    <div class="mkt-body">
+    把你赚到的钱投进<b>股票市场</b>：低价买入、高价卖出，<span class="hl">赚到的差价会算进「累计财富」</span>（所以能推里程碑、换声望）。<br>
+    持有的股票每秒都会<b>按当前股价派发分红</b>（收益率见每张卡片），分红同样计入累计财富——这是<span class="hl">不靠点击的第四条收入线</span>。<br>
+    ⚠️ 股价会随机波动，<span class="hl">高买低卖会亏钱</span>；买卖存在价差（买入价高于卖出价）；<span class="hl">挑战期间不能交易、也不发分红</span>。
+    </div>
+  </details>
+
+  <details class="mkt-fold" id="mktFootWrap" style="margin-top:10px;">
+    <summary>💡 投资心得</summary>
+    <div class="mkt-body" id="mktFoot"></div>
+  </details>`;
 
     mktUI.built = true;
     mktUI.cards = {};
@@ -1805,7 +1839,12 @@ function updateMarketValues(list) {
   const sellAllBtn = document.getElementById('sellAllBtn');
   if (sellAllBtn) sellAllBtn.disabled = (m.held <= 0 || !!state.challenge);
   const smartBtn = document.getElementById('smartBuyBtn');
-  if (smartBtn) smartBtn.disabled = (!!state.challenge || !marketSmartPick());
+  if (smartBtn) {
+    smartBtn.disabled = (!!state.challenge || !marketSmartPick());
+    smartBtn.title = state.challenge
+      ? '挑战期间不能交易股票'
+      : (marketSmartPick() ? '买入收益率最高的可负担股（10 股）：' + marketSmartPick().name : '余额不足，买不起任何一支股票');
+  }
 
   for (const a of list) {
     const c = mktUI.cards[a.id];
@@ -2849,6 +2888,7 @@ function switchSlot(n) {
   buildShop();
   refresh();
   renderPrestige(); renderPerks(); renderQuests(); renderCheckin(); renderStats(); renderSettings();
+  renderMarket();
   applyOffline();
   renderGoal(); updateBadges();
   addLog(`📂 已切换到存档位 ${n}`);
@@ -2871,6 +2911,7 @@ function clearSlot(n) {
     save();
     applyTheme(); buildShop(); refresh();
     renderPrestige(); renderPerks(); renderQuests(); renderCheckin(); renderStats(); renderSettings();
+    renderMarket();
     addLog(`🗑️ 存档位 ${n} 已清空，重新开始`);
   } else {
     renderSettings();
@@ -3023,6 +3064,9 @@ function switchTab(name) {
   if (name === 'perk') renderPerks();
   if (name === 'settings') renderSettings();
   if (name === 'challenge') renderChallenges();
+  // 行情页需要更宽的画布：进入宽屏模式（左栏收窄、右栏放开），离开时还原
+  const lay = document.querySelector('.layout');
+  if (lay) lay.classList.toggle('market-mode', name === 'market');
   if (name === 'market') renderMarket();
 }
 document.querySelectorAll('.tab').forEach(t => { t.onclick = () => switchTab(t.dataset.tab); });
